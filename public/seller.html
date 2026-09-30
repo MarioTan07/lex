@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seller desk · Kampoeng Semanggi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="leaf4" viewBox="0 0 200 200">
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(45 100 100)"/>
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(135 100 100)"/>
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(225 100 100)"/>
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(315 100 100)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <b>Kampoeng Semanggi</b> <span class="role">Seller desk</span>
+    </a>
+    <nav>
+      <a href="/#market">Catalog</a>
+      <button class="linkish" id="logoutBtn" hidden>Sign out</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- signed out -->
+  <section class="auth" id="authView" hidden>
+    <form class="panel" id="loginForm">
+      <p class="eyebrow">Sellers</p>
+      <h2>Sign in to your stall</h2>
+      <div class="field"><label for="l-email">Email</label><input type="email" id="l-email" autocomplete="username" required></div>
+      <div class="field"><label for="l-pass">Password</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
+      <p class="formerr" id="loginErr" hidden></p>
+      <button class="btn" type="submit">Sign in</button>
+    </form>
+    <form class="panel" id="registerForm">
+      <p class="eyebrow">New seller</p>
+      <h2>Open a stall</h2>
+      <p class="muted small">The kampung admin checks each new stall. Your products appear in the catalog once you're approved.</p>
+      <div class="row2">
+        <div class="field"><label for="r-name">Your name</label><input type="text" id="r-name" autocomplete="name" required maxlength="60"></div>
+        <div class="field"><label for="r-stall">Stall name</label><input type="text" id="r-stall" required maxlength="60" placeholder="Semanggi Bu Sri"></div>
+      </div>
+      <div class="field"><label for="r-phone">WhatsApp number</label><input type="tel" id="r-phone" autocomplete="tel" required maxlength="24"><span class="hint">Buyers see this on their orders.</span></div>
+      <div class="field"><label for="r-email">Email</label><input type="email" id="r-email" autocomplete="username" required maxlength="120"></div>
+      <div class="field"><label for="r-pass">Password</label><input type="password" id="r-pass" autocomplete="new-password" required minlength="8"><span class="hint">At least 8 characters.</span></div>
+      <p class="formerr" id="registerErr" hidden></p>
+      <button class="btn ghost" type="submit">Create seller account</button>
+    </form>
+  </section>
+
+  <!-- signed in -->
+  <section class="desk" id="deskView" hidden>
+    <div class="desk-head">
+      <div>
+        <p class="eyebrow">Your stall</p>
+        <h1 style="font-size:var(--step-2)" id="stallTitle"></h1>
+      </div>
+      <span class="pill" id="statusPill"></span>
+    </div>
+    <p class="banner" id="statusBanner" hidden></p>
+
+    <div class="split">
+      <div class="stack">
+        <div class="desk-head">
+          <h2>Orders</h2>
+          <div class="chips" id="orderFilter">
+            <button aria-pressed="true" data-f="open">Open</button>
+            <button aria-pressed="false" data-f="all">All</button>
+          </div>
+        </div>
+        <div class="orders" id="orders"></div>
+      </div>
+
+      <div class="stack">
+        <form class="panel" id="productForm">
+          <h3 id="productFormTitle">Add a product</h3>
+          <div class="drop">
+            <img id="p-preview" alt="" hidden>
+            <div class="field" style="flex:1;min-width:180px"><label for="p-photo">Photo</label><input type="file" id="p-photo" accept="image/*"></div>
+          </div>
+          <div class="field"><label for="p-name">Product name</label><input type="text" id="p-name" required maxlength="60" placeholder="Pecel semanggi"></div>
+          <div class="row2">
+            <div class="field"><label for="p-price">Price (Rp)</label><input type="number" id="p-price" required min="0" step="500" placeholder="15000"></div>
+            <div class="field"><label for="p-unit">Sold per</label><input type="text" id="p-unit" maxlength="30" placeholder="pincuk"></div>
+          </div>
+          <div class="field"><label for="p-desc">Description</label><textarea id="p-desc" maxlength="240" placeholder="With krupuk puli and extra sauce."></textarea></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn" type="submit" id="saveProductBtn">Add to my stall</button>
+            <button class="btn ghost" type="button" id="cancelEditBtn" hidden>Cancel edit</button>
+          </div>
+        </form>
+
+        <div class="panel mine">
+          <h3>Your products</h3>
+          <div id="myProducts"></div>
+        </div>
+
+        <form class="panel" id="profileForm">
+          <h3>Stall details</h3>
+          <div class="field"><label for="s-name">Your name</label><input type="text" id="s-name" required maxlength="60"></div>
+          <div class="field"><label for="s-stall">Stall name</label><input type="text" id="s-stall" required maxlength="60"></div>
+          <div class="field"><label for="s-phone">WhatsApp number</label><input type="tel" id="s-phone" required maxlength="24"></div>
+          <button class="btn ghost" type="submit">Save details</button>
+        </form>
+
+        <form class="panel" id="passwordForm">
+          <h3>Change password</h3>
+          <div class="field"><label for="pw-cur">Current password</label><input type="password" id="pw-cur" autocomplete="current-password" required></div>
+          <div class="field"><label for="pw-new">New password</label><input type="password" id="pw-new" autocomplete="new-password" required minlength="8"></div>
+          <button class="btn ghost" type="submit">Change password</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="/seller.js"></script>
+</body>
+</html>

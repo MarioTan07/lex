@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Admin · Kampoeng Semanggi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="leaf4" viewBox="0 0 200 200">
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(45 100 100)"/>
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(135 100 100)"/>
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(225 100 100)"/>
+      <path d="M100 100 L62 38 A44 44 0 0 1 138 38 Z" transform="rotate(315 100 100)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <b>Kampoeng Semanggi</b> <span class="role">Admin</span>
+    </a>
+    <nav>
+      <a href="/#market">Catalog</a>
+      <button class="linkish" id="logoutBtn" hidden>Sign out</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="auth single" id="authView" hidden>
+    <form class="panel" id="loginForm">
+      <p class="eyebrow">Admin</p>
+      <h2>Sign in</h2>
+      <div class="field"><label for="l-email">Email</label><input type="email" id="l-email" autocomplete="username" required></div>
+      <div class="field"><label for="l-pass">Password</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
+      <p class="formerr" id="loginErr" hidden></p>
+      <button class="btn" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <section class="desk" id="deskView" hidden>
+    <div class="desk-head">
+      <div>
+        <p class="eyebrow">Kampung admin</p>
+        <h1 style="font-size:var(--step-2)">Stalls, products and orders</h1>
+      </div>
+      <button class="btn ghost small" id="refreshBtn">Refresh</button>
+    </div>
+
+    <dl class="stats" id="stats">
+      <div><dt>Stalls waiting for approval</dt><dd id="st-pending">–</dd></div>
+      <div><dt>Live stalls</dt><dd id="st-approved">–</dd></div>
+      <div><dt>Products listed</dt><dd id="st-products">–</dd></div>
+      <div><dt>Open orders</dt><dd id="st-open">–</dd></div>
+      <div><dt>Orders in the last 24 h</dt><dd id="st-today">–</dd></div>
+      <div><dt>Completed sales</dt><dd id="st-sales" style="font-size:1.35rem">–</dd></div>
+    </dl>
+
+    <div class="tabs" role="tablist" aria-label="Admin sections" style="justify-self:start">
+      <button role="tab" aria-selected="true" data-tab="sellers">Sellers <span class="count" id="pendingCount" hidden>0</span></button>
+      <button role="tab" aria-selected="false" data-tab="products">Products</button>
+      <button role="tab" aria-selected="false" data-tab="orders">Orders</button>
+      <button role="tab" aria-selected="false" data-tab="account">Account</button>
+    </div>
+
+    <div id="view-sellers" role="tabpanel">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Stall</th><th>Seller</th><th>Contact</th><th class="num">Products</th><th class="num">Orders</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <tbody id="sellerRows"></tbody>
+      </table></div>
+    </div>
+
+    <div id="view-products" role="tabpanel" hidden>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>Product</th><th>Stall</th><th class="num">Price</th><th>State</th><th></th></tr></thead>
+        <tbody id="productRows"></tbody>
+      </table></div>
+    </div>
+
+    <div id="view-orders" role="tabpanel" hidden>
+      <div class="stack">
+        <div class="field" style="max-width:240px"><label for="orderStatus">Show</label>
+          <select id="orderStatus">
+            <option value="">All orders</option>
+            <option value="new">New</option><option value="accepted">Accepted</option><option value="ready">Ready</option>
+            <option value="done">Completed</option><option value="declined">Declined</option><option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Placed</th><th>Code</th><th>Stall</th><th>Buyer</th><th>Items</th><th class="num">Total</th><th>Status</th></tr></thead>
+          <tbody id="orderRows"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div id="view-account" role="tabpanel" hidden>
+      <form class="panel" id="passwordForm" style="max-width:420px">
+        <h3>Change admin password</h3>
+        <div class="field"><label for="pw-cur">Current password</label><input type="password" id="pw-cur" autocomplete="current-password" required></div>
+        <div class="field"><label for="pw-new">New password</label><input type="password" id="pw-new" autocomplete="new-password" required minlength="8"></div>
+        <button class="btn" type="submit">Change password</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="/admin.js"></script>
+</body>
+</html>
