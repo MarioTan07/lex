@@ -1,9 +1,10 @@
-import { $, el, rp, when, t, statusLabel, leafSvg, api, toast, confirmTap } from "/common.js";
+import { $, el, rp, when, t, statusLabel, leafSvg, api, toast, confirmTap, mapFrame, mapLink } from "/common.js";
 
 let products = [];
 let filterStall = "all";
 let myOrders = [];
 let catalogLoaded = false;
+let stalls = [];
 
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -178,9 +179,30 @@ $("#trackForm").addEventListener("submit", async (e) => {
 // Keep order statuses fresh while the tab is open.
 setInterval(() => { if (!$("#view-orders").hidden && !document.hidden) refreshOrders(); }, 20000);
 
+// ---------- shop locations ----------
+async function loadShops() {
+  try { ({ stalls } = await api("/api/stalls")); } catch { return; }
+  renderShops();
+}
+function renderShops() {
+  const grid = $("#shopGrid"); grid.replaceChildren();
+  $("#shopsEmpty").hidden = stalls.length > 0;
+  for (const s of stalls) {
+    const link = mapLink(s.shop);
+    grid.append(el("article", { class: "shop" },
+      mapFrame(s.shop, t("shops.mapOf", { name: s.stallName })) || el("div", { class: "photo" }, leafSvg()),
+      el("div", { class: "body" },
+        el("h3", { text: s.stallName }),
+        el("p", { class: "muted", text: s.shop.address || t("shops.noAddress") }),
+        el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
+        link ? el("a", { href: link, target: "_blank", rel: "noopener", class: "small", text: t("shops.openMaps") }) : null)));
+  }
+}
+
 window.addEventListener("langchange", () => {
   if (catalogLoaded) { renderShop(); renderBasket(); } else loadCatalog();
-  renderOrders();
+  renderOrders(); renderShops();
 });
 
 loadCatalog();
+loadShops();

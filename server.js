@@ -71,6 +71,16 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
 `);
 
+// Columns added after the first release; add them to older databases.
+{
+  const have = new Set(db.prepare("PRAGMA table_info(users)").all().map((c) => c.name));
+  const add = {
+    shop_address: "TEXT NOT NULL DEFAULT ''", shop_lat: "REAL", shop_lng: "REAL",
+    home_address: "TEXT NOT NULL DEFAULT ''", home_lat: "REAL", home_lng: "REAL",
+  };
+  for (const [col, type] of Object.entries(add)) if (!have.has(col)) db.exec(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
+}
+
 function tx(fn) {
   db.exec("BEGIN");
   try { const r = fn(); db.exec("COMMIT"); return r; }
@@ -100,24 +110,41 @@ function createSession(res, userId) {
   });
 }
 
-// ---------- first admin ----------
-if (!db.prepare("SELECT 1 FROM users WHERE role = 'admin'").get()) {
-  const email = process.env.ADMIN_EMAIL || "admin@kampungsemanggi.local";
-  const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString("base64url");
-  db.prepare("INSERT INTO users (email, password_hash, role, status, name, created_at) VALUES (?, ?, 'admin', 'approved', 'Admin', ?)")
-    .run(email, hashPassword(password), Date.now());
-  if (!process.env.ADMIN_PASSWORD) {
+// ---------- admin accounts ----------
+// There are two admin accounts. Missing ones are created on start, from
+// ADMIN_EMAIL/ADMIN_PASSWORD and ADMIN2_EMAIL/ADMIN2_PASSWORD, or with a
+// generated password written to DATA_DIR/initial-admin.txt.
+{
+  const slots = [
+    { email: process.env.ADMIN_EMAIL || "admin1@kampoengsemanggi.local", password: process.env.ADMIN_PASSWORD, name: "Admin 1" },
+    { email: process.env.ADMIN2_EMAIL || "admin2@kampoengsemanggi.local", password: process.env.ADMIN2_PASSWORD, name: "Admin 2" },
+  ];
+  // The first release created admin@kampungsemanggi.local; move it to the Kampoeng spelling.
+  const old = db.prepare("SELECT id FROM users WHERE email = 'admin@kampungsemanggi.local' AND role = 'admin'").get();
+  if (old && !db.prepare("SELECT 1 FROM users WHERE email = ?").get(slots[0].email)) {
+    db.prepare("UPDATE users SET email = ?, name = 'Admin 1' WHERE id = ?").run(slots[0].email, old.id);
+    console.log(`Renamed the admin sign-in email admin@kampungsemanggi.local to ${slots[0].email}. The password is unchanged.`);
+  }
+  const existing = db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'").get().n;
+  const notes = [];
+  for (const slot of slots.slice(existing)) {
+    if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(slot.email)) continue;
+    const password = slot.password || crypto.randomBytes(9).toString("base64url");
+    db.prepare("INSERT INTO users (email, password_hash, role, status, name, created_at) VALUES (?, ?, 'admin', 'approved', ?, ?)")
+      .run(slot.email, hashPassword(password), slot.name, Date.now());
+    if (slot.password) console.log(`Created the admin account ${slot.email}.`);
+    else notes.push(`${slot.name}\n  Email: ${slot.email}\n  Password: ${password}\n`);
+  }
+  if (notes.length) {
     const file = path.join(DATA_DIR, "initial-admin.txt");
-    fs.writeFileSync(file, `Admin email: ${email}\nAdmin password: ${password}\nSign in at /admin and change this password.\n`);
-    console.log(`Created the admin account. Its sign-in details are in ${file}`);
-  } else {
-    console.log(`Created the admin account ${email}.`);
+    fs.appendFileSync(file, `\n${notes.join("\n")}Sign in at /admin and change these passwords under Account.\n`);
+    console.log(`Created ${notes.length} admin account(s). Sign-in details are in ${file}`);
   }
 }
 
 // ---------- messages ----------
 // Error messages in Indonesian (default) and English. A var whose value is itself a key here
-// (a field label or an order status) is translated too.
+// (a field label, a place or an order status) is translated too.
 const MESSAGES = {
   id: {
     required: "{label} wajib diisi.",
@@ -125,11 +152,18 @@ const MESSAGES = {
     "label.field": "Kolom ini",
     "label.email": "Email",
     "label.name": "Nama Anda",
-    "label.stall": "Nama lapak",
-    "label.whatsapp": "Nomor WhatsApp",
+    "label.sellerName": "Nama penjual",
+    "label.shopName": "Nama lapak",
+    "label.contactNumber": "Nomor kontak",
     "label.contact": "WhatsApp atau telepon",
     "label.address": "Alamat pengiriman",
     "label.product": "Nama produk",
+    "label.shopAddress": "Alamat lapak",
+    "label.homeAddress": "Alamat rumah",
+    "place.shop": "lapak",
+    "place.home": "rumah",
+    pinPair: "Isi lintang dan bujur untuk titik {place}, atau kosongkan keduanya.",
+    pinInvalid: "Titik peta {place} bukan lokasi yang valid.",
     price: "Masukkan harga dalam Rupiah, misalnya 15000.",
     photoType: "Foto harus berupa gambar JPG, PNG, atau WebP.",
     photoSize: "Foto terlalu besar. Gunakan foto di bawah 1,5 MB.",
@@ -138,13 +172,12 @@ const MESSAGES = {
     throttle: "Terlalu banyak percobaan masuk. Tunggu 15 menit lalu coba lagi.",
     emailInvalid: "Masukkan alamat email yang valid.",
     passwordShort: "Gunakan kata sandi minimal 8 karakter.",
-    emailTaken: "Sudah ada akun dengan email ini. Silakan masuk.",
+    emailTaken: "Sudah ada akun dengan email ini.",
     loginWrong: "Email dan kata sandi tidak cocok.",
     suspended: "Akun ini ditangguhkan. Hubungi admin Kampoeng Semanggi.",
     adminAccount: "Ini akun admin. Masuk di /admin.",
     sellerAccount: "Ini akun penjual. Masuk di /seller.",
     currentWrong: "Kata sandi Anda saat ini salah.",
-    newShort: "Gunakan kata sandi baru minimal 8 karakter.",
     basketEmpty: "Keranjang Anda kosong.",
     qty: "Jumlah setiap barang harus antara 1 dan 99.",
     unavailable: "Ada barang di keranjang Anda yang sudah tidak tersedia. Hapus barang itu lalu coba lagi.",
@@ -171,11 +204,18 @@ const MESSAGES = {
     "label.field": "This field",
     "label.email": "Email",
     "label.name": "Your name",
-    "label.stall": "Stall name",
-    "label.whatsapp": "WhatsApp number",
+    "label.sellerName": "Seller name",
+    "label.shopName": "Shop name",
+    "label.contactNumber": "Contact number",
     "label.contact": "WhatsApp or phone",
     "label.address": "Delivery address",
     "label.product": "Product name",
+    "label.shopAddress": "Shop address",
+    "label.homeAddress": "Home address",
+    "place.shop": "shop",
+    "place.home": "home",
+    pinPair: "Give both latitude and longitude for the {place} pin, or neither.",
+    pinInvalid: "The {place} map pin isn't a valid location.",
     price: "Enter a price in Rupiah, for example 15000.",
     photoType: "The photo must be a JPG, PNG or WebP image.",
     photoSize: "The photo is too large. Use one under 1.5 MB.",
@@ -184,21 +224,20 @@ const MESSAGES = {
     throttle: "Too many sign-in attempts. Wait 15 minutes and try again.",
     emailInvalid: "Enter a valid email address.",
     passwordShort: "Use a password of at least 8 characters.",
-    emailTaken: "An account with this email already exists. Sign in instead.",
+    emailTaken: "An account with this email already exists.",
     loginWrong: "That email and password don't match.",
     suspended: "This account is suspended. Contact the Kampoeng Semanggi admin.",
     adminAccount: "This is an admin account. Sign in at /admin.",
     sellerAccount: "This is a seller account. Sign in at /seller.",
     currentWrong: "Your current password is wrong.",
-    newShort: "Use a new password of at least 8 characters.",
     basketEmpty: "Your basket is empty.",
     qty: "Each quantity must be between 1 and 99.",
     unavailable: "Something in your basket is no longer available. Remove it and try again.",
     noOrderCode: "No order with that code.",
     alreadyAccepted: "The seller has already accepted this order. Contact them to change it.",
-    notYourProduct: "That product isn't in your stall.",
-    maxProducts: "A stall can list up to 200 products.",
-    notYourOrder: "That order isn't for your stall.",
+    notYourProduct: "That product isn't in your shop.",
+    maxProducts: "A shop can list up to 200 products.",
+    notYourOrder: "That order isn't for your shop.",
     badTransition: "An order that is {from} can't be changed to {to}.",
     unknownSellerStatus: "Unknown seller status.",
     noSeller: "No seller with that id.",
@@ -262,7 +301,38 @@ function removePhoto(p) {
   fs.rm(path.join(UPLOAD_DIR, path.basename(p)), () => {});
 }
 function publicUser(u) {
-  return u && { id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone };
+  return u && {
+    id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
+    shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
+    home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
+  };
+}
+// A location is an address plus an optional map pin. `kind` is "shop" or "home".
+function location(v, kind) {
+  const o = v && typeof v === "object" ? v : {};
+  const label = kind === "shop" ? "label.shopAddress" : "label.homeAddress";
+  const address = text(o.address, 300, { label });
+  const has = (x) => x !== null && x !== undefined && x !== "";
+  if (has(o.lat) !== has(o.lng)) throw bad("pinPair", { place: "place." + kind });
+  let lat = null, lng = null;
+  if (has(o.lat)) {
+    lat = Number(o.lat); lng = Number(o.lng);
+    if (!(lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)) throw bad("pinInvalid", { place: "place." + kind });
+  }
+  return { address, lat, lng };
+}
+function sellerFields(body) {
+  return {
+    name: text(body.name, 60, { required: true, label: "label.sellerName" }),
+    stall_name: text(body.stallName, 60, { required: true, label: "label.shopName" }),
+    phone: text(body.phone, 24, { required: true, label: "label.contactNumber" }),
+    ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
+    ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
+  };
+}
+function updateUser(id, f) {
+  const keys = Object.keys(f);
+  db.prepare(`UPDATE users SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`).run(...keys.map((k) => f[k]), id);
 }
 function productOut(p) {
   return {
@@ -316,20 +386,11 @@ function throttle(req) {
 }
 
 // ----- auth -----
-app.post("/api/auth/register", (req, res) => {
-  const email = text(req.body.email, 120, { required: true, label: "label.email" }).toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad("emailInvalid");
-  const password = typeof req.body.password === "string" ? req.body.password : "";
-  if (password.length < 8) throw bad("passwordShort");
-  const name = text(req.body.name, 60, { required: true, label: "label.name" });
-  const stallName = text(req.body.stallName, 60, { required: true, label: "label.stall" });
-  const phone = text(req.body.phone, 24, { required: true, label: "label.whatsapp" });
-  if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) throw bad("emailTaken");
-  const r = db.prepare("INSERT INTO users (email, password_hash, role, status, name, stall_name, phone, created_at) VALUES (?, ?, 'seller', 'pending', ?, ?, ?, ?)")
-    .run(email, hashPassword(password), name, stallName, phone, Date.now());
-  createSession(res, Number(r.lastInsertRowid));
-  res.status(201).json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(r.lastInsertRowid)) });
-});
+// Seller accounts are created by an admin (POST /api/admin/sellers); there is no public sign-up.
+function newPassword(v) {
+  if (typeof v !== "string" || v.length < 8) throw bad("passwordShort");
+  return v;
+}
 
 app.post("/api/auth/login", (req, res) => {
   throttle(req);
@@ -355,8 +416,7 @@ app.get("/api/me", (req, res) => res.json({ user: publicUser(req.user) || null }
 app.post("/api/auth/password", requireRole("seller", "admin"), (req, res) => {
   const { current, next } = req.body;
   if (typeof current !== "string" || !checkPassword(current, req.user.password_hash)) throw bad("currentWrong");
-  if (typeof next !== "string" || next.length < 8) throw bad("newShort");
-  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(next), req.user.id);
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(newPassword(next)), req.user.id);
   db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").run(req.user.id, req.sessionHash);
   res.json({ ok: true });
 });
@@ -368,6 +428,12 @@ app.get("/api/catalog", (_req, res) => {
     WHERE u.role = 'seller' AND u.status = 'approved' AND p.hidden = 0
     ORDER BY u.stall_name COLLATE NOCASE, p.created_at`).all();
   res.json({ products: rows.map(productOut) });
+});
+
+// Shop name, shop location and contact number of every approved seller. Home addresses stay private.
+app.get("/api/stalls", (_req, res) => {
+  const rows = db.prepare("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY stall_name COLLATE NOCASE").all();
+  res.json({ stalls: rows.map((u) => ({ id: u.id, stallName: u.stall_name, phone: u.phone, shop: publicUser(u).shop })) });
 });
 
 app.post("/api/orders", (req, res) => {
@@ -430,10 +496,7 @@ const seller = express.Router();
 seller.use(requireRole("seller"));
 
 seller.patch("/profile", (req, res) => {
-  const stallName = text(req.body.stallName, 60, { required: true, label: "label.stall" });
-  const phone = text(req.body.phone, 24, { required: true, label: "label.whatsapp" });
-  const name = text(req.body.name, 60, { required: true, label: "label.name" });
-  db.prepare("UPDATE users SET stall_name = ?, phone = ?, name = ? WHERE id = ?").run(stallName, phone, name, req.user.id);
+  updateUser(req.user.id, sellerFields(req.body));
   res.json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)) });
 });
 
@@ -522,6 +585,37 @@ admin.get("/sellers", (_req, res) => {
       (SELECT COUNT(*) FROM orders o WHERE o.seller_id = u.id) AS orders
     FROM users u WHERE u.role = 'seller' ORDER BY CASE u.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END, u.created_at DESC`).all();
   res.json({ sellers: rows.map((u) => ({ ...publicUser(u), products: u.products, orders: u.orders, createdAt: u.created_at })) });
+});
+
+admin.post("/sellers", (req, res) => {
+  const email = text(req.body.email, 120, { required: true, label: "label.email" }).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad("emailInvalid");
+  const password = newPassword(req.body.password);
+  const f = sellerFields(req.body);
+  if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) throw bad("emailTaken");
+  const r = db.prepare("INSERT INTO users (email, password_hash, role, status, created_at) VALUES (?, ?, 'seller', 'approved', ?)")
+    .run(email, hashPassword(password), Date.now());
+  updateUser(Number(r.lastInsertRowid), f);
+  res.status(201).json({ id: Number(r.lastInsertRowid) });
+});
+
+const sellerById = (id) => {
+  const u = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'seller'").get(Number(id));
+  if (!u) throw new HttpError(404, "noSeller");
+  return u;
+};
+
+admin.put("/sellers/:id", (req, res) => {
+  const u = sellerById(req.params.id);
+  updateUser(u.id, sellerFields(req.body));
+  res.json({ ok: true });
+});
+
+admin.post("/sellers/:id/password", (req, res) => {
+  const u = sellerById(req.params.id);
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(newPassword(req.body.password)), u.id);
+  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(u.id);
+  res.json({ ok: true });
 });
 
 admin.patch("/sellers/:id", (req, res) => {

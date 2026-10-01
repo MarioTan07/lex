@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
+<link rel="icon" type="image/png" href="/logo-mark.png">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -24,7 +25,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="/">
-      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <img src="/logo-mark.png" alt="">
       <b>Kampoeng Semanggi</b> <span class="role" data-i18n="seller.role">Area penjual</span>
     </a>
     <nav>
@@ -45,27 +46,18 @@
       <p class="formerr" id="loginErr" hidden></p>
       <button class="btn" type="submit" data-i18n="common.signIn">Masuk</button>
     </form>
-    <form class="panel" id="registerForm">
-      <p class="eyebrow" data-i18n="seller.newEyebrow">Penjual baru</p>
-      <h2 data-i18n="seller.openTitle">Buka lapak</h2>
-      <p class="muted small" data-i18n="seller.openIntro">Admin Kampoeng Semanggi memeriksa setiap lapak baru. Produk Anda tampil di katalog setelah lapak disetujui.</p>
-      <div class="row2">
-        <div class="field"><label for="r-name" data-i18n="common.yourName">Nama Anda</label><input type="text" id="r-name" autocomplete="name" required maxlength="60"></div>
-        <div class="field"><label for="r-stall" data-i18n="common.stallName">Nama lapak</label><input type="text" id="r-stall" required maxlength="60" placeholder="Semanggi Bu Sri"></div>
-      </div>
-      <div class="field"><label for="r-phone" data-i18n="common.whatsapp">Nomor WhatsApp</label><input type="tel" id="r-phone" autocomplete="tel" required maxlength="24"><span class="hint" data-i18n="seller.phoneHint">Pembeli melihat nomor ini di pesanan mereka.</span></div>
-      <div class="field"><label for="r-email" data-i18n="common.email">Email</label><input type="email" id="r-email" autocomplete="username" required maxlength="120"></div>
-      <div class="field"><label for="r-pass" data-i18n="common.password">Kata sandi</label><input type="password" id="r-pass" autocomplete="new-password" required minlength="8"><span class="hint" data-i18n="seller.passwordHint">Minimal 8 karakter.</span></div>
-      <p class="formerr" id="registerErr" hidden></p>
-      <button class="btn ghost" type="submit" data-i18n="seller.create">Buat akun penjual</button>
-    </form>
+    <div class="panel">
+      <p class="eyebrow" data-i18n="seller.newEyebrow">Penjual baru?</p>
+      <h2 data-i18n="seller.askTitle">Minta akun ke admin</h2>
+      <p class="muted" data-i18n="seller.askText">Akun penjual dibuat oleh admin Kampoeng Semanggi. Admin akan memberi Anda email dan kata sandi awal. Ganti kata sandi setelah pertama kali masuk.</p>
+    </div>
   </section>
 
   <!-- signed in -->
   <section class="desk" id="deskView" hidden>
     <div class="desk-head">
       <div>
-        <p class="eyebrow" data-i18n="seller.yourStall">Lapak Anda</p>
+        <p class="eyebrow" data-i18n="seller.yourShop">Lapak Anda</p>
         <h1 style="font-size:var(--step-2)" id="stallTitle"></h1>
       </div>
       <span class="pill" id="statusPill"></span>
@@ -99,7 +91,7 @@
           <div class="field"><label for="p-desc" data-i18n="product.description">Deskripsi</label><textarea id="p-desc" maxlength="240" data-i18n-attr="placeholder:product.descriptionPlaceholder" placeholder="Dengan krupuk puli dan bumbu ekstra."></textarea></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn" type="submit" id="saveProductBtn">Tambahkan ke lapak</button>
-            <button class="btn ghost" type="button" id="cancelEditBtn" hidden data-i18n="product.cancelEdit">Batal ubah</button>
+            <button class="btn ghost" type="button" id="cancelEditBtn" hidden data-i18n="common.cancelEdit">Batal ubah</button>
           </div>
         </form>
 
@@ -111,9 +103,12 @@
         <form class="panel" id="profileForm">
           <h3 data-i18n="profile.title">Data lapak</h3>
           <div class="field"><label for="s-name" data-i18n="common.yourName">Nama Anda</label><input type="text" id="s-name" required maxlength="60"></div>
-          <div class="field"><label for="s-stall" data-i18n="common.stallName">Nama lapak</label><input type="text" id="s-stall" required maxlength="60"></div>
-          <div class="field"><label for="s-phone" data-i18n="common.whatsapp">Nomor WhatsApp</label><input type="tel" id="s-phone" required maxlength="24"></div>
-          <button class="btn ghost" type="submit" data-i18n="profile.save">Simpan data</button>
+          <div class="field"><label for="s-stall" data-i18n="common.shopName">Nama lapak</label><input type="text" id="s-stall" required maxlength="60"></div>
+          <div class="field"><label for="s-phone" data-i18n="common.contactNumber">Nomor kontak</label><input type="tel" id="s-phone" required maxlength="24"><span class="hint" data-i18n="seller.contactHint">Ditampilkan ke pembeli bersama peta lapak Anda dan di pesanan mereka.</span></div>
+          <div id="s-shop"></div>
+          <div id="s-home"></div>
+          <p class="formerr" id="profileErr" hidden></p>
+          <button class="btn" type="submit" data-i18n="profile.save">Simpan data</button>
         </form>
 
         <form class="panel" id="passwordForm">

@@ -1,11 +1,17 @@
-import { $, el, rp, when, t, statusLabel, api, toast, shrinkPhoto, confirmTap } from "/common.js";
+import { $, el, rp, when, t, statusLabel, api, toast, shrinkPhoto, confirmTap, locationEditor } from "/common.js";
 
 let me = null;
 let products = [];
 let orders = [];
 let orderFilter = "open";
 let editingId = null;
+let editingName = "";
 let pendingPhoto = null;
+
+const shopLoc = locationEditor("s-shop", "shop", "seller.shopHint");
+const homeLoc = locationEditor("s-home", "home", "seller.homeHint");
+$("#s-shop").replaceWith(shopLoc.node);
+$("#s-home").replaceWith(homeLoc.node);
 
 // ---------- session ----------
 async function start() {
@@ -25,17 +31,6 @@ $("#loginForm").addEventListener("submit", async (e) => {
   try { await api("/api/auth/login", { method: "POST", body: { email: $("#l-email").value, password: $("#l-pass").value, role: "seller" } }); start(); }
   catch (err) { showErr("#loginErr", err.message); }
 });
-$("#registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault(); showErr("#registerErr", "");
-  try {
-    await api("/api/auth/register", { method: "POST", body: {
-      name: $("#r-name").value, stallName: $("#r-stall").value, phone: $("#r-phone").value,
-      email: $("#r-email").value, password: $("#r-pass").value,
-    } });
-    toast(t("seller.created"));
-    start();
-  } catch (err) { showErr("#registerErr", err.message); }
-});
 $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/logout", { method: "POST" }).catch(() => {}); me = null; start(); });
 
 function renderHead() {
@@ -49,6 +44,7 @@ function renderHead() {
 }
 function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
+  shopLoc.set(me.shop); homeLoc.set(me.home);
 }
 
 // Session expired or account suspended mid-visit.
@@ -73,7 +69,7 @@ function renderProducts() {
         el("div", { class: "price", style: "font-size:.875rem" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null,
           p.available ? null : el("small", { text: t("mine.soldOut") }))),
       el("div", { class: "acts" },
-        el("button", { class: "btn small ghost", onclick: () => editProduct(p) }, t("mine.edit")),
+        el("button", { class: "btn small ghost", onclick: () => editProduct(p) }, t("common.edit")),
         el("button", { class: "btn small ghost", onclick: () => setAvailable(p, !p.available) }, p.available ? t("mine.markSoldOut") : t("mine.backOnSale")),
         el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("mine.confirm"), () => removeProduct(p)) }, t("mine.remove")))));
   }
@@ -87,10 +83,9 @@ async function removeProduct(p) {
   catch (e) { handle(e); }
 }
 // Title and button of the product form, which say "add" or "edit <name>".
-let editingName = "";
 function labelProductForm() {
-  $("#productFormTitle").textContent = editingId ? t("product.editTitle", { name: editingName }) : t("product.addTitle");
-  $("#saveProductBtn").textContent = t(editingId ? "product.saveButton" : "product.addButton");
+  $("#productFormTitle").textContent = editingId ? t("common.editTitle", { name: editingName }) : t("product.addTitle");
+  $("#saveProductBtn").textContent = t(editingId ? "common.saveChanges" : "product.addButton");
 }
 function editProduct(p) {
   editingId = p.id; editingName = p.name;
@@ -135,10 +130,15 @@ $("#productForm").addEventListener("submit", async (e) => {
 // ---------- profile & password ----------
 $("#profileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const errBox = $("#profileErr"); errBox.hidden = true;
   try {
-    ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body: { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value } }));
-    renderHead(); toast(t("profile.saved"));
-  } catch (err) { handle(err); }
+    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, shop: shopLoc.get(), home: homeLoc.get() };
+    ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
+    renderHead(); fillProfile(); toast(t("profile.saved"));
+  } catch (err) {
+    if (err.status) return handle(err);
+    errBox.textContent = err.message; errBox.hidden = false;
+  }
 });
 $("#passwordForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -208,5 +208,4 @@ window.addEventListener("langchange", () => {
 });
 
 labelProductForm();
-
 start();

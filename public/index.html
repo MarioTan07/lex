@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
+<link rel="icon" type="image/png" href="/logo-mark.png">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -25,14 +26,15 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#top">
-      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <img src="/logo-mark.png" alt="">
       <b>Kampoeng Semanggi</b>
     </a>
     <nav>
       <a class="opt" href="#about" data-i18n="nav.about">Tentang</a>
       <a class="opt" href="#history" data-i18n="nav.history">Sejarah</a>
       <a href="#market" data-i18n="nav.order">Pesan</a>
-      <a href="/seller" data-i18n="nav.sell">Jualan di sini</a>
+      <a class="opt" href="#shops" data-i18n="nav.shops">Lokasi lapak</a>
+      <a href="/seller" data-i18n="footer.sellerSignIn">Masuk penjual</a>
     </nav>
   </div>
 </header>
@@ -48,10 +50,7 @@
         <a class="btn ghost" href="#about" data-i18n="hero.about">Tentang Kampoeng Semanggi</a>
       </div>
     </div>
-    <svg class="leafmark" viewBox="0 0 200 200" role="img" data-i18n-attr="aria-label:hero.leaf" aria-label="Daun semanggi dengan empat anak daun berbentuk baji">
-      <path class="stem" d="M100 104 C104 140 96 170 108 196"/>
-      <use href="#leaf4" fill="var(--leaf)"/>
-    </svg>
+    <img class="logo" src="/logo.png" data-i18n-attr="alt:hero.logo" alt="Logo Kampoeng Semanggi: daun semanggi berhelai empat dengan rumah dan sawah">
   </section>
 
   <dl class="notes">
@@ -152,6 +151,18 @@
         </form>
         <div class="orders" id="myOrders"></div>
       </div>
+    </div>
+  </section>
+
+  <section class="shops" id="shops">
+    <div>
+      <p class="eyebrow" data-i18n="shops.eyebrow">Lokasi lapak</p>
+      <h2 data-i18n="shops.title">Di mana setiap lapak berada</h2>
+    </div>
+    <div class="grid" id="shopGrid"></div>
+    <div class="empty" id="shopsEmpty" hidden>
+      <h3 data-i18n="shops.empty">Belum ada lapak</h3>
+      <p data-i18n="shops.emptyText">Lokasi dan nomor kontak setiap lapak tampil di sini setelah admin menambahkannya.</p>
     </div>
   </section>
 </main>

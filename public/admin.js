@@ -1,4 +1,4 @@
-import { $, el, rp, when, t, STATUSES, statusLabel, api, toast, confirmTap } from "/common.js";
+import { $, el, rp, when, t, STATUSES, statusLabel, api, toast, confirmTap, locationEditor, mapLink } from "/common.js";
 
 let me = null;
 
@@ -50,23 +50,123 @@ async function loadOverview() {
 }
 
 // ---------- sellers ----------
+const shopLoc = locationEditor("n-shop", "shop", "sellerForm.shopHint");
+const homeLoc = locationEditor("n-home", "home", "sellerForm.homeHint");
+$("#n-shop").replaceWith(shopLoc.node);
+$("#n-home").replaceWith(homeLoc.node);
+
+let sellers = [];
+let editingSeller = null;
+
+function randomPassword() {
+  const abc = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(bytes, (b) => abc[b % abc.length]).join("");
+}
+$("#genPass").addEventListener("click", () => { $("#n-pass").value = randomPassword(); });
+$("#sellerFormToggle").addEventListener("click", () => {
+  const body = $("#sellerFormBody"); body.hidden = !body.hidden;
+  labelSellerForm();
+});
+
+// Title, submit and show/hide buttons of the seller form, which depend on whether it's creating or editing.
+function labelSellerForm() {
+  $("#sellerFormTitle").textContent = editingSeller ? t("common.editTitle", { name: editingSeller.stallName }) : t("sellerForm.createTitle");
+  $("#sellerSubmit").textContent = t(editingSeller ? "common.saveChanges" : "sellerForm.createTitle");
+  $("#sellerFormToggle").textContent = t($("#sellerFormBody").hidden ? "sellerForm.show" : "sellerForm.hide");
+}
+
+function resetSellerForm() {
+  editingSeller = null;
+  $("#sellerForm").reset(); shopLoc.set(null); homeLoc.set(null);
+  $("#accountFields").hidden = false;
+  labelSellerForm();
+  $("#sellerCancel").hidden = true; $("#sellerErr").hidden = true;
+}
+$("#sellerCancel").addEventListener("click", resetSellerForm);
+
+function editSeller(s) {
+  editingSeller = s;
+  $("#sellerFormBody").hidden = false;
+  $("#accountFields").hidden = true;
+  $("#n-name").value = s.name; $("#n-stall").value = s.stallName; $("#n-phone").value = s.phone;
+  shopLoc.set(s.shop); homeLoc.set(s.home);
+  labelSellerForm();
+  $("#sellerCancel").hidden = false; $("#sellerErr").hidden = true;
+  $("#sellerForm").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("#sellerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errBox = $("#sellerErr"); errBox.hidden = true;
+  const btn = $("#sellerSubmit"); btn.disabled = true;
+  try {
+    const body = { name: $("#n-name").value, stallName: $("#n-stall").value, phone: $("#n-phone").value, shop: shopLoc.get(), home: homeLoc.get() };
+    if (editingSeller) {
+      await api("/api/admin/sellers/" + editingSeller.id, { method: "PUT", body });
+      toast(t("sellerForm.saved", { name: body.stallName }));
+    } else {
+      body.email = $("#n-email").value; body.password = $("#n-pass").value;
+      if (!body.email) throw new Error(t("sellerForm.needEmail"));
+      await api("/api/admin/sellers", { method: "POST", body });
+      showPassword(body.stallName, body.email, body.password);
+      toast(t("sellerForm.created"));
+    }
+    resetSellerForm(); loadSellers(); loadOverview();
+  } catch (err) {
+    if (err.status === 401 || err.status === 403) handle(err);
+    else { errBox.textContent = err.message; errBox.hidden = false; }
+  }
+  btn.disabled = false;
+});
+
+// Show a new password once so the admin can pass it on to the seller.
+function showPassword(stall, email, password) {
+  const n = $("#pwNotice");
+  n.replaceChildren(
+    el("strong", { text: stall + ": " }), t("pw.email"), el("strong", { text: email }), t("pw.password"),
+    el("strong", { class: "num", style: "font-family:ui-monospace,Consolas,monospace", text: password }),
+    t("pw.note"),
+    el("button", { class: "linkish", type: "button", onclick: () => (n.hidden = true) }, t("pw.dismiss")));
+  n.hidden = false;
+  n.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function resetPassword(s) {
+  const password = randomPassword();
+  try {
+    await api(`/api/admin/sellers/${s.id}/password`, { method: "POST", body: { password } });
+    showPassword(s.stallName, s.email, password);
+  } catch (e) { handle(e); }
+}
+
+function locCell(loc) {
+  const link = mapLink(loc);
+  return el("td", { class: "loc-cell" },
+    el("div", { class: "small", text: loc.address || t("admin.notAdded") }),
+    link ? el("a", { href: link, target: "_blank", rel: "noopener", text: t("admin.viewMaps") }) : null);
+}
+
 async function loadSellers() {
-  let sellers;
   try { ({ sellers } = await api("/api/admin/sellers")); } catch (e) { return handle(e); }
+  renderSellers();
+}
+function renderSellers() {
   const body = $("#sellerRows"); body.replaceChildren();
   if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "8", class: "muted", text: t("admin.noSellers") })));
   for (const s of sellers) {
-    const act = (status, label, cls = "ghost") => el("button", { class: "btn small " + cls, onclick: () => setSeller(s, status) }, label);
     body.append(el("tr", {},
-      el("td", {}, el("strong", { text: s.stallName })),
-      el("td", { text: s.name }),
-      el("td", {}, el("div", { text: s.phone }), el("div", { class: "muted small", text: s.email })),
+      el("td", {}, el("strong", { text: s.stallName }), el("div", { class: "muted small", text: t("admin.joined", { date: when(s.createdAt) }) })),
+      el("td", {}, el("div", { text: s.name }), el("div", { class: "num", text: s.phone }), el("div", { class: "muted small", text: s.email })),
+      locCell(s.shop),
+      locCell(s.home),
       el("td", { class: "num", text: String(s.products) }),
       el("td", { class: "num", text: String(s.orders) }),
-      el("td", { class: "num small", text: when(s.createdAt) }),
       el("td", {}, el("span", { class: "pill " + s.status, text: t("sellerStatus." + s.status) })),
       el("td", {}, el("div", { class: "acts" },
-        s.status !== "approved" ? act("approved", t("admin.approve"), "") : null,
+        el("button", { class: "btn small ghost", onclick: () => editSeller(s) }, t("common.edit")),
+        el("button", { class: "btn small ghost", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.resetConfirm"), () => resetPassword(s)) }, t("admin.resetPassword")),
+        s.status !== "approved" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, t(s.status === "suspended" ? "admin.reactivate" : "admin.approve")) : null,
         s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.suspendConfirm"), () => setSeller(s, "suspended")) }, t("admin.suspend")) : null))));
   }
 }
@@ -134,6 +234,10 @@ $("#passwordForm").addEventListener("submit", async (e) => {
   catch (err) { handle(err); }
 });
 
-window.addEventListener("langchange", () => { if (me) refreshAll(); });
+window.addEventListener("langchange", () => {
+  labelSellerForm();
+  if (me) { renderSellers(); loadProducts(); loadOrders(); }
+});
 
+labelSellerForm();
 start();
