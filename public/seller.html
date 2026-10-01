@@ -64,18 +64,9 @@
     </div>
     <p class="banner" id="statusBanner" hidden></p>
 
-    <div class="split">
-      <div class="stack">
-        <div class="desk-head">
-          <h2 data-i18n="seller.orders">Pesanan</h2>
-          <div class="chips" id="orderFilter">
-            <button aria-pressed="true" data-f="open" data-i18n="seller.filterOpen">Aktif</button>
-            <button aria-pressed="false" data-f="all" data-i18n="seller.filterAll">Semua</button>
-          </div>
-        </div>
-        <div class="orders" id="orders"></div>
-      </div>
+    <p class="muted" data-i18n="seller.howBuyersOrder">Pembeli menelepon atau mengirim WhatsApp ke nomor kontak Anda untuk memesan, lalu mengambil pesanan di lapak Anda.</p>
 
+    <div class="split">
       <div class="stack">
         <form class="panel" id="productForm">
           <h3 id="productFormTitle">Tambah produk</h3>
@@ -99,7 +90,9 @@
           <h3 data-i18n="mine.title">Produk Anda</h3>
           <div id="myProducts"></div>
         </div>
+      </div>
 
+      <div class="stack">
         <form class="panel" id="profileForm">
           <h3 data-i18n="profile.title">Data lapak</h3>
           <div class="field"><label for="s-name" data-i18n="common.yourName">Nama Anda</label><input type="text" id="s-name" required maxlength="60"></div>

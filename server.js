@@ -45,6 +45,8 @@ db.exec(`
     hidden INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL
   );
+  -- Orders from when the site took online orders. Buyers now call or WhatsApp the seller,
+  -- so nothing writes to these tables any more; they're kept so old orders aren't lost.
   CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY,
     code TEXT NOT NULL UNIQUE,
@@ -79,12 +81,6 @@ db.exec(`
     home_address: "TEXT NOT NULL DEFAULT ''", home_lat: "REAL", home_lng: "REAL",
   };
   for (const [col, type] of Object.entries(add)) if (!have.has(col)) db.exec(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
-}
-
-function tx(fn) {
-  db.exec("BEGIN");
-  try { const r = fn(); db.exec("COMMIT"); return r; }
-  catch (e) { db.exec("ROLLBACK"); throw e; }
 }
 
 // ---------- passwords & sessions ----------
@@ -144,19 +140,16 @@ function createSession(res, userId) {
 
 // ---------- messages ----------
 // Error messages in Indonesian (default) and English. A var whose value is itself a key here
-// (a field label, a place or an order status) is translated too.
+// (a field label or a place) is translated too.
 const MESSAGES = {
   id: {
     required: "{label} wajib diisi.",
     tooLong: "{label} maksimal {max} karakter.",
     "label.field": "Kolom ini",
     "label.email": "Email",
-    "label.name": "Nama Anda",
     "label.sellerName": "Nama penjual",
     "label.shopName": "Nama lapak",
     "label.contactNumber": "Nomor kontak",
-    "label.contact": "WhatsApp atau telepon",
-    "label.address": "Alamat pengiriman",
     "label.product": "Nama produk",
     "label.shopAddress": "Alamat lapak",
     "label.homeAddress": "Alamat rumah",
@@ -178,37 +171,24 @@ const MESSAGES = {
     adminAccount: "Ini akun admin. Masuk di /admin.",
     sellerAccount: "Ini akun penjual. Masuk di /seller.",
     currentWrong: "Kata sandi Anda saat ini salah.",
-    basketEmpty: "Keranjang Anda kosong.",
-    qty: "Jumlah setiap barang harus antara 1 dan 99.",
-    unavailable: "Ada barang di keranjang Anda yang sudah tidak tersedia. Hapus barang itu lalu coba lagi.",
-    noOrderCode: "Tidak ada pesanan dengan kode itu.",
-    alreadyAccepted: "Penjual sudah menerima pesanan ini. Hubungi penjual untuk mengubahnya.",
     notYourProduct: "Produk itu bukan milik lapak Anda.",
     maxProducts: "Satu lapak bisa memajang maksimal 200 produk.",
-    notYourOrder: "Pesanan itu bukan untuk lapak Anda.",
-    badTransition: "Pesanan berstatus {from} tidak bisa diubah menjadi {to}.",
     unknownSellerStatus: "Status penjual tidak dikenal.",
     noSeller: "Tidak ada penjual dengan id itu.",
     noProduct: "Tidak ada produk dengan id itu.",
-    unknownOrderStatus: "Status pesanan tidak dikenal.",
-    noOrder: "Tidak ada pesanan dengan id itu.",
     notFound: "Tidak ditemukan.",
     tooLarge: "Unggahan itu terlalu besar.",
     badRequest: "Permintaan tidak bisa dibaca. Coba lagi.",
     server: "Terjadi kesalahan di server. Coba lagi.",
-    new: "baru", accepted: "diterima", ready: "siap", done: "selesai", declined: "ditolak", cancelled: "dibatalkan",
   },
   en: {
     required: "{label} is required.",
     tooLong: "{label} must be {max} characters or fewer.",
     "label.field": "This field",
     "label.email": "Email",
-    "label.name": "Your name",
     "label.sellerName": "Seller name",
     "label.shopName": "Shop name",
     "label.contactNumber": "Contact number",
-    "label.contact": "WhatsApp or phone",
-    "label.address": "Delivery address",
     "label.product": "Product name",
     "label.shopAddress": "Shop address",
     "label.homeAddress": "Home address",
@@ -230,25 +210,15 @@ const MESSAGES = {
     adminAccount: "This is an admin account. Sign in at /admin.",
     sellerAccount: "This is a seller account. Sign in at /seller.",
     currentWrong: "Your current password is wrong.",
-    basketEmpty: "Your basket is empty.",
-    qty: "Each quantity must be between 1 and 99.",
-    unavailable: "Something in your basket is no longer available. Remove it and try again.",
-    noOrderCode: "No order with that code.",
-    alreadyAccepted: "The seller has already accepted this order. Contact them to change it.",
     notYourProduct: "That product isn't in your shop.",
     maxProducts: "A shop can list up to 200 products.",
-    notYourOrder: "That order isn't for your shop.",
-    badTransition: "An order that is {from} can't be changed to {to}.",
     unknownSellerStatus: "Unknown seller status.",
     noSeller: "No seller with that id.",
     noProduct: "No product with that id.",
-    unknownOrderStatus: "Unknown order status.",
-    noOrder: "No order with that id.",
     notFound: "Not found.",
     tooLarge: "That upload is too large.",
     badRequest: "The request couldn't be read. Try again.",
     server: "Something went wrong on the server. Try again.",
-    new: "new", accepted: "accepted", ready: "ready", done: "completed", declined: "declined", cancelled: "cancelled",
   },
 };
 function requestLang(req) {
@@ -280,12 +250,6 @@ function money(v) {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("price");
   return Math.round(n);
-}
-function makeCode() {
-  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let c = "";
-  for (const b of crypto.randomBytes(8)) c += abc[b % abc.length];
-  return c;
 }
 function savePhoto(dataUrl) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || "");
@@ -340,21 +304,6 @@ function productOut(p) {
     description: p.description, photo: p.photo, available: !!p.available, hidden: !!p.hidden, createdAt: p.created_at,
   };
 }
-const itemsFor = db.prepare("SELECT product_id AS productId, name, unit, price, qty FROM order_items WHERE order_id = ?");
-function orderOut(o, { withContact = false } = {}) {
-  const out = {
-    id: o.id, code: o.code, sellerId: o.seller_id, stallName: o.stall_name, stallPhone: o.stall_phone,
-    fulfil: o.fulfil, status: o.status, total: o.total, note: o.note, createdAt: o.created_at, updatedAt: o.updated_at,
-    items: itemsFor.all(o.id),
-  };
-  if (withContact) Object.assign(out, { buyerName: o.buyer_name, contact: o.contact, address: o.address });
-  else out.buyerName = o.buyer_name;
-  return out;
-}
-const ORDER_SELECT = `SELECT o.*, u.stall_name, u.phone AS stall_phone FROM orders o JOIN users u ON u.id = o.seller_id`;
-const STATUSES = ["new", "accepted", "ready", "done", "declined", "cancelled"];
-const SELLER_NEXT = { new: ["accepted", "declined"], accepted: ["ready", "declined"], ready: ["done"] };
-
 // ---------- app ----------
 const app = express();
 app.set("trust proxy", 1);
@@ -421,7 +370,8 @@ app.post("/api/auth/password", requireRole("seller", "admin"), (req, res) => {
   res.json({ ok: true });
 });
 
-// ----- public catalog & orders -----
+// ----- public catalog -----
+// Buyers order by calling or messaging the seller, so the public API only lists products and shops.
 app.get("/api/catalog", (_req, res) => {
   const rows = db.prepare(`
     SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id
@@ -434,61 +384,6 @@ app.get("/api/catalog", (_req, res) => {
 app.get("/api/stalls", (_req, res) => {
   const rows = db.prepare("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY stall_name COLLATE NOCASE").all();
   res.json({ stalls: rows.map((u) => ({ id: u.id, stallName: u.stall_name, phone: u.phone, shop: publicUser(u).shop })) });
-});
-
-app.post("/api/orders", (req, res) => {
-  const buyerName = text(req.body.buyerName, 60, { required: true, label: "label.name" });
-  const contact = text(req.body.contact, 24, { required: true, label: "label.contact" });
-  const fulfil = req.body.fulfil === "delivery" ? "delivery" : "pickup";
-  const address = fulfil === "delivery" ? text(req.body.address, 300, { required: true, label: "label.address" }) : "";
-  const note = text(req.body.note, 300);
-  const items = Array.isArray(req.body.items) ? req.body.items.slice(0, 50) : [];
-  if (!items.length) throw bad("basketEmpty");
-
-  const getProduct = db.prepare(`SELECT p.* FROM products p JOIN users u ON u.id = p.seller_id
-    WHERE p.id = ? AND p.hidden = 0 AND p.available = 1 AND u.status = 'approved' AND u.role = 'seller'`);
-  const bySeller = new Map();
-  for (const it of items) {
-    const qty = Math.floor(Number(it.qty));
-    if (!(qty >= 1 && qty <= 99)) throw bad("qty");
-    const p = getProduct.get(Number(it.productId));
-    if (!p) throw bad("unavailable");
-    if (!bySeller.has(p.seller_id)) bySeller.set(p.seller_id, []);
-    bySeller.get(p.seller_id).push({ p, qty });
-  }
-
-  const created = tx(() => {
-    const out = [];
-    const now = Date.now();
-    for (const [sellerId, lines] of bySeller) {
-      const total = lines.reduce((a, l) => a + l.p.price * l.qty, 0);
-      let code; do { code = makeCode(); } while (db.prepare("SELECT 1 FROM orders WHERE code = ?").get(code));
-      const r = db.prepare(`INSERT INTO orders (code, seller_id, buyer_name, contact, fulfil, address, note, status, total, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?)`).run(code, sellerId, buyerName, contact, fulfil, address, note, total, now, now);
-      const ins = db.prepare("INSERT INTO order_items (order_id, product_id, name, unit, price, qty) VALUES (?, ?, ?, ?, ?, ?)");
-      for (const l of lines) ins.run(r.lastInsertRowid, l.p.id, l.p.name, l.p.unit, l.p.price, l.qty);
-      out.push(code);
-    }
-    return out;
-  });
-  const orders = created.map((c) => orderOut(db.prepare(ORDER_SELECT + " WHERE o.code = ?").get(c)));
-  res.status(201).json({ orders });
-});
-
-// Buyers track orders by their order codes (kept in their browser).
-app.get("/api/orders", (req, res) => {
-  const codes = String(req.query.codes || "").toUpperCase().split(",").map((s) => s.trim()).filter((s) => /^[A-Z0-9]{8}$/.test(s)).slice(0, 50);
-  if (!codes.length) return res.json({ orders: [] });
-  const rows = db.prepare(ORDER_SELECT + ` WHERE o.code IN (${codes.map(() => "?").join(",")}) ORDER BY o.created_at DESC`).all(...codes);
-  res.json({ orders: rows.map((o) => orderOut(o)) });
-});
-
-app.post("/api/orders/:code/cancel", (req, res) => {
-  const o = db.prepare("SELECT * FROM orders WHERE code = ?").get(String(req.params.code).toUpperCase());
-  if (!o) throw new HttpError(404, "noOrderCode");
-  if (o.status !== "new") throw bad("alreadyAccepted");
-  db.prepare("UPDATE orders SET status = 'cancelled', updated_at = ? WHERE id = ?").run(Date.now(), o.id);
-  res.json({ ok: true });
 });
 
 // ----- seller -----
@@ -545,19 +440,6 @@ seller.delete("/products/:id", (req, res) => {
   res.json({ ok: true });
 });
 
-seller.get("/orders", (req, res) => {
-  const rows = db.prepare(ORDER_SELECT + " WHERE o.seller_id = ? ORDER BY o.created_at DESC LIMIT 300").all(req.user.id);
-  res.json({ orders: rows.map((o) => orderOut(o, { withContact: true })) });
-});
-
-seller.patch("/orders/:id", (req, res) => {
-  const o = db.prepare("SELECT * FROM orders WHERE id = ? AND seller_id = ?").get(Number(req.params.id), req.user.id);
-  if (!o) throw new HttpError(404, "notYourOrder");
-  const status = req.body.status;
-  if (!(SELLER_NEXT[o.status] || []).includes(status)) throw bad("badTransition", { from: o.status, to: status });
-  db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(status, Date.now(), o.id);
-  res.json({ ok: true });
-});
 app.use("/api/seller", seller);
 
 // ----- admin -----
@@ -565,8 +447,7 @@ const admin = express.Router();
 admin.use(requireRole("admin"));
 
 admin.get("/overview", (_req, res) => {
-  const count = (sql, ...a) => db.prepare(sql).get(...a).n;
-  const dayAgo = Date.now() - 864e5;
+  const count = (sql) => db.prepare(sql).get().n;
   res.json({
     sellers: {
       approved: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'approved'"),
@@ -574,17 +455,13 @@ admin.get("/overview", (_req, res) => {
       suspended: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'suspended'"),
     },
     products: count("SELECT COUNT(*) AS n FROM products"),
-    ordersOpen: count("SELECT COUNT(*) AS n FROM orders WHERE status IN ('new', 'accepted', 'ready')"),
-    ordersToday: count("SELECT COUNT(*) AS n FROM orders WHERE created_at > ?", dayAgo),
-    salesDone: db.prepare("SELECT COALESCE(SUM(total), 0) AS n FROM orders WHERE status = 'done'").get().n,
   });
 });
 
 admin.get("/sellers", (_req, res) => {
-  const rows = db.prepare(`SELECT u.*, (SELECT COUNT(*) FROM products p WHERE p.seller_id = u.id) AS products,
-      (SELECT COUNT(*) FROM orders o WHERE o.seller_id = u.id) AS orders
+  const rows = db.prepare(`SELECT u.*, (SELECT COUNT(*) FROM products p WHERE p.seller_id = u.id) AS products
     FROM users u WHERE u.role = 'seller' ORDER BY CASE u.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END, u.created_at DESC`).all();
-  res.json({ sellers: rows.map((u) => ({ ...publicUser(u), products: u.products, orders: u.orders, createdAt: u.created_at })) });
+  res.json({ sellers: rows.map((u) => ({ ...publicUser(u), products: u.products, createdAt: u.created_at })) });
 });
 
 admin.post("/sellers", (req, res) => {
@@ -646,20 +523,6 @@ admin.delete("/products/:id", (req, res) => {
   res.json({ ok: true });
 });
 
-admin.get("/orders", (req, res) => {
-  const status = STATUSES.includes(req.query.status) ? req.query.status : null;
-  const rows = status
-    ? db.prepare(ORDER_SELECT + " WHERE o.status = ? ORDER BY o.created_at DESC LIMIT 500").all(status)
-    : db.prepare(ORDER_SELECT + " ORDER BY o.created_at DESC LIMIT 500").all();
-  res.json({ orders: rows.map((o) => orderOut(o, { withContact: true })) });
-});
-
-admin.patch("/orders/:id", (req, res) => {
-  if (!STATUSES.includes(req.body.status)) throw bad("unknownOrderStatus");
-  const r = db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(req.body.status, Date.now(), Number(req.params.id));
-  if (!r.changes) throw new HttpError(404, "noOrder");
-  res.json({ ok: true });
-});
 app.use("/api/admin", admin);
 
 // ----- static files -----

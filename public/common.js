@@ -19,8 +19,6 @@ export const rp = (n) => "Rp " + new Intl.NumberFormat("id-ID").format(Math.roun
 export const when = (time) =>
   new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(time));
 
-export const STATUSES = ["new", "accepted", "ready", "done", "declined", "cancelled"];
-export const statusLabel = (s) => (STATUSES.includes(s) ? t("status." + s) : s);
 
 export function leafSvg() {
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -96,6 +94,35 @@ export function mapFrame(loc, title = t("loc.map")) {
 export function mapLink(loc) {
   const q = mapQuery(loc);
   return q ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q) : null;
+}
+
+// Google Maps route from wherever the buyer is to a location.
+export function directionsLink(loc) {
+  const q = mapQuery(loc);
+  return q ? "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(q) : null;
+}
+
+// ---------- calling & WhatsApp ----------
+// Indonesian numbers are written like 0812 3456 7890; WhatsApp needs them as 62812...
+function waNumber(phone) {
+  let d = String(phone || "").replace(/\D/g, "");
+  if (d.startsWith("0")) d = "62" + d.slice(1);
+  else if (d.startsWith("8")) d = "62" + d;
+  return d.length >= 8 ? d : null;
+}
+function telNumber(phone) {
+  const d = String(phone || "").replace(/[^\d+]/g, "");
+  return d.replace(/\D/g, "").length >= 5 ? d : null;
+}
+
+// Call / WhatsApp / Directions buttons for a seller. `message` pre-fills the WhatsApp chat.
+export function contactButtons(stall, message, { directions = true } = {}) {
+  const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
+  const name = stall.stallName;
+  return el("div", { class: "reach" },
+    tel ? el("a", { class: "btn small", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, t("contact.call")) : null,
+    wa ? el("a", { class: "btn small wa", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, t("contact.whatsapp")) : null,
+    dir ? el("a", { class: "btn small ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, t("contact.directions")) : null);
 }
 
 // Read a pin from "lat, lng" or a full Google Maps link.

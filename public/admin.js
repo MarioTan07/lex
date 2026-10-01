@@ -1,4 +1,4 @@
-import { $, el, rp, when, t, STATUSES, statusLabel, api, toast, confirmTap, locationEditor, mapLink } from "/common.js";
+import { $, el, rp, when, t, api, toast, confirmTap, locationEditor, mapLink } from "/common.js";
 
 let me = null;
 
@@ -27,10 +27,10 @@ function handle(err) {
 // ---------- tabs ----------
 document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-  ["sellers", "products", "orders", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
+  ["sellers", "products", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
 }));
 
-function refreshAll() { loadOverview(); loadSellers(); loadProducts(); loadOrders(); }
+function refreshAll() { loadOverview(); loadSellers(); loadProducts(); }
 $("#refreshBtn").addEventListener("click", refreshAll);
 
 // ---------- overview ----------
@@ -41,9 +41,6 @@ async function loadOverview() {
     $("#st-pending").classList.toggle("alert", s.sellers.pending > 0);
     $("#st-approved").textContent = s.sellers.approved;
     $("#st-products").textContent = s.products;
-    $("#st-open").textContent = s.ordersOpen;
-    $("#st-today").textContent = s.ordersToday;
-    $("#st-sales").textContent = rp(s.salesDone);
     $("#pendingCount").textContent = s.sellers.pending;
     $("#pendingCount").hidden = !s.sellers.pending;
   } catch (e) { handle(e); }
@@ -153,7 +150,7 @@ async function loadSellers() {
 }
 function renderSellers() {
   const body = $("#sellerRows"); body.replaceChildren();
-  if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "8", class: "muted", text: t("admin.noSellers") })));
+  if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "7", class: "muted", text: t("admin.noSellers") })));
   for (const s of sellers) {
     body.append(el("tr", {},
       el("td", {}, el("strong", { text: s.stallName }), el("div", { class: "muted small", text: t("admin.joined", { date: when(s.createdAt) }) })),
@@ -161,7 +158,6 @@ function renderSellers() {
       locCell(s.shop),
       locCell(s.home),
       el("td", { class: "num", text: String(s.products) }),
-      el("td", { class: "num", text: String(s.orders) }),
       el("td", {}, el("span", { class: "pill " + s.status, text: t("sellerStatus." + s.status) })),
       el("td", {}, el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => editSeller(s) }, t("common.edit")),
@@ -203,30 +199,6 @@ async function deleteProduct(p) {
   catch (e) { handle(e); }
 }
 
-// ---------- orders ----------
-$("#orderStatus").addEventListener("change", loadOrders);
-async function loadOrders() {
-  let orders;
-  const f = $("#orderStatus").value;
-  try { ({ orders } = await api("/api/admin/orders" + (f ? "?status=" + f : ""))); } catch (e) { return handle(e); }
-  const body = $("#orderRows"); body.replaceChildren();
-  if (!orders.length) body.append(el("tr", {}, el("td", { colspan: "7", class: "muted", text: t(f ? "admin.noOrdersStatus" : "admin.noOrders") })));
-  for (const o of orders) {
-    const sel = el("select", { "aria-label": t("admin.statusOf", { code: o.code }), onchange: async (ev) => {
-      try { await api("/api/admin/orders/" + o.id, { method: "PATCH", body: { status: ev.target.value } }); toast(t("admin.orderSet", { code: o.code, status: statusLabel(ev.target.value).toLowerCase() })); loadOverview(); }
-      catch (e) { handle(e); ev.target.value = o.status; }
-    } }, STATUSES.map((v) => el("option", { value: v, selected: v === o.status }, statusLabel(v))));
-    body.append(el("tr", {},
-      el("td", { class: "num small", text: when(o.createdAt) }),
-      el("td", { class: "small", style: "font-family:ui-monospace,Consolas,monospace", text: o.code }),
-      el("td", { text: o.stallName }),
-      el("td", {}, el("div", { text: o.buyerName }), el("div", { class: "muted small", text: o.contact + t(o.fulfil === "delivery" ? "admin.viaDelivery" : "admin.viaPickup") })),
-      el("td", { class: "small", text: o.items.map((i) => i.qty + "× " + i.name).join(", ") }),
-      el("td", { class: "num", text: rp(o.total) }),
-      el("td", {}, sel)));
-  }
-}
-
 // ---------- account ----------
 $("#passwordForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -236,7 +208,7 @@ $("#passwordForm").addEventListener("submit", async (e) => {
 
 window.addEventListener("langchange", () => {
   labelSellerForm();
-  if (me) { renderSellers(); loadProducts(); loadOrders(); }
+  if (me) { renderSellers(); loadProducts(); }
 });
 
 labelSellerForm();

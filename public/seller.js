@@ -1,9 +1,7 @@
-import { $, el, rp, when, t, statusLabel, api, toast, shrinkPhoto, confirmTap, locationEditor } from "/common.js";
+import { $, el, rp, t, api, toast, shrinkPhoto, confirmTap, locationEditor } from "/common.js";
 
 let me = null;
 let products = [];
-let orders = [];
-let orderFilter = "open";
 let editingId = null;
 let editingName = "";
 let pendingPhoto = null;
@@ -21,7 +19,7 @@ async function start() {
   $("#authView").hidden = !!me;
   $("#deskView").hidden = !me;
   $("#logoutBtn").hidden = !me;
-  if (me) { renderHead(); fillProfile(); loadProducts(); loadOrders(); }
+  if (me) { renderHead(); fillProfile(); loadProducts(); }
 }
 
 function showErr(id, msg) { const p = $(id); p.textContent = msg; p.hidden = !msg; }
@@ -146,65 +144,9 @@ $("#passwordForm").addEventListener("submit", async (e) => {
   catch (err) { handle(err); }
 });
 
-// ---------- orders ----------
-async function loadOrders() {
-  try { ({ orders } = await api("/api/seller/orders")); } catch (e) { return handle(e); }
-  renderOrders();
-}
-document.querySelectorAll("#orderFilter button").forEach((b) => b.addEventListener("click", () => {
-  orderFilter = b.dataset.f;
-  document.querySelectorAll("#orderFilter button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-  renderOrders();
-}));
-
-const NEXT = {
-  new: [["accepted", "sellerOrders.accept", ""], ["declined", "sellerOrders.decline", "warn"]],
-  accepted: [["ready", null, ""], ["declined", "sellerOrders.decline", "warn"]],
-  ready: [["done", "sellerOrders.markDone", ""]],
-};
-function renderOrders() {
-  const box = $("#orders"); box.replaceChildren();
-  const rank = { new: 0, accepted: 1, ready: 2, done: 3, declined: 4, cancelled: 4 };
-  const list = orders
-    .filter((o) => orderFilter === "all" || ["new", "accepted", "ready"].includes(o.status))
-    .sort((a, b) => rank[a.status] - rank[b.status] || b.createdAt - a.createdAt);
-  if (!list.length) {
-    box.append(el("div", { class: "empty" }, el("h3", { text: orderFilter === "open" ? t("sellerOrders.noOpen") : t("common.noOrders") }),
-      el("p", { text: t("sellerOrders.emptyText") })));
-    return;
-  }
-  for (const o of list) {
-    const acts = (NEXT[o.status] || []).map(([status, label, cls]) =>
-      el("button", { class: "btn small " + cls, onclick: (ev) => setStatus(o, status, ev.currentTarget) },
-        t(label || (o.fulfil === "delivery" ? "sellerOrders.outForDelivery" : "sellerOrders.readyForPickup"))));
-    box.append(el("article", { class: "order" },
-      el("header", {},
-        el("div", {}, el("strong", { text: o.buyerName }), el("span", { class: "muted num", text: "  " + when(o.createdAt) })),
-        el("span", { class: "pill " + o.status, text: statusLabel(o.status) })),
-      el("div", { class: "items" },
-        o.items.map((i) => el("div", {}, el("span", { text: i.qty + " × " + i.name }), el("span", { text: rp(i.qty * i.price) }))),
-        el("div", { style: "font-weight:700" }, el("span", { text: t("common.total") }), el("span", { text: rp(o.total) }))),
-      el("div", { class: "meta" },
-        el("span", { class: "code", text: t("common.code", { code: o.code }) }),
-        el("span", { text: t("sellerOrders.contact", { contact: o.contact }) }),
-        el("span", { text: o.fulfil === "delivery" ? t("sellerOrders.deliverTo", { address: o.address }) : t("common.pickup") }),
-        o.note ? el("span", { text: t("sellerOrders.note", { note: o.note }) }) : null),
-      acts.length ? el("div", { class: "actions" }, acts) : null));
-  }
-}
-async function setStatus(o, status, btn) {
-  btn.disabled = true;
-  try { await api("/api/seller/orders/" + o.id, { method: "PATCH", body: { status } }); toast(t("sellerOrders.updated", { status: statusLabel(status).toLowerCase() })); }
-  catch (err) { handle(err); }
-  loadOrders();
-}
-
-// Check for new orders every 20 seconds while the page is visible.
-setInterval(() => { if (me && !document.hidden) loadOrders(); }, 20000);
-
 window.addEventListener("langchange", () => {
   labelProductForm();
-  if (me) { renderHead(); renderProducts(); renderOrders(); }
+  if (me) { renderHead(); renderProducts(); }
 });
 
 labelProductForm();

@@ -1,4 +1,4 @@
-/* Layout: a village noticeboard. Field notes about Kampoeng Semanggi, a stall catalog with a basket, and plain working desks for sellers and the admin. */
+/* Layout: a village noticeboard. Field notes about Kampoeng Semanggi, a stall catalog with call and WhatsApp buttons, and plain working desks for sellers and the admin. */
 :root {
   color-scheme: light;
   --paper: #eef1e8;      /* paddy water */
@@ -153,7 +153,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .photo { aspect-ratio: 4 / 3; max-width: 100%; background: var(--leaf-soft); display: grid; place-items: center; overflow: hidden; }
 .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .photo svg { width: 40%; opacity: .35; }
-.card .body { padding: 14px 16px 16px; display: grid; gap: 6px; grid-template-rows: auto auto 1fr auto; }
+.card .body { padding: 14px 16px 16px; display: grid; gap: 6px; grid-template-rows: auto auto 1fr auto auto; }
 .card .stall { font-size: var(--step--1); color: var(--muted); font-weight: 600; }
 .card h3 { font-size: 1.2rem; }
 .card .desc { font-size: .875rem; color: var(--muted); }
@@ -161,18 +161,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .price { font-weight: 700; color: var(--sauce); font-variant-numeric: tabular-nums; }
 .price small { font-weight: 500; color: var(--muted); }
 .soldout { font-size: var(--step--1); font-weight: 600; color: var(--muted); }
+/* Call / WhatsApp / Directions */
+.reach { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.btn.wa { background: #1b7a43; border-color: #1b7a43; color: #fff; }
 
-/* basket / lists */
+/* panels & lists */
 .split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
 .stack { display: grid; gap: 20px; align-content: start; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 16px; align-content: start; }
-.group { display: grid; gap: 8px; }
-.group + .group { border-top: 1px solid var(--line); padding-top: 16px; }
-.line { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; }
-.qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; }
-.qty button { border: 0; background: transparent; width: 30px; height: 30px; cursor: pointer; font-weight: 700; }
-.qty span { min-width: 22px; text-align: center; font-variant-numeric: tabular-nums; }
-.total { display: flex; justify-content: space-between; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 form { display: grid; gap: 14px; }
 .field { display: grid; gap: 6px; }
@@ -183,26 +179,15 @@ input[type="text"], input[type="tel"], input[type="number"], input[type="email"]
 }
 textarea { min-height: 72px; resize: vertical; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.radio { display: flex; gap: 16px; flex-wrap: wrap; }
-.radio label { display: flex; gap: 6px; align-items: center; font-weight: 500; font-size: .9375rem; }
 .drop { border: 1px dashed var(--line); border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .drop img { width: 72px; height: 54px; object-fit: cover; border-radius: 6px; }
 .formerr { color: var(--bad); font-size: var(--step--1); font-weight: 600; }
 
-.orders { display: grid; gap: 14px; }
-.order { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: grid; gap: 10px; }
-.order header { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
-.order .code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: var(--step--1); color: var(--muted); letter-spacing: .06em; }
-.order .items { font-size: .9375rem; display: grid; gap: 2px; }
-.order .items div { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
-.order .meta { font-size: var(--step--1); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 16px; }
-.order .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .pill { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
-.pill.new, .pill.pending { background: var(--sauce-soft); color: var(--sauce); }
-.pill.accepted { background: var(--info-soft); color: var(--info); }
-.pill.ready, .pill.approved, .pill.live { background: var(--leaf-soft); color: var(--ok); }
+.pill.pending { background: var(--sauce-soft); color: var(--sauce); }
+.pill.approved, .pill.live { background: var(--leaf-soft); color: var(--ok); }
 .pill.done { background: var(--line); color: var(--muted); }
-.pill.declined, .pill.cancelled, .pill.suspended, .pill.hidden { background: var(--bad-soft); color: var(--bad); }
+.pill.suspended, .pill.hidden { background: var(--bad-soft); color: var(--bad); }
 
 .mine { display: grid; gap: 10px; }
 .mine .item { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); }

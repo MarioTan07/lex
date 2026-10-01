@@ -102,55 +102,17 @@
         <p class="eyebrow" data-i18n="market.eyebrow">Pesan</p>
         <h2 data-i18n="market.title">Lapak Kampoeng Semanggi</h2>
       </div>
-      <div class="tabs" role="tablist" data-i18n-attr="aria-label:market.sections" aria-label="Bagian pasar">
-        <button role="tab" id="tab-shop" aria-selected="true" data-tab="shop" data-i18n="tab.catalog">Katalog</button>
-        <button role="tab" id="tab-basket" aria-selected="false" data-tab="basket"><span data-i18n="tab.basket">Keranjang</span> <span class="count" id="basketCount" hidden>0</span></button>
-        <button role="tab" id="tab-orders" aria-selected="false" data-tab="orders" data-i18n="tab.orders">Pesanan saya</button>
-      </div>
     </div>
 
+    <p class="banner" data-i18n="market.howTo">Cara memesan: telepon atau WhatsApp penjualnya, lalu ambil pesanan Anda di lapak mereka. Bayar saat mengambil.</p>
     <p class="banner bad" id="notice" hidden></p>
 
-    <div id="view-shop" role="tabpanel" aria-labelledby="tab-shop">
-      <div class="chips" id="stallChips" style="margin-bottom:18px"></div>
-      <div class="grid" id="productGrid"></div>
-      <div class="empty" id="shopEmpty">
-        <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
-        <h3 id="shopEmptyTitle" data-i18n="shop.loading">Memuat katalog…</h3>
-        <p id="shopEmptyText" data-i18n="shop.loadingText">Pecel semanggi, camilan, dan minuman dari lapak Kampoeng Semanggi akan tampil di sini beserta harganya.</p>
-      </div>
-    </div>
-
-    <div id="view-basket" role="tabpanel" aria-labelledby="tab-basket" hidden>
-      <div class="split">
-        <div class="panel" id="basketList"></div>
-        <form class="panel" id="checkout" autocomplete="on">
-          <h3 data-i18n="checkout.title">Data Anda</h3>
-          <div class="field"><label for="c-name" data-i18n="checkout.name">Nama</label><input type="text" id="c-name" name="name" autocomplete="name" required maxlength="60"></div>
-          <div class="field"><label for="c-phone" data-i18n="checkout.phone">WhatsApp atau telepon</label><input type="tel" id="c-phone" name="tel" autocomplete="tel" required maxlength="24" placeholder="0812 3456 7890"></div>
-          <div class="field">
-            <span class="label" data-i18n="checkout.how">Cara pengambilan</span>
-            <div class="radio">
-              <label><input type="radio" name="fulfil" id="c-pickup" value="pickup" checked> <span data-i18n="common.pickup">Ambil di Kampoeng Semanggi</span></label>
-              <label><input type="radio" name="fulfil" id="c-delivery" value="delivery"> <span data-i18n="checkout.delivery">Antar ke alamat saya</span></label>
-            </div>
-          </div>
-          <div class="field" id="addrField" hidden><label for="c-addr" data-i18n="checkout.address">Alamat pengiriman</label><textarea id="c-addr" maxlength="300" autocomplete="street-address"></textarea></div>
-          <div class="field"><label for="c-note" data-i18n="checkout.note">Catatan untuk penjual</label><textarea id="c-note" maxlength="300" data-i18n-attr="placeholder:checkout.notePlaceholder" placeholder="Bumbu ekstra, tauge sedikit, jam ambil…"></textarea></div>
-          <button class="btn" id="placeBtn" type="submit" disabled data-i18n="checkout.place">Pesan sekarang</button>
-          <p class="muted" style="font-size:12px" data-i18n="checkout.fine">Barang dari lapak berbeda menjadi pesanan terpisah. Bayar ke penjual saat diambil atau diantar.</p>
-        </form>
-      </div>
-    </div>
-
-    <div id="view-orders" role="tabpanel" aria-labelledby="tab-orders" hidden>
-      <div class="stack">
-        <form class="panel" id="trackForm" style="grid-template-columns:1fr auto;align-items:end">
-          <div class="field"><label for="t-code" data-i18n="track.label">Lacak pesanan dengan kodenya</label><input type="text" id="t-code" maxlength="8" data-i18n-attr="placeholder:track.placeholder" placeholder="mis. K7M2QX9A" style="text-transform:uppercase"></div>
-          <button class="btn ghost" type="submit" data-i18n="track.button">Lacak</button>
-        </form>
-        <div class="orders" id="myOrders"></div>
-      </div>
+    <div class="chips" id="stallChips"></div>
+    <div class="grid" id="productGrid"></div>
+    <div class="empty" id="shopEmpty">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <h3 id="shopEmptyTitle" data-i18n="shop.loading">Memuat katalog…</h3>
+      <p id="shopEmptyText" data-i18n="shop.loadingText">Pecel semanggi, camilan, dan minuman dari lapak Kampoeng Semanggi akan tampil di sini beserta harganya.</p>
     </div>
   </section>
 

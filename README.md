@@ -1,6 +1,6 @@
 # Kampoeng Semanggi
 
-A website about Kampoeng Semanggi (Jalan Kendung, Sememi, Benowo, Surabaya) with an online catalog. Sellers list their products, buyers order from the catalog, and an admin looks after the whole market.
+A website about Kampoeng Semanggi (Jalan Kendung, Sememi, Benowo, Surabaya) with an online catalog. Sellers list their products, buyers browse the catalog and call or WhatsApp the seller to order, and an admin looks after the whole market.
 
 The site is in Indonesian, with English as a second language. Every page has an **ID | EN** switch in the top bar.
 
@@ -8,19 +8,18 @@ The site is in Indonesian, with English as a second language. Every page has an 
 
 | Page | Who uses it | What it does |
 | --- | --- | --- |
-| `/` | Everyone | About Kampoeng Semanggi, the product catalog, basket, order tracking, and every shop's location on a Google Map with its contact number. Buyers don't need an account. |
-| `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, handle incoming orders, and update their shop details, shop location and home address. |
-| `/admin` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, see and change every order, and view totals. |
+| `/` | Everyone | About Kampoeng Semanggi, the product catalog with **Call** and **WhatsApp** buttons, and every shop's location on a Google Map with its contact number and a **Directions** button. Buyers don't need an account. |
+| `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, and update their shop details, shop location and home address. |
+| `/admin` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |
 
-### How an order flows
+### How ordering works
 
 1. An admin creates the seller's account at `/admin` and gives the seller their email and starting password. There is no public sign-up.
 2. The seller signs in at `/seller`, changes their password and lists products, which show up in the catalog on `/`.
-3. A buyer adds items to the basket and places the order with their name, WhatsApp number and pick-up or delivery. Items from different stalls become separate orders, each with an 8-character order code.
-4. The seller sees the order on `/seller` and moves it along: **Accept → Ready → Completed**, or **Decline**.
-5. The buyer sees the status under **My orders** on the same device, or on any device by entering the order code. They can cancel while the order is still **New**.
+3. A buyer finds something in the catalog and taps **Call** or **WhatsApp** on it. WhatsApp opens with a message naming the shop and product, ready to send. The seller's contact number is used for both, so it should be one that's on WhatsApp.
+4. The buyer taps **Directions** on the seller's shop to get there, picks up the order and pays in person.
 
-Payment happens in person, on pick-up or delivery.
+The site doesn't take orders itself. Orders placed before this change are still in the database (`orders` and `order_items` tables) but aren't shown anywhere.
 
 ## Run it on your computer
 
@@ -59,8 +58,8 @@ GitHub Pages can't run this, because it only serves static files and this site n
 - `server.js` is an Express server using Node's built-in SQLite (`node:sqlite`), so the only dependency is Express.
 - `public/` holds the pages: `index.html` + `shop.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
 - Passwords are hashed with scrypt. Sign-in uses an HTTP-only session cookie. Sign-in attempts are limited to 10 per 15 minutes per IP address.
-- Prices are always taken from the database when an order is placed, so buyers can't change what they pay.
-- Buyers only see their order status and the seller's contact number. The buyer's contact details and address are visible only to that seller and the admin.
+- The public pages show each seller's shop name, shop location and contact number. Home addresses are visible only to that seller and the admins.
+- Call buttons are `tel:` links and WhatsApp buttons are `wa.me` links; Indonesian numbers like `0812…` are converted to `62812…` for WhatsApp.
 
 ### Languages
 
@@ -75,7 +74,6 @@ GitHub Pages can't run this, because it only serves static files and this site n
 | Method & path | Who |
 | --- | --- |
 | `GET /api/catalog`, `GET /api/stalls` | anyone |
-| `POST /api/orders`, `GET /api/orders?codes=…`, `POST /api/orders/:code/cancel` | anyone (buyers) |
 | `POST /api/auth/login`, `/logout`, `/password`, `GET /api/me` | sellers and admins |
-| `/api/seller/profile`, `/api/seller/products[/:id]`, `/api/seller/orders[/:id]` | signed-in sellers |
-| `/api/admin/overview`, `/api/admin/sellers[/:id]` (create, edit, status), `/api/admin/sellers/:id/password`, `/api/admin/products[/:id]`, `/api/admin/orders[/:id]` | admins |
+| `/api/seller/profile`, `/api/seller/products[/:id]` | signed-in sellers |
+| `/api/admin/overview`, `/api/admin/sellers[/:id]` (create, edit, status), `/api/admin/sellers/:id/password`, `/api/admin/products[/:id]` | admins |

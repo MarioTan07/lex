@@ -61,15 +61,11 @@
       <div><dt data-i18n="stats.pending">Lapak menunggu persetujuan</dt><dd id="st-pending">–</dd></div>
       <div><dt data-i18n="stats.approved">Lapak aktif</dt><dd id="st-approved">–</dd></div>
       <div><dt data-i18n="stats.products">Produk terdaftar</dt><dd id="st-products">–</dd></div>
-      <div><dt data-i18n="stats.open">Pesanan aktif</dt><dd id="st-open">–</dd></div>
-      <div><dt data-i18n="stats.today">Pesanan 24 jam terakhir</dt><dd id="st-today">–</dd></div>
-      <div><dt data-i18n="stats.sales">Penjualan selesai</dt><dd id="st-sales" style="font-size:1.35rem">–</dd></div>
     </dl>
 
     <div class="tabs" role="tablist" data-i18n-attr="aria-label:admin.sections" aria-label="Bagian admin" style="justify-self:start">
       <button role="tab" aria-selected="true" data-tab="sellers"><span data-i18n="admin.tabSellers">Penjual</span> <span class="count" id="pendingCount" hidden>0</span></button>
       <button role="tab" aria-selected="false" data-tab="products" data-i18n="admin.tabProducts">Produk</button>
-      <button role="tab" aria-selected="false" data-tab="orders" data-i18n="admin.tabOrders">Pesanan</button>
       <button role="tab" aria-selected="false" data-tab="account" data-i18n="admin.tabAccount">Akun</button>
     </div>
 
@@ -102,7 +98,7 @@
         </div>
       </form>
       <div class="table-wrap"><table>
-        <thead><tr><th data-i18n="col.shop">Lapak</th><th data-i18n="col.sellerContact">Penjual &amp; kontak</th><th data-i18n="col.shopLocation">Lokasi lapak</th><th data-i18n="col.homeAddress">Alamat rumah</th><th class="num" data-i18n="col.products">Produk</th><th class="num" data-i18n="col.orders">Pesanan</th><th data-i18n="col.status">Status</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="col.shop">Lapak</th><th data-i18n="col.sellerContact">Penjual &amp; kontak</th><th data-i18n="col.shopLocation">Lokasi lapak</th><th data-i18n="col.homeAddress">Alamat rumah</th><th class="num" data-i18n="col.products">Produk</th><th data-i18n="col.status">Status</th><th></th></tr></thead>
         <tbody id="sellerRows"></tbody>
       </table></div>
     </div>
@@ -112,22 +108,6 @@
         <thead><tr><th></th><th data-i18n="col.product">Produk</th><th data-i18n="col.shop">Lapak</th><th class="num" data-i18n="col.price">Harga</th><th data-i18n="col.state">Keadaan</th><th></th></tr></thead>
         <tbody id="productRows"></tbody>
       </table></div>
-    </div>
-
-    <div id="view-orders" role="tabpanel" hidden>
-      <div class="stack">
-        <div class="field" style="max-width:240px"><label for="orderStatus" data-i18n="admin.show">Tampilkan</label>
-          <select id="orderStatus">
-            <option value="" data-i18n="admin.allOrders">Semua pesanan</option>
-            <option value="new" data-i18n="status.new">Baru</option><option value="accepted" data-i18n="status.accepted">Diterima</option><option value="ready" data-i18n="status.ready">Siap</option>
-            <option value="done" data-i18n="status.done">Selesai</option><option value="declined" data-i18n="status.declined">Ditolak</option><option value="cancelled" data-i18n="status.cancelled">Dibatalkan</option>
-          </select>
-        </div>
-        <div class="table-wrap"><table>
-          <thead><tr><th data-i18n="col.placed">Waktu</th><th data-i18n="col.code">Kode</th><th data-i18n="col.shop">Lapak</th><th data-i18n="col.buyer">Pembeli</th><th data-i18n="col.items">Barang</th><th class="num" data-i18n="col.total">Total</th><th data-i18n="col.status">Status</th></tr></thead>
-          <tbody id="orderRows"></tbody>
-        </table></div>
-      </div>
     </div>
 
     <div id="view-account" role="tabpanel" hidden>
