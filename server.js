@@ -79,6 +79,7 @@ db.exec(`
   const add = {
     shop_address: "TEXT NOT NULL DEFAULT ''", shop_lat: "REAL", shop_lng: "REAL",
     home_address: "TEXT NOT NULL DEFAULT ''", home_lat: "REAL", home_lng: "REAL",
+    paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
   };
   for (const [col, type] of Object.entries(add)) if (!have.has(col)) db.exec(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
 }
@@ -157,6 +158,7 @@ const MESSAGES = {
     "label.shopName": "Nama lapak",
     "label.contactNumber": "Nomor kontak",
     "label.product": "Nama produk",
+    "label.pauseNote": "Catatan untuk pembeli",
     "label.shopAddress": "Alamat lapak",
     "label.homeAddress": "Alamat rumah",
     "place.shop": "lapak",
@@ -196,6 +198,7 @@ const MESSAGES = {
     "label.shopName": "Shop name",
     "label.contactNumber": "Contact number",
     "label.product": "Product name",
+    "label.pauseNote": "Note for buyers",
     "label.shopAddress": "Shop address",
     "label.homeAddress": "Home address",
     "place.shop": "shop",
@@ -275,6 +278,7 @@ function publicUser(u) {
     id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
+    paused: !!u.paused, pauseNote: u.pause_note || "",
   };
 }
 // A location is an address plus an optional map pin. `kind` is "shop" or "home".
@@ -386,10 +390,13 @@ app.get("/api/catalog", (_req, res) => {
   res.json({ products: rows.map(productOut) });
 });
 
-// Shop name, shop location and contact number of every approved seller. Home addresses stay private.
+// Shop name, shop location, contact number and open/paused state of every approved seller. Home addresses stay private.
 app.get("/api/stalls", (_req, res) => {
   const rows = db.prepare("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY stall_name COLLATE NOCASE").all();
-  res.json({ stalls: rows.map((u) => ({ id: u.id, stallName: u.stall_name, phone: u.phone, shop: publicUser(u).shop })) });
+  res.json({ stalls: rows.map((u) => {
+    const p = publicUser(u);
+    return { id: u.id, stallName: u.stall_name, phone: u.phone, shop: p.shop, paused: p.paused, pauseNote: p.pauseNote };
+  }) });
 });
 
 // ----- seller -----
@@ -398,6 +405,14 @@ seller.use(requireRole("seller"));
 
 seller.patch("/profile", (req, res) => {
   updateUser(req.user.id, sellerFields(req.body));
+  res.json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)) });
+});
+
+// Temporarily close the shop (with a note for buyers, like "Closed for Lebaran, back 15 Oct") or reopen it.
+seller.put("/pause", (req, res) => {
+  const paused = !!req.body.paused;
+  const note = paused ? text(req.body.note, 120, { required: true, label: "label.pauseNote" }) : "";
+  db.prepare("UPDATE users SET paused = ?, pause_note = ? WHERE id = ?").run(paused ? 1 : 0, note, req.user.id);
   res.json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)) });
 });
 

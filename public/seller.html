@@ -60,10 +60,22 @@
         <p class="eyebrow" data-i18n="seller.yourShop">Lapak Anda</p>
         <h1 style="font-size:var(--step-2)" id="stallTitle"></h1>
       </div>
-      <span class="pill live" id="statusPill"></span>
+      <span class="pill" id="statusPill"></span>
     </div>
 
     <p class="muted" data-i18n="seller.howBuyersOrder">Pembeli menelepon atau mengirim WhatsApp ke nomor kontak Anda untuk memesan, lalu mengambil pesanan di lapak Anda.</p>
+
+    <form class="panel" id="pauseForm">
+      <h3 data-i18n="pause.title">Status lapak</h3>
+      <p id="pauseState"></p>
+      <div class="field" id="pauseNoteField">
+        <label for="pause-note" data-i18n="pause.noteLabel">Catatan untuk pembeli</label>
+        <input type="text" id="pause-note" maxlength="120" data-i18n-attr="placeholder:pause.notePlaceholder" placeholder="mis. Libur Lebaran, buka lagi 15 Okt">
+        <span class="hint" data-i18n="pause.noteHint">Wajib diisi. Pembeli melihat catatan ini selama lapak Anda tutup.</span>
+      </div>
+      <p class="formerr" id="pauseErr" hidden></p>
+      <div><button class="btn" type="submit" id="pauseBtn"></button></div>
+    </form>
 
     <div class="split">
       <div class="stack">

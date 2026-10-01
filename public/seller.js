@@ -31,11 +31,39 @@ $("#loginForm").addEventListener("submit", async (e) => {
 });
 $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/logout", { method: "POST" }).catch(() => {}); me = null; start(); });
 
-// Suspended sellers can't sign in, so a signed-in seller's shop is always live.
+// Suspended sellers can't sign in, so a signed-in seller's shop is either live or paused by the seller.
 function renderHead() {
   $("#stallTitle").textContent = me.stallName;
-  $("#statusPill").textContent = t("seller.live");
+  const pill = $("#statusPill");
+  pill.className = "pill " + (me.paused ? "paused" : "live");
+  pill.textContent = t(me.paused ? "seller.paused" : "seller.live");
+  renderPause();
 }
+
+// ---------- pause / reopen ----------
+function renderPause() {
+  $("#pauseState").textContent = me.paused ? t("pause.closedState", { note: me.pauseNote }) : t("pause.openState");
+  $("#pauseNoteField").hidden = me.paused;
+  const btn = $("#pauseBtn");
+  btn.className = "btn" + (me.paused ? "" : " warn");
+  btn.textContent = t(me.paused ? "pause.reopen" : "pause.close");
+}
+$("#pauseForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showErr("#pauseErr", "");
+  const note = $("#pause-note").value.trim();
+  if (!me.paused && !note) { showErr("#pauseErr", t("pause.needNote")); $("#pause-note").focus(); return; }
+  const btn = $("#pauseBtn"); btn.disabled = true;
+  try {
+    ({ user: me } = await api("/api/seller/pause", { method: "PUT", body: me.paused ? { paused: false } : { paused: true, note } }));
+    $("#pause-note").value = "";
+    renderHead();
+    toast(t(me.paused ? "pause.closedToast" : "pause.reopenedToast"));
+  } catch (err) {
+    if (err.status === 401) handle(err); else showErr("#pauseErr", err.message);
+  }
+  btn.disabled = false;
+});
 function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
   shopLoc.set(me.shop); homeLoc.set(me.home);

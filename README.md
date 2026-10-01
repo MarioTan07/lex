@@ -9,7 +9,7 @@ The site is in Indonesian, with English as a second language. Every page has an 
 | Page | Who uses it | What it does |
 | --- | --- | --- |
 | `/` | Everyone | About Kampoeng Semanggi, the product catalog with **Call** and **WhatsApp** buttons, and every shop's location on a Google Map with its contact number and a **Directions** button. Buyers don't need an account. |
-| `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, and update their shop details, shop location and home address. |
+| `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. |
 | `/admin` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |
 
 ### How ordering works

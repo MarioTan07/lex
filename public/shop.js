@@ -10,6 +10,10 @@ try { localStorage.removeItem("ks-basket"); localStorage.removeItem("ks-orders")
 
 const stallById = (id) => stalls.find((s) => s.id === id);
 
+// "Temporarily closed" label with the seller's note, shown instead of the contact buttons while a shop is paused.
+const closedNotice = (stall) => el("p", { class: "closed" },
+  el("strong", { text: t("pause.badge") }), stall.pauseNote ? " · " + stall.pauseNote : "");
+
 // ---------- catalog ----------
 async function loadCatalog() {
   try {
@@ -49,7 +53,9 @@ function renderShop() {
         el("div", { class: "buy" },
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
           p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") })),
-        stall && p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name })) : null)));
+        !stall ? null
+          : stall.paused ? closedNotice(stall)
+          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name })) : null)));
   }
 }
 
@@ -69,7 +75,7 @@ function renderShops() {
         el("h3", { text: s.stallName }),
         el("p", { class: "muted", text: s.shop.address || t("shops.noAddress") }),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
-        contactButtons(s, t("contact.waShop", { stall: s.stallName })))));
+        s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName })))));
   }
 }
 

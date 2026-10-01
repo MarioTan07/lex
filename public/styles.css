@@ -185,6 +185,9 @@ textarea { min-height: 72px; resize: vertical; }
 .pill.approved, .pill.live { background: var(--leaf-soft); color: var(--ok); }
 .pill.done { background: var(--line); color: var(--muted); }
 .pill.suspended, .pill.hidden { background: var(--bad-soft); color: var(--bad); }
+.pill.paused { background: var(--sauce-soft); color: var(--sauce); }
+.closed { font-size: var(--step--1); background: var(--sauce-soft); color: var(--ink); border-radius: 8px; padding: 8px 10px; margin-top: 4px; }
+.closed strong { color: var(--sauce); }
 
 .mine { display: grid; gap: 10px; }
 .mine .item { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); }
@@ -193,6 +196,8 @@ textarea { min-height: 72px; resize: vertical; }
 
 /* desks (seller & admin) */
 .desk { padding-block: 32px 80px; display: grid; gap: 28px; }
+/* Let these grids shrink below their content's natural width, so forms don't push the page sideways on phones. */
+.desk, .stack, .panel, form, .field { grid-template-columns: minmax(0, 1fr); }
 .desk-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
 .auth { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; padding-block: 40px 80px; }
 .auth.single { grid-template-columns: minmax(0, 420px); justify-content: center; }
@@ -231,7 +236,7 @@ fieldset.loc legend { font-weight: 600; padding-inline: 6px; }
 footer { border-top: 1px solid var(--line); padding-block: 28px 40px; font-size: var(--step--1); color: var(--muted); display: flex; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; }
 
 @media (max-width: 880px) {
-  .hero, .about, .split, .auth { grid-template-columns: 1fr; gap: 32px; }
+  .hero, .about, .split, .auth { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .leafmark { max-width: 200px; order: -1; justify-self: start; }
   .notes { grid-template-columns: 1fr 1fr; }
   .notes div:nth-child(3) { border-left: 0; }
