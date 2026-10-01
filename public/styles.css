@@ -151,10 +151,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .photo { aspect-ratio: 4 / 3; max-width: 100%; background: var(--leaf-soft); display: grid; place-items: center; overflow: hidden; }
 .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .photo svg { width: 40%; opacity: .35; }
-.card .body { padding: 14px 16px 16px; display: grid; gap: 6px; grid-template-rows: auto auto 1fr auto auto; }
+.card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+button.photo { border: 0; padding: 0; width: 100%; cursor: pointer; }
+.titlelink { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.titlelink:hover { text-decoration: underline; text-underline-offset: 3px; }
+.comparelink { align-self: flex-start; border: 0; background: none; padding: 0; color: var(--leaf); font-size: var(--step--1); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .card .stall { font-size: var(--step--1); color: var(--muted); font-weight: 600; }
 .card h3 { font-size: 1.2rem; }
-.card .desc { font-size: .875rem; color: var(--muted); }
+.card .desc { font-size: .875rem; color: var(--muted); flex: 1; }
 .card .buy { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
 .price { font-weight: 700; color: var(--sauce); font-variant-numeric: tabular-nums; }
 .price small { font-weight: 500; color: var(--muted); }
@@ -188,6 +192,22 @@ textarea { min-height: 72px; resize: vertical; }
 .pill.paused { background: var(--sauce-soft); color: var(--sauce); }
 .closed { font-size: var(--step--1); background: var(--sauce-soft); color: var(--ink); border-radius: 8px; padding: 8px 10px; margin-top: 4px; }
 .closed strong { color: var(--sauce); }
+
+/* compare panel: every shop selling a product */
+dialog.compare { width: min(720px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); }
+dialog.compare::backdrop { background: rgb(0 0 0 / .45); }
+.compare-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; background: var(--paper); border-bottom: 1px solid var(--line); }
+.compare-head h2 { font-size: var(--step-1); }
+.compare-tools { display: grid; gap: 10px; padding: 14px 18px 0; }
+.compare-tools .chips { align-items: center; }
+.check { display: flex; gap: 8px; align-items: center; font-weight: 500; }
+.compare-list { display: grid; gap: 14px; padding: 14px 18px 18px; }
+.offer { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: grid; }
+.offer .map { border-radius: 0; aspect-ratio: 16 / 7; }
+.offer .body { padding: 12px 14px 14px; display: grid; gap: 6px; }
+.offer-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.offer-head h3 { font-size: 1.15rem; }
+.dist { font-weight: 600; color: var(--leaf); }
 
 .mine { display: grid; gap: 10px; }
 .mine .item { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); }

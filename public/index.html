@@ -129,6 +129,23 @@
   </section>
 </main>
 
+<dialog id="compare" class="compare" aria-labelledby="compareTitle">
+  <div class="compare-head">
+    <h2 id="compareTitle"></h2>
+    <button type="button" class="btn small ghost" id="compareClose" data-i18n="compare.close">Tutup</button>
+  </div>
+  <div class="compare-tools">
+    <div class="chips" id="compareSort" role="group" data-i18n-attr="aria-label:compare.sortLabel" aria-label="Urutkan">
+      <span class="small muted" data-i18n="compare.sortLabel">Urutkan</span>
+      <button type="button" data-sort="cheapest" aria-pressed="true" data-i18n="compare.cheapest">Termurah</button>
+      <button type="button" data-sort="closest" aria-pressed="false" data-i18n="compare.closest">Terdekat</button>
+    </div>
+    <label class="small check"><input type="checkbox" id="compareHide"> <span data-i18n="compare.hideUnavailable">Sembunyikan yang habis atau tutup</span></label>
+    <p class="muted small" id="compareNote"></p>
+  </div>
+  <div class="compare-list" id="compareList"></div>
+</dialog>
+
 <footer class="wrap">
   <p>Kampoeng Semanggi · Jalan Kendung, Sememi, Benowo, Surabaya.</p>
   <p><a href="/seller" data-i18n="footer.sellerSignIn">Masuk penjual</a> · <a href="/admin" data-i18n="footer.admin">Admin</a></p>

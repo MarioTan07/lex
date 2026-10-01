@@ -1,4 +1,5 @@
-import { $, el, rp, t, leafSvg, api, mapFrame, contactButtons } from "/common.js";
+import { $, el, rp, t, leafSvg, api, toast, mapFrame, contactButtons } from "/common.js";
+import { lang } from "/i18n.js";
 
 let products = [];
 let stalls = [];
@@ -44,11 +45,15 @@ function renderShop() {
   }
   for (const p of shown) {
     const stall = stallById(p.sellerId);
+    const open = () => openCompare(p);
+    const sellers = new Set(products.filter((q) => sameProduct(p, q)).map((q) => q.sellerId)).size;
     grid.append(el("article", { class: "card" },
-      el("div", { class: "photo" }, p.photo ? el("img", { src: p.photo, alt: p.name, loading: "lazy" }) : leafSvg()),
+      el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("compare.view", { name: p.name }) },
+        p.photo ? el("img", { src: p.photo, alt: "", loading: "lazy" }) : leafSvg()),
       el("div", { class: "body" },
         el("span", { class: "stall", text: p.stallName }),
-        el("h3", { text: p.name }),
+        el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
+        sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: open, text: t("compare.count", { n: sellers }) }) : null,
         el("p", { class: "desc", text: p.description || "" }),
         el("div", { class: "buy" },
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
@@ -59,11 +64,100 @@ function renderShop() {
   }
 }
 
+// ---------- compare: every shop selling a product ----------
+// Sellers type product names themselves, so "Pecel Semanggi" and "pecel semanggi Suroboyo" count as the same dish:
+// case and extra spaces are ignored, and a name matches when one contains the other.
+const norm = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
+const sameProduct = (a, b) => { const x = norm(a.name), y = norm(b.name); return x.includes(y) || y.includes(x); };
+
+let comparing = null;          // the product whose panel is open
+let sortBy = "cheapest";       // "cheapest" | "closest"
+let hideUnavailable = false;
+let here = null;               // buyer's position, once they allow it: { lat, lng }
+
+// Straight-line distance in km.
+function km(a, b) {
+  const rad = (d) => (d * Math.PI) / 180, R = 6371;
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const pinOf = (stall) => (stall && stall.shop.lat != null && stall.shop.lng != null ? stall.shop : null);
+
+function openCompare(p) {
+  comparing = p;
+  renderCompare();
+  const d = $("#compare");
+  if (!d.open) d.showModal();
+}
+$("#compareClose").addEventListener("click", () => $("#compare").close());
+$("#compare").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); }); // tap outside the box
+$("#compare").addEventListener("close", () => { comparing = null; });
+$("#compareHide").addEventListener("change", (e) => { hideUnavailable = e.target.checked; renderCompare(); });
+document.querySelectorAll("#compareSort button").forEach((b) => b.addEventListener("click", () => setSort(b.dataset.sort)));
+
+function setSort(next) {
+  if (next === "closest" && !here) {
+    if (!navigator.geolocation) return toast(t("loc.noGeo"));
+    $("#compareNote").textContent = t("compare.locating");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { here = { lat: pos.coords.latitude, lng: pos.coords.longitude }; sortBy = "closest"; renderCompare(); },
+      () => { toast(t("compare.geoFailed")); sortBy = "cheapest"; renderCompare(); },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
+    return;
+  }
+  sortBy = next;
+  renderCompare();
+}
+
+function renderCompare() {
+  if (!comparing) return;
+  $("#compareTitle").textContent = t("compare.title", { name: comparing.name });
+  document.querySelectorAll("#compareSort button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sort === sortBy)));
+  $("#compareNote").textContent = sortBy === "closest" ? t("compare.distanceNote") : "";
+
+  let rows = products.filter((q) => sameProduct(comparing, q)).map((q) => {
+    const stall = stallById(q.sellerId);
+    const pin = pinOf(stall);
+    const usable = q.available && stall && !stall.paused;
+    return { q, stall, usable, dist: here && pin ? km(here, pin) : null };
+  });
+  const total = rows.length;
+  if (hideUnavailable) rows = rows.filter((r) => r.usable);
+  // Shops you can order from first; then by price, or by distance with unknown distances last.
+  rows.sort((a, b) => (b.usable - a.usable)
+    || (sortBy === "closest" ? (a.dist ?? Infinity) - (b.dist ?? Infinity) : 0)
+    || a.q.price - b.q.price
+    || a.q.stallName.localeCompare(b.q.stallName));
+
+  const kmFmt = new Intl.NumberFormat(lang === "id" ? "id-ID" : "en-GB", { maximumFractionDigits: 1 });
+  // Under 1 km, show metres rounded to 50 m; otherwise km with one decimal.
+  const distText = (d) => d < 1 ? t("compare.distanceM", { m: Math.max(50, Math.round(d * 20) * 50) }) : t("compare.distance", { km: kmFmt.format(d) });
+  const list = $("#compareList"); list.replaceChildren();
+  if (!rows.length) list.append(el("p", { class: "muted", text: total ? t("compare.empty") : t("shop.empty") }));
+  for (const { q, stall, dist } of rows) {
+    list.append(el("article", { class: "offer" },
+      stall ? mapFrame(stall.shop, t("shops.mapOf", { name: q.stallName })) : null,
+      el("div", { class: "body" },
+        el("div", { class: "offer-head" },
+          el("h3", { text: q.stallName }),
+          el("span", { class: "price" }, rp(q.price), q.unit ? el("small", { text: " / " + q.unit }) : null)),
+        norm(q.name) !== norm(comparing.name) ? el("p", { class: "small", text: q.name }) : null,
+        stall && stall.shop.address ? el("p", { class: "muted small", text: stall.shop.address }) : null,
+        sortBy === "closest" ? el("p", { class: "small dist", text: dist != null ? distText(dist) : t("compare.noDistance") }) : null,
+        !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
+        !stall ? null
+          : stall.paused ? closedNotice(stall)
+          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name })) : null)));
+  }
+}
+
 // ---------- shop locations ----------
 async function loadShops() {
   try { ({ stalls } = await api("/api/stalls")); } catch { return; }
   renderShops();
   renderShop(); // product cards need each stall's phone for their buttons
+  renderCompare();
 }
 function renderShops() {
   const grid = $("#shopGrid"); grid.replaceChildren();
@@ -82,6 +176,7 @@ function renderShops() {
 window.addEventListener("langchange", () => {
   if (catalogLoaded) renderShop(); else loadCatalog();
   renderShops();
+  renderCompare();
 });
 
 loadCatalog();
