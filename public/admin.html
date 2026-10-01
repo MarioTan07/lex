@@ -52,19 +52,18 @@
     <div class="desk-head">
       <div>
         <p class="eyebrow" data-i18n="admin.eyebrow">Admin Kampoeng Semanggi</p>
-        <h1 style="font-size:var(--step-2)" data-i18n="admin.heading">Lapak, produk, dan pesanan</h1>
+        <h1 style="font-size:var(--step-2)" data-i18n="admin.heading">Lapak dan produk</h1>
       </div>
       <button class="btn ghost small" id="refreshBtn" data-i18n="admin.refresh">Muat ulang</button>
     </div>
 
     <dl class="stats" id="stats">
-      <div><dt data-i18n="stats.pending">Lapak menunggu persetujuan</dt><dd id="st-pending">–</dd></div>
       <div><dt data-i18n="stats.approved">Lapak aktif</dt><dd id="st-approved">–</dd></div>
       <div><dt data-i18n="stats.products">Produk terdaftar</dt><dd id="st-products">–</dd></div>
     </dl>
 
     <div class="tabs" role="tablist" data-i18n-attr="aria-label:admin.sections" aria-label="Bagian admin" style="justify-self:start">
-      <button role="tab" aria-selected="true" data-tab="sellers"><span data-i18n="admin.tabSellers">Penjual</span> <span class="count" id="pendingCount" hidden>0</span></button>
+      <button role="tab" aria-selected="true" data-tab="sellers" data-i18n="admin.tabSellers">Penjual</button>
       <button role="tab" aria-selected="false" data-tab="products" data-i18n="admin.tabProducts">Produk</button>
       <button role="tab" aria-selected="false" data-tab="account" data-i18n="admin.tabAccount">Akun</button>
     </div>

@@ -135,8 +135,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; flex-wrap: wrap; }
 .tabs button { border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: .9375rem; cursor: pointer; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
 .tabs button[aria-selected="true"] { background: var(--leaf); color: var(--on-leaf); }
-.count { background: var(--sauce); color: var(--surface); border-radius: 999px; font-size: 11px; min-width: 20px; padding: 1px 6px; font-variant-numeric: tabular-nums; }
-.tabs button[aria-selected="true"] .count { background: var(--on-leaf); color: var(--leaf); }
 
 .banner { background: var(--sauce-soft); border-radius: var(--radius); padding: 14px 18px; font-size: .9375rem; }
 .banner.bad { background: var(--bad-soft); color: var(--bad); }
@@ -184,7 +182,6 @@ textarea { min-height: 72px; resize: vertical; }
 .formerr { color: var(--bad); font-size: var(--step--1); font-weight: 600; }
 
 .pill { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
-.pill.pending { background: var(--sauce-soft); color: var(--sauce); }
 .pill.approved, .pill.live { background: var(--leaf-soft); color: var(--ok); }
 .pill.done { background: var(--line); color: var(--muted); }
 .pill.suspended, .pill.hidden { background: var(--bad-soft); color: var(--bad); }
@@ -204,7 +201,6 @@ textarea { min-height: 72px; resize: vertical; }
 .stats div + div { border-left: 1px solid var(--line); }
 .stats dt { font-size: var(--step--1); color: var(--muted); }
 .stats dd { margin: 0; font-family: var(--font-display); font-size: 1.75rem; font-variant-numeric: tabular-nums; }
-.stats dd.alert { color: var(--sauce); }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: .9375rem; }
 th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }

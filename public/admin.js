@@ -37,12 +37,8 @@ $("#refreshBtn").addEventListener("click", refreshAll);
 async function loadOverview() {
   try {
     const s = await api("/api/admin/overview");
-    $("#st-pending").textContent = s.sellers.pending;
-    $("#st-pending").classList.toggle("alert", s.sellers.pending > 0);
     $("#st-approved").textContent = s.sellers.approved;
     $("#st-products").textContent = s.products;
-    $("#pendingCount").textContent = s.sellers.pending;
-    $("#pendingCount").hidden = !s.sellers.pending;
   } catch (e) { handle(e); }
 }
 
@@ -162,7 +158,7 @@ function renderSellers() {
       el("td", {}, el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => editSeller(s) }, t("common.edit")),
         el("button", { class: "btn small ghost", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.resetConfirm"), () => resetPassword(s)) }, t("admin.resetPassword")),
-        s.status !== "approved" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, t(s.status === "suspended" ? "admin.reactivate" : "admin.approve")) : null,
+        s.status === "suspended" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, t("admin.reactivate")) : null,
         s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.suspendConfirm"), () => setSeller(s, "suspended")) }, t("admin.suspend")) : null))));
   }
 }

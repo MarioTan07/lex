@@ -31,14 +31,10 @@ $("#loginForm").addEventListener("submit", async (e) => {
 });
 $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/logout", { method: "POST" }).catch(() => {}); me = null; start(); });
 
+// Suspended sellers can't sign in, so a signed-in seller's shop is always live.
 function renderHead() {
   $("#stallTitle").textContent = me.stallName;
-  const pill = $("#statusPill");
-  pill.className = "pill " + me.status;
-  pill.textContent = me.status === "approved" ? t("seller.live") : me.status === "pending" ? t("seller.waiting") : t("sellerStatus." + me.status);
-  const b = $("#statusBanner");
-  b.hidden = me.status === "approved";
-  b.textContent = t("seller.pendingBanner");
+  $("#statusPill").textContent = t("seller.live");
 }
 function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
@@ -119,7 +115,7 @@ $("#productForm").addEventListener("submit", async (e) => {
   try {
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });
     else await api("/api/seller/products", { method: "POST", body });
-    toast(t(editingId ? "product.saved" : me.status === "approved" ? "product.addedLive" : "product.addedPending"));
+    toast(t(editingId ? "product.saved" : "product.addedLive"));
     resetProductForm(); loadProducts();
   } catch (err) { handle(err); }
   btn.disabled = false; labelProductForm();

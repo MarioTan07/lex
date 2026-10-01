@@ -82,6 +82,12 @@ db.exec(`
   };
   for (const [col, type] of Object.entries(add)) if (!have.has(col)) db.exec(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
 }
+// Sellers used to sign themselves up and wait for approval. Admins now create sellers already
+// approved, so any still waiting are suspended: hidden from buyers until an admin reactivates them.
+{
+  const r = db.prepare("UPDATE users SET status = 'suspended' WHERE role = 'seller' AND status = 'pending'").run();
+  if (r.changes) console.log(`Moved ${r.changes} seller(s) still waiting for approval to suspended. Reactivate them under Sellers in /admin.`);
+}
 
 // ---------- passwords & sessions ----------
 function hashPassword(pw) {
@@ -451,7 +457,6 @@ admin.get("/overview", (_req, res) => {
   res.json({
     sellers: {
       approved: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'approved'"),
-      pending: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'pending'"),
       suspended: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'suspended'"),
     },
     products: count("SELECT COUNT(*) AS n FROM products"),
@@ -460,7 +465,7 @@ admin.get("/overview", (_req, res) => {
 
 admin.get("/sellers", (_req, res) => {
   const rows = db.prepare(`SELECT u.*, (SELECT COUNT(*) FROM products p WHERE p.seller_id = u.id) AS products
-    FROM users u WHERE u.role = 'seller' ORDER BY CASE u.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END, u.created_at DESC`).all();
+    FROM users u WHERE u.role = 'seller' ORDER BY u.status = 'suspended', u.created_at DESC`).all();
   res.json({ sellers: rows.map((u) => ({ ...publicUser(u), products: u.products, createdAt: u.created_at })) });
 });
 
@@ -497,7 +502,7 @@ admin.post("/sellers/:id/password", (req, res) => {
 
 admin.patch("/sellers/:id", (req, res) => {
   const status = req.body.status;
-  if (!["approved", "suspended", "pending"].includes(status)) throw bad("unknownSellerStatus");
+  if (!["approved", "suspended"].includes(status)) throw bad("unknownSellerStatus");
   const r = db.prepare("UPDATE users SET status = ? WHERE id = ? AND role = 'seller'").run(status, Number(req.params.id));
   if (!r.changes) throw new HttpError(404, "noSeller");
   if (status === "suspended") db.prepare("DELETE FROM sessions WHERE user_id = ?").run(Number(req.params.id));
