@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-i18n="home.title">Kampoeng Semanggi</title>
-<meta name="description" data-i18n-attr="content:home.meta" content="Pecel semanggi dan olahan semanggi dari Kampoeng Semanggi, Sememi, Surabaya. Pesan langsung dari lapak penjual.">
+<title data-i18n="home.title">Kampoeng Semanggi · Rasa yang pulang</title>
+<meta name="description" data-i18n-attr="content:home.meta" content="Pecel semanggi dan olahan semanggi dari Kampoeng Semanggi, Sememi, Surabaya. Pesan langsung ke penjual lewat telepon atau WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
 <link rel="icon" type="image/png" href="/logo-mark.png">
 </head>
@@ -23,101 +23,83 @@
   </defs>
 </svg>
 
-<header class="top">
+<div class="strip"><span data-i18n="strip.a">JELAJAHI RASA LOKAL SURABAYA</span><span class="dot" aria-hidden="true">•</span><span data-i18n="strip.b">Temukan penjual di sekitarmu</span></div>
+
+<header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="#top">
+    <a class="brand" href="#hero" aria-label="Kampoeng Semanggi">
       <img src="/logo-mark.png" alt="">
-      <b>Kampoeng Semanggi</b>
+      <b>Kampoeng <span>Semanggi</span></b>
     </a>
     <nav>
-      <a class="opt" href="#about" data-i18n="nav.about">Tentang</a>
-      <a class="opt" href="#history" data-i18n="nav.history">Sejarah</a>
-      <a href="#market" data-i18n="nav.order">Pesan</a>
+      <a class="opt" href="#catalog" data-i18n="nav.catalog">Katalog</a>
       <a class="opt" href="#shops" data-i18n="nav.shops">Lokasi lapak</a>
-      <a href="/seller" data-i18n="footer.sellerSignIn">Masuk penjual</a>
+      <a class="opt" href="#story" data-i18n="nav.story">Cerita kami</a>
+      <span class="actions">
+        <span class="lang-slot"></span>
+        <a class="btn small" href="/seller" data-i18n="nav.forSellers">Untuk penjual</a>
+      </span>
     </nav>
   </div>
 </header>
 
-<main class="wrap" id="top">
-  <section class="hero">
+<main>
+  <section class="wrap hero" id="hero">
     <div>
-      <p class="eyebrow">Sememi · Benowo · Surabaya</p>
-      <h1 data-i18n-html="hero.title">Pecel semanggi, ditanam dan dibuat di <em>Kampoeng Semanggi</em>.</h1>
-      <p class="lede" data-i18n="hero.lede">Sebuah permukiman di tepi barat Surabaya yang menjaga salah satu kuliner jalanan tertua di kota ini. Keluarga di sini menanam semanggi, membuat bumbunya, dan menjualnya per pincuk. Pesan langsung dari lapak di bawah.</p>
+      <span class="badge"><span data-icon="sparkles"></span><span data-i18n="hero.badge">Dari Kampoeng Semanggi, untuk Surabaya</span></span>
+      <h1 data-i18n-html="hero.title">Rasa yang <em>pulang.</em></h1>
+      <p class="lede" data-i18n="hero.lede">Temukan pecel semanggi, jajanan, dan olahan semanggi buatan rumah dari para penjual di Kampoeng Semanggi.</p>
       <div class="cta">
-        <a class="btn" href="#market" data-i18n="hero.order">Pesan dari lapak</a>
-        <a class="btn ghost" href="#about" data-i18n="hero.about">Tentang Kampoeng Semanggi</a>
+        <a class="btn raised" href="#catalog"><span data-i18n="hero.toCatalog">Lihat katalog</span><span data-icon="arrow-right"></span></a>
+        <a class="btn soft" href="#shops"><span data-i18n="hero.toShops">Cari penjual</span><span data-icon="map-pin"></span></a>
+      </div>
+      <div class="joined" id="joined" hidden>
+        <span class="faces" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong id="joinedCount"></strong><br><span data-i18n="hero.joined">sudah bergabung</span></span>
       </div>
     </div>
-    <img class="logo" src="/logo.png" data-i18n-attr="alt:hero.logo" alt="Logo Kampoeng Semanggi: daun semanggi berhelai empat dengan rumah dan sawah">
-  </section>
-
-  <dl class="notes">
-    <div><dt data-i18n="notes.since">Berjualan pecel semanggi sejak</dt><dd class="num" data-i18n="notes.sinceValue">tahun 1950-an</dd></div>
-    <div><dt data-i18n="notes.makers">Perajin yang melestarikannya</dt><dd class="num">120+</dd></div>
-    <div><dt data-i18n="notes.opened">Diresmikan sebagai Kampoeng Semanggi</dt><dd class="num">2017</dd></div>
-    <div><dt data-i18n="notes.heritage">Warisan budaya nasional (WBTb)</dt><dd class="num">2022</dd></div>
-  </dl>
-
-  <section class="about" id="about">
-    <div class="prose">
-      <p class="eyebrow" data-i18n="about.eyebrow">Kampoeng Semanggi</p>
-      <h2 data-i18n="about.title">Asal semanggi Surabaya</h2>
-      <p data-i18n-html="about.p1">Semanggi (<i>Marsilea crenata</i>) adalah paku air kecil dengan empat anak daun yang mirip daun clover. Tanaman ini tumbuh di sawah yang tergenang, dan sejak turun-temurun keluarga di Kendung, Kelurahan Sememi, mengolahnya menjadi <b>pecel semanggi Suroboyo</b>.</p>
-      <p data-i18n="about.p2">Usaha ini berawal dari beberapa penjual yang mencari semanggi ke sawah-sawah hingga Lamongan, Mojokerto, dan Pasuruan. Kini banyak keluarga menanamnya sendiri, sehingga daun di pincuk Anda sering dipetik hanya beberapa gang dari tempat dimasak.</p>
-      <p data-i18n="about.p3">Dulu, para penjual menggendong bakul berisi pecel semanggi dan berkeliling ke penjuru Surabaya. Kini giliran Anda yang datang: pilih menunya di sini, pesan lewat telepon atau WhatsApp, lalu ambil pesanan Anda langsung di lapak, masih segar dari dapurnya.</p>
-      <div class="beyond" data-i18n-attr="aria-label:about.products" aria-label="Olahan semanggi buatan Kampoeng Semanggi">
-        <span data-i18n="product.cookies">Kue kering semanggi</span><span data-i18n="product.nastar">Nastar</span><span data-i18n="product.peyek">Peyek</span><span data-i18n="product.sticks">Stik semanggi</span><span data-i18n="product.juice">Jus</span><span data-i18n="product.nuggets">Nugget</span><span data-i18n="product.instant">Semanggi instan</span>
-      </div>
+    <div class="hero-photo">
+      <img src="/kampoeng-market.jpg" width="1002" height="768" data-i18n-attr="alt:hero.photo" alt="Pecel semanggi di atas daun pisang dan bakul bambu, dengan suasana pasar di belakangnya">
+      <button type="button" class="pick" id="pick" hidden>
+        <span><small data-i18n="hero.pick">Pilihan hari ini</small><b id="pickName"></b></span>
+        <span class="tag" id="pickPrice"></span>
+      </button>
     </div>
-    <aside class="pincuk">
-      <p class="eyebrow" data-i18n="pincuk.eyebrow">Isi satu pincuk</p>
-      <h3 data-i18n="pincuk.title">Satu porsi pecel semanggi</h3>
-      <ul>
-        <li><b data-i18n="pincuk.leaves">Daun</b><span data-i18n="pincuk.leavesText">Semanggi yang dikukus hingga lembut, dengan segenggam tauge.</span></li>
-        <li><b data-i18n="pincuk.sauce">Bumbu</b><span data-i18n="pincuk.sauceText">Kental dan manis, dari ubi jalar dan kacang tanah yang dihaluskan.</span></li>
-        <li><b data-i18n="pincuk.cracker">Kerupuk</b><span data-i18n="pincuk.crackerText">Krupuk puli, kerupuk nasi renyah untuk menyendok.</span></li>
-        <li><b data-i18n="pincuk.plate">Wadah</b><span data-i18n="pincuk.plateText">Pincuk: daun pisang yang dilipat berbentuk kerucut lalu disemat lidi.</span></li>
-      </ul>
-      <p class="muted small" data-i18n="pincuk.visit">Alamat: Jalan Kendung, Kelurahan Sememi, Kecamatan Benowo, Surabaya.</p>
-    </aside>
   </section>
 
-  <section class="timeline" id="history">
-    <p class="eyebrow" data-i18n="history.eyebrow">Sejarah</p>
-    <h2 data-i18n="history.title">Dari bakul keliling menjadi warisan budaya</h2>
-    <ol>
-      <li><span class="yr" data-i18n="history.1950s">1950-an</span><p data-i18n="history.1950">Pecel semanggi sudah dijual keliling Surabaya oleh penjual dari Kendung.</p></li>
-      <li><span class="yr">2017</span><p data-i18n="history.2017">Kampoeng Semanggi resmi dibuka di Sememi.</p></li>
-      <li><span class="yr">2021</span><p data-i18n="history.2021">Bergabung dengan Kampung Berseri Astra, yang mendukung produk olahan semanggi baru.</p></li>
-      <li><span class="yr">2022</span><p data-i18n="history.2022">Pecel Semanggi Suroboyo ditetapkan sebagai Warisan Budaya Takbenda nasional.</p></li>    </ol>
-  </section>
+  <div class="band" id="catalog">
+    <section class="wrap section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" data-i18n="catalog.eyebrow">Katalog pilihan</p>
+          <h2 data-i18n="catalog.title">Dari dapur tetangga</h2>
+        </div>
+        <label class="search">
+          <span data-icon="search"></span>
+          <input type="search" id="search" data-i18n-attr="placeholder:catalog.search; aria-label:catalog.search" placeholder="Cari makanan atau penjual…" aria-label="Cari makanan atau penjual…" autocomplete="off">
+        </label>
+      </div>
 
-  <section class="market" id="market">
-    <div class="market-head">
+      <p class="howto"><span data-icon="info"></span><span data-i18n="market.howTo">Cara memesan: telepon atau WhatsApp penjualnya, lalu ambil pesanan Anda di lapak mereka. Bayar saat mengambil.</span></p>
+      <p class="banner bad" id="notice" hidden></p>
+
+      <div class="chips" id="stallChips"></div>
+      <div class="grid" id="productGrid"></div>
+      <div class="empty" id="shopEmpty">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+        <h3 id="shopEmptyTitle" data-i18n="shop.loading">Memuat katalog…</h3>
+        <p id="shopEmptyText" data-i18n="shop.loadingText">Pecel semanggi, camilan, dan minuman dari lapak Kampoeng Semanggi akan tampil di sini beserta harganya.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="wrap section shops" id="shops">
+    <div class="shops-intro">
       <div>
-        <p class="eyebrow" data-i18n="market.eyebrow">Pesan</p>
-        <h2 data-i18n="market.title">Lapak Kampoeng Semanggi</h2>
+        <p class="eyebrow" data-i18n="shops.eyebrow">Temui mereka langsung</p>
+        <h2 data-i18n-html="shops.title">Pasar kecil,<br><em>cerita besar.</em></h2>
       </div>
-    </div>
-
-    <p class="banner" data-i18n="market.howTo">Cara memesan: telepon atau WhatsApp penjualnya, lalu ambil pesanan Anda di lapak mereka. Bayar saat mengambil.</p>
-    <p class="banner bad" id="notice" hidden></p>
-
-    <div class="chips" id="stallChips"></div>
-    <div class="grid" id="productGrid"></div>
-    <div class="empty" id="shopEmpty">
-      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
-      <h3 id="shopEmptyTitle" data-i18n="shop.loading">Memuat katalog…</h3>
-      <p id="shopEmptyText" data-i18n="shop.loadingText">Pecel semanggi, camilan, dan minuman dari lapak Kampoeng Semanggi akan tampil di sini beserta harganya.</p>
-    </div>
-  </section>
-
-  <section class="shops" id="shops">
-    <div>
-      <p class="eyebrow" data-i18n="shops.eyebrow">Lokasi lapak</p>
-      <h2 data-i18n="shops.title">Di mana setiap lapak berada</h2>
+      <p data-i18n="shops.intro">Datang, kenalan, dan bawa pulang rasa khas Sememi. Semua penjual di sini adalah tetangga kami sendiri.</p>
     </div>
     <div class="grid" id="shopGrid"></div>
     <div class="empty" id="shopsEmpty" hidden>
@@ -125,6 +107,54 @@
       <p data-i18n="shops.emptyText">Lokasi dan nomor kontak setiap lapak tampil di sini setelah admin menambahkannya.</p>
     </div>
   </section>
+
+  <div class="band" id="story">
+    <section class="wrap section">
+      <div class="about">
+        <div class="prose">
+          <p class="eyebrow" data-i18n="story.eyebrow">Cerita kami</p>
+          <h2 data-i18n="about.title">Asal semanggi Surabaya</h2>
+          <p data-i18n-html="about.p1">Semanggi (<i>Marsilea crenata</i>) adalah paku air kecil dengan empat anak daun yang mirip daun clover. Tanaman ini tumbuh di sawah yang tergenang, dan sejak turun-temurun keluarga di Kendung, Kelurahan Sememi, mengolahnya menjadi <b>pecel semanggi Suroboyo</b>.</p>
+          <p data-i18n="about.p2">Usaha ini berawal dari beberapa penjual yang mencari semanggi ke sawah-sawah hingga Lamongan, Mojokerto, dan Pasuruan. Kini banyak keluarga menanamnya sendiri, sehingga daun di pincuk Anda sering dipetik hanya beberapa gang dari tempat dimasak.</p>
+          <p data-i18n="about.p3">Dulu, para penjual menggendong bakul berisi pecel semanggi dan berkeliling ke penjuru Surabaya. Kini giliran Anda yang datang: pilih menunya di sini, pesan lewat telepon atau WhatsApp, lalu ambil pesanan Anda langsung di lapak, masih segar dari dapurnya.</p>
+          <div class="beyond" data-i18n-attr="aria-label:about.products" aria-label="Olahan semanggi buatan Kampoeng Semanggi">
+            <span data-i18n="product.cookies">Kue kering semanggi</span><span data-i18n="product.nastar">Nastar</span><span data-i18n="product.peyek">Peyek</span><span data-i18n="product.sticks">Stik semanggi</span><span data-i18n="product.juice">Jus</span><span data-i18n="product.nuggets">Nugget</span><span data-i18n="product.instant">Semanggi instan</span>
+          </div>
+        </div>
+        <aside class="pincuk">
+          <p class="eyebrow" data-i18n="pincuk.eyebrow">Isi satu pincuk</p>
+          <h3 data-i18n="pincuk.title">Satu porsi pecel semanggi</h3>
+          <ul>
+            <li><b data-i18n="pincuk.leaves">Daun</b><span data-i18n="pincuk.leavesText">Semanggi yang dikukus hingga lembut, dengan segenggam tauge.</span></li>
+            <li><b data-i18n="pincuk.sauce">Bumbu</b><span data-i18n="pincuk.sauceText">Kental dan manis, dari ubi jalar dan kacang tanah yang dihaluskan.</span></li>
+            <li><b data-i18n="pincuk.cracker">Kerupuk</b><span data-i18n="pincuk.crackerText">Krupuk puli, kerupuk nasi renyah untuk menyendok.</span></li>
+            <li><b data-i18n="pincuk.plate">Wadah</b><span data-i18n="pincuk.plateText">Pincuk: daun pisang yang dilipat berbentuk kerucut lalu disemat lidi.</span></li>
+          </ul>
+          <p class="muted small" data-i18n="pincuk.visit">Alamat: Jalan Kendung, Kelurahan Sememi, Kecamatan Benowo, Surabaya.</p>
+        </aside>
+      </div>
+
+      <dl class="notes">
+        <div><dt data-i18n="notes.since">Berjualan pecel semanggi sejak</dt><dd class="num" data-i18n="notes.sinceValue">tahun 1950-an</dd></div>
+        <div><dt data-i18n="notes.makers">Perajin yang melestarikannya</dt><dd class="num">120+</dd></div>
+        <div><dt data-i18n="notes.opened">Diresmikan sebagai Kampoeng Semanggi</dt><dd class="num">2017</dd></div>
+        <div><dt data-i18n="notes.heritage">Warisan budaya nasional (WBTb)</dt><dd class="num">2022</dd></div>
+      </dl>
+
+      <div class="timeline" id="history">
+        <div>
+          <p class="eyebrow" data-i18n="history.eyebrow">Sejarah</p>
+          <h2 data-i18n="history.title">Dari bakul keliling menjadi warisan budaya</h2>
+        </div>
+        <ol>
+          <li><span class="yr" data-i18n="history.1950s">1950-an</span><p data-i18n="history.1950">Pecel semanggi sudah dijual keliling Surabaya oleh penjual dari Kendung.</p></li>
+          <li><span class="yr">2017</span><p data-i18n="history.2017">Kampoeng Semanggi resmi dibuka di Sememi.</p></li>
+          <li><span class="yr">2021</span><p data-i18n="history.2021">Bergabung dengan Kampung Berseri Astra, yang mendukung produk olahan semanggi baru.</p></li>
+          <li><span class="yr">2022</span><p data-i18n="history.2022">Pecel Semanggi Suroboyo ditetapkan sebagai Warisan Budaya Takbenda nasional.</p></li>
+        </ol>
+      </div>
+    </section>
+  </div>
 </main>
 
 <dialog id="compare" class="compare" aria-labelledby="compareTitle">
@@ -144,9 +174,17 @@
   <div class="compare-list" id="compareList"></div>
 </dialog>
 
-<footer class="wrap">
-  <p>Kampoeng Semanggi · Jalan Kendung, Sememi, Benowo, Surabaya.</p>
-  <p><a href="/seller" data-i18n="footer.sellerSignIn">Masuk penjual</a> · <a href="/admin" data-i18n="footer.admin">Admin</a></p>
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <div class="fbrand"><span data-icon="leaf"></span> Kampoeng Semanggi</div>
+      <p class="tagline" data-i18n="footer.tagline">Menghubungkan rasa rumahan dengan tetangga di seluruh Surabaya.</p>
+    </div>
+    <div class="fright">
+      <p>Jalan Kendung, Sememi, Benowo<br>Surabaya, Jawa Timur</p>
+      <p><a href="/seller" data-i18n="footer.sellerSignIn">Masuk penjual</a> · <a href="/admin" data-i18n="footer.admin">Admin</a></p>
+    </div>
+  </div>
 </footer>
 
 <script type="module" src="/shop.js"></script>

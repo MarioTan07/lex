@@ -1,4 +1,4 @@
-import { $, el, rp, t, leafSvg, api, toast, mapFrame, contactButtons } from "/common.js";
+import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons } from "/common.js";
 import { lang } from "/i18n.js";
 
 let products = [];
@@ -28,6 +28,9 @@ async function loadCatalog() {
   renderShop();
 }
 
+let query = "";
+$("#search").addEventListener("input", (e) => { query = norm(e.target.value); renderShop(); });
+
 function renderShop() {
   const names = [...new Map(products.map((p) => [p.sellerId, p.stallName])).entries()];
   const chips = $("#stallChips"); chips.replaceChildren();
@@ -36,12 +39,14 @@ function renderShop() {
     const mk = (id, label) => el("button", { "aria-pressed": String(filterStall === id), onclick: () => { filterStall = id; renderShop(); } }, label);
     chips.append(mk("all", t("shop.allStalls")), ...names.map(([id, name]) => mk(id, name)));
   }
-  const shown = products.filter((p) => filterStall === "all" || p.sellerId === filterStall);
+  const shown = products.filter((p) => (filterStall === "all" || p.sellerId === filterStall)
+    && (!query || norm(p.name + " " + p.stallName + " " + (p.description || "")).includes(query)));
   const grid = $("#productGrid"); grid.replaceChildren();
   $("#shopEmpty").hidden = shown.length > 0;
   if (catalogLoaded) {
-    $("#shopEmptyTitle").textContent = t("shop.empty");
-    $("#shopEmptyText").textContent = t("shop.emptyText");
+    const searching = query && products.length;
+    $("#shopEmptyTitle").textContent = searching ? t("catalog.noMatch", { q: $("#search").value.trim() }) : t("shop.empty");
+    $("#shopEmptyText").textContent = searching ? t("catalog.noMatchText") : t("shop.emptyText");
   }
   for (const p of shown) {
     const stall = stallById(p.sellerId);
@@ -51,18 +56,43 @@ function renderShop() {
       el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("compare.view", { name: p.name }) },
         p.photo ? el("img", { src: p.photo, alt: "", loading: "lazy" }) : leafSvg()),
       el("div", { class: "body" },
-        el("span", { class: "stall", text: p.stallName }),
-        el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
+        el("div", { class: "card-head" },
+          el("div", {},
+            el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
+            el("p", { class: "stall" }, icon("store"), p.stallName)),
+          el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
         sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: open, text: t("compare.count", { n: sellers }) }) : null,
         el("p", { class: "desc", text: p.description || "" }),
-        el("div", { class: "buy" },
-          el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
-          p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") })),
+        p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name })) : null)));
+          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false }) : null)));
   }
+  renderHero();
 }
+
+// ---------- hero: today's pick & seller count ----------
+// One product from a shop that's open, changing once a day, so the hero shows something real.
+function renderHero() {
+  const open = products.filter((p) => { const s = stallById(p.sellerId); return p.available && s && !s.paused; });
+  const pick = $("#pick");
+  pick.hidden = !open.length;
+  if (open.length) {
+    const day = Math.floor(Date.now() / 864e5);
+    const p = open[day % open.length];
+    $("#pickName").textContent = p.name;
+    $("#pickPrice").textContent = rp(p.price);
+    pick.onclick = () => openCompare(p);
+    pick.setAttribute("aria-label", t("compare.view", { name: p.name }));
+  }
+  $("#joined").hidden = !stalls.length;
+  $("#joinedCount").textContent = t("hero.sellers", { n: stalls.length });
+}
+
+// Give the sticky header a bottom border once the page scrolls.
+const header = $(".top");
+const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
+window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
 
 // ---------- compare: every shop selling a product ----------
 // Sellers type product names themselves, so "Pecel Semanggi" and "pecel semanggi Suroboyo" count as the same dish:
@@ -167,7 +197,7 @@ function renderShops() {
       mapFrame(s.shop, t("shops.mapOf", { name: s.stallName })) || el("div", { class: "photo" }, leafSvg()),
       el("div", { class: "body" },
         el("h3", { text: s.stallName }),
-        el("p", { class: "muted", text: s.shop.address || t("shops.noAddress") }),
+        el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
         s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName })))));
   }
