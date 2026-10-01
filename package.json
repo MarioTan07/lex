@@ -2,7 +2,7 @@
   "name": "kampoeng-semanggi",
   "version": "1.0.0",
   "private": true,
-  "description": "Kampung Semanggi website with a seller catalog, buyer orders and an admin dashboard",
+  "description": "Kampoeng Semanggi website with a seller catalog, buyer orders and an admin dashboard",
   "type": "module",
   "main": "server.js",
   "scripts": {

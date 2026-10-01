@@ -1,4 +1,4 @@
-import { $, el, rp, when, STATUS, api, toast, shrinkPhoto, confirmTap } from "/common.js";
+import { $, el, rp, when, STATUS, api, toast, shrinkPhoto, confirmTap, locationEditor } from "/common.js";
 
 let me = null;
 let products = [];
@@ -6,6 +6,11 @@ let orders = [];
 let orderFilter = "open";
 let editingId = null;
 let pendingPhoto = null;
+
+const shopLoc = locationEditor("s-shop", "Shop", "Where buyers can find your shop. Shown on the main page with a Google Map.");
+const homeLoc = locationEditor("s-home", "Home", "Only you and the admin can see this.");
+$("#s-shop").replaceWith(shopLoc.node);
+$("#s-home").replaceWith(homeLoc.node);
 
 // ---------- session ----------
 async function start() {
@@ -25,17 +30,6 @@ $("#loginForm").addEventListener("submit", async (e) => {
   try { await api("/api/auth/login", { method: "POST", body: { email: $("#l-email").value, password: $("#l-pass").value, role: "seller" } }); start(); }
   catch (err) { showErr("#loginErr", err.message); }
 });
-$("#registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault(); showErr("#registerErr", "");
-  try {
-    await api("/api/auth/register", { method: "POST", body: {
-      name: $("#r-name").value, stallName: $("#r-stall").value, phone: $("#r-phone").value,
-      email: $("#r-email").value, password: $("#r-pass").value,
-    } });
-    toast("Stall created. The admin will review it soon.");
-    start();
-  } catch (err) { showErr("#registerErr", err.message); }
-});
 $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/logout", { method: "POST" }).catch(() => {}); me = null; start(); });
 
 function renderHead() {
@@ -45,10 +39,11 @@ function renderHead() {
   pill.textContent = me.status === "approved" ? "Live in catalog" : me.status === "pending" ? "Waiting for approval" : me.status;
   const b = $("#statusBanner");
   b.hidden = me.status === "approved";
-  b.textContent = "The kampung admin hasn't approved your stall yet. You can add products now; buyers will see them once you're approved.";
+  b.textContent = "The Kampoeng admin hasn't approved your shop yet. You can add products now; buyers will see them once you're approved.";
 }
 function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
+  shopLoc.set(me.shop); homeLoc.set(me.home);
 }
 
 // Session expired or account suspended mid-visit.
@@ -101,7 +96,7 @@ function resetProductForm() {
   $("#productForm").reset();
   $("#p-preview").hidden = true;
   $("#productFormTitle").textContent = "Add a product";
-  $("#saveProductBtn").textContent = "Add to my stall";
+  $("#saveProductBtn").textContent = "Add to my shop";
   $("#cancelEditBtn").hidden = true;
 }
 $("#cancelEditBtn").addEventListener("click", resetProductForm);
@@ -122,7 +117,7 @@ $("#productForm").addEventListener("submit", async (e) => {
   try {
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });
     else await api("/api/seller/products", { method: "POST", body });
-    toast(editingId ? "Changes saved" : me.status === "approved" ? "Added. Buyers can order it now." : "Added. It will show once your stall is approved.");
+    toast(editingId ? "Changes saved" : me.status === "approved" ? "Added. Buyers can order it now." : "Added. It will show once your shop is approved.");
     resetProductForm(); loadProducts();
   } catch (err) { handle(err); }
   btn.disabled = false; if (btn.textContent === "Saving…") btn.textContent = label;
@@ -131,10 +126,15 @@ $("#productForm").addEventListener("submit", async (e) => {
 // ---------- profile & password ----------
 $("#profileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const errBox = $("#profileErr"); errBox.hidden = true;
   try {
-    ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body: { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value } }));
-    renderHead(); toast("Stall details saved");
-  } catch (err) { handle(err); }
+    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, shop: shopLoc.get(), home: homeLoc.get() };
+    ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
+    renderHead(); fillProfile(); toast("Shop details saved");
+  } catch (err) {
+    if (err.status) return handle(err);
+    errBox.textContent = err.message; errBox.hidden = false;
+  }
 });
 $("#passwordForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -166,7 +166,7 @@ function renderOrders() {
     .sort((a, b) => rank[a.status] - rank[b.status] || b.createdAt - a.createdAt);
   if (!list.length) {
     box.append(el("div", { class: "empty" }, el("h3", { text: orderFilter === "open" ? "No open orders" : "No orders yet" }),
-      el("p", { text: "When someone orders from your stall it shows up here. Accept it, mark it ready, then completed." })));
+      el("p", { text: "When someone orders from your shop it shows up here. Accept it, mark it ready, then completed." })));
     return;
   }
   for (const o of list) {
@@ -183,7 +183,7 @@ function renderOrders() {
       el("div", { class: "meta" },
         el("span", { class: "code", text: "Code " + o.code }),
         el("span", { text: "Contact: " + o.contact }),
-        el("span", { text: o.fulfil === "delivery" ? "Deliver to: " + o.address : "Pick up in the kampung" }),
+        el("span", { text: o.fulfil === "delivery" ? "Deliver to: " + o.address : "Pick up in the kampoeng" }),
         o.note ? el("span", { text: "Note: " + o.note }) : null),
       acts.length ? el("div", { class: "actions" }, acts) : null));
   }

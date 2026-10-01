@@ -77,6 +77,87 @@ export function shrinkPhoto(file, max = 1000) {
   });
 }
 
+// ---------- Google Maps ----------
+const hasPin = (loc) => loc && loc.lat != null && loc.lng != null;
+const mapQuery = (loc) => (hasPin(loc) ? `${loc.lat},${loc.lng}` : (loc && loc.address) || "");
+
+// Embedded Google Map for a location (pin if set, otherwise the address). Null when there's nothing to show.
+export function mapFrame(loc, title = "Map") {
+  const q = mapQuery(loc);
+  if (!q) return null;
+  return el("iframe", {
+    class: "map", title, loading: "lazy", referrerpolicy: "no-referrer-when-downgrade",
+    src: "https://www.google.com/maps?output=embed&z=16&q=" + encodeURIComponent(q),
+  });
+}
+export function mapLink(loc) {
+  const q = mapQuery(loc);
+  return q ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q) : null;
+}
+
+// Read a pin from "lat, lng" or a full Google Maps link.
+export function parsePin(s) {
+  s = (s || "").trim();
+  if (!s) return { lat: null, lng: null };
+  const pats = [/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/, /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, /@(-?\d+\.\d+),(-?\d+\.\d+)/, /[?&](?:q|query|ll|destination)=(-?\d+\.\d+)(?:,|%2C)\s*(-?\d+\.\d+)/i];
+  for (const p of pats) {
+    const m = p.exec(s);
+    if (m) {
+      const lat = Number(m[1]), lng = Number(m[2]);
+      if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) return { lat, lng };
+    }
+  }
+  if (/goo\.gl|maps\.app/i.test(s)) throw new Error("Short links can't be read. Open the link, then copy the full address from the browser's address bar, or right-click the place in Google Maps and copy its coordinates.");
+  throw new Error("Paste a full Google Maps link or coordinates like -7.2431, 112.6345.");
+}
+
+// Address + map pin editor with a live map preview. `label` is e.g. "Shop" or "Home".
+export function locationEditor(prefix, label, hint) {
+  const addr = el("textarea", { id: prefix + "-addr", maxlength: "300", rows: "2", placeholder: "Street, RT/RW, kelurahan, kecamatan" });
+  const pin = el("input", { type: "text", id: prefix + "-pin", placeholder: "Paste a Google Maps link or -7.2431, 112.6345" });
+  const err = el("p", { class: "formerr", hidden: true });
+  const box = el("div", { class: "mapbox" });
+  let cur = { address: "", lat: null, lng: null };
+  const draw = () => {
+    const f = mapFrame(cur, label + " location");
+    box.replaceChildren(f || el("p", { class: "muted small", text: "Add an address or a pin to see it on the map." }));
+  };
+  const readPin = () => {
+    try { Object.assign(cur, parsePin(pin.value)); err.hidden = true; return true; }
+    catch (e) { err.textContent = e.message; err.hidden = false; return false; }
+  };
+  let t;
+  addr.addEventListener("input", () => { cur.address = addr.value.trim(); clearTimeout(t); t = setTimeout(draw, 700); });
+  pin.addEventListener("change", () => { if (readPin()) draw(); });
+  const here = el("button", { type: "button", class: "btn small ghost", onclick: () => {
+    if (!navigator.geolocation) return toast("This browser can't share its location.");
+    here.disabled = true; here.textContent = "Finding you…";
+    navigator.geolocation.getCurrentPosition((p) => {
+      cur.lat = +p.coords.latitude.toFixed(6); cur.lng = +p.coords.longitude.toFixed(6);
+      pin.value = cur.lat + ", " + cur.lng; err.hidden = true; draw();
+      here.disabled = false; here.textContent = "Use my current location";
+    }, () => { toast("Couldn't get your location. Allow location access, or paste a Google Maps link."); here.disabled = false; here.textContent = "Use my current location"; },
+    { enableHighAccuracy: true, timeout: 15000 });
+  } }, "Use my current location");
+
+  const node = el("fieldset", { class: "loc" },
+    el("legend", { text: label + " location" }),
+    hint ? el("p", { class: "muted small", text: hint }) : null,
+    el("div", { class: "field" }, el("label", { for: addr.id, text: label + " address" }), addr),
+    el("div", { class: "field" }, el("label", { for: pin.id, text: "Map pin" }), pin,
+      el("span", { class: "hint", text: "In Google Maps, find the place, then copy the link from the address bar and paste it here." })),
+    el("div", {}, here), err, box);
+  draw();
+  return {
+    node,
+    get() { cur.address = addr.value.trim(); if (!readPin()) throw new Error(err.textContent); return { ...cur }; },
+    set(loc) {
+      cur = { address: (loc && loc.address) || "", lat: loc?.lat ?? null, lng: loc?.lng ?? null };
+      addr.value = cur.address; pin.value = hasPin(cur) ? cur.lat + ", " + cur.lng : ""; err.hidden = true; draw();
+    },
+  };
+}
+
 // Two-tap confirm for destructive buttons.
 export function confirmTap(btn, label, action) {
   if (btn.dataset.armed) { delete btn.dataset.armed; return action(); }

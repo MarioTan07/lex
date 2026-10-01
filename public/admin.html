@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
+<link rel="icon" type="image/png" href="/logo-mark.png">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -25,7 +26,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="/">
-      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <img src="/logo-mark.png" alt="">
       <b>Kampoeng Semanggi</b> <span class="role">Admin</span>
     </a>
     <nav>
@@ -50,15 +51,15 @@
   <section class="desk" id="deskView" hidden>
     <div class="desk-head">
       <div>
-        <p class="eyebrow">Kampung admin</p>
-        <h1 style="font-size:var(--step-2)">Stalls, products and orders</h1>
+        <p class="eyebrow">Kampoeng admin</p>
+        <h1 style="font-size:var(--step-2)">Shops, products and orders</h1>
       </div>
       <button class="btn ghost small" id="refreshBtn">Refresh</button>
     </div>
 
     <dl class="stats" id="stats">
-      <div><dt>Stalls waiting for approval</dt><dd id="st-pending">–</dd></div>
-      <div><dt>Live stalls</dt><dd id="st-approved">–</dd></div>
+      <div><dt>Shops waiting for approval</dt><dd id="st-pending">–</dd></div>
+      <div><dt>Live shops</dt><dd id="st-approved">–</dd></div>
       <div><dt>Products listed</dt><dd id="st-products">–</dd></div>
       <div><dt>Open orders</dt><dd id="st-open">–</dd></div>
       <div><dt>Orders in the last 24 h</dt><dd id="st-today">–</dd></div>
@@ -72,16 +73,43 @@
       <button role="tab" aria-selected="false" data-tab="account">Account</button>
     </div>
 
-    <div id="view-sellers" role="tabpanel">
+    <div id="view-sellers" role="tabpanel" class="stack">
+      <p class="banner" id="pwNotice" hidden></p>
+      <form class="panel" id="sellerForm" style="max-width:760px">
+        <div class="desk-head">
+          <h3 id="sellerFormTitle">Create a seller account</h3>
+          <button class="btn small ghost" type="button" id="sellerFormToggle">Hide form</button>
+        </div>
+        <div id="sellerFormBody" class="stack" style="gap:14px">
+          <div class="row2" id="accountFields">
+            <div class="field"><label for="n-email">Email (used to sign in)</label><input type="email" id="n-email" maxlength="120" autocomplete="off"></div>
+            <div class="field"><label for="n-pass">Starting password</label>
+              <div style="display:flex;gap:8px"><input type="text" id="n-pass" minlength="8" autocomplete="off"><button class="btn small ghost" type="button" id="genPass">Generate</button></div>
+              <span class="hint">Give this to the seller. They can change it after signing in.</span></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="n-name">Seller name</label><input type="text" id="n-name" required maxlength="60"></div>
+            <div class="field"><label for="n-stall">Shop name</label><input type="text" id="n-stall" required maxlength="60" placeholder="Semanggi Bu Sri"></div>
+          </div>
+          <div class="field"><label for="n-phone">Contact number</label><input type="tel" id="n-phone" required maxlength="24" placeholder="0812 3456 7890"></div>
+          <div id="n-shop"></div>
+          <div id="n-home"></div>
+          <p class="formerr" id="sellerErr" hidden></p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn" type="submit" id="sellerSubmit">Create seller account</button>
+            <button class="btn ghost" type="button" id="sellerCancel" hidden>Cancel edit</button>
+          </div>
+        </div>
+      </form>
       <div class="table-wrap"><table>
-        <thead><tr><th>Stall</th><th>Seller</th><th>Contact</th><th class="num">Products</th><th class="num">Orders</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Shop</th><th>Seller &amp; contact</th><th>Shop location</th><th>Home address</th><th class="num">Products</th><th class="num">Orders</th><th>Status</th><th></th></tr></thead>
         <tbody id="sellerRows"></tbody>
       </table></div>
     </div>
 
     <div id="view-products" role="tabpanel" hidden>
       <div class="table-wrap"><table>
-        <thead><tr><th></th><th>Product</th><th>Stall</th><th class="num">Price</th><th>State</th><th></th></tr></thead>
+        <thead><tr><th></th><th>Product</th><th>Shop</th><th class="num">Price</th><th>State</th><th></th></tr></thead>
         <tbody id="productRows"></tbody>
       </table></div>
     </div>
@@ -96,7 +124,7 @@
           </select>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>Placed</th><th>Code</th><th>Stall</th><th>Buyer</th><th>Items</th><th class="num">Total</th><th>Status</th></tr></thead>
+          <thead><tr><th>Placed</th><th>Code</th><th>Shop</th><th>Buyer</th><th>Items</th><th class="num">Total</th><th>Status</th></tr></thead>
           <tbody id="orderRows"></tbody>
         </table></div>
       </div>

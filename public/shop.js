@@ -1,4 +1,4 @@
-import { $, el, rp, when, STATUS, leafSvg, api, toast, confirmTap } from "/common.js";
+import { $, el, rp, when, STATUS, leafSvg, api, toast, confirmTap, mapFrame, mapLink } from "/common.js";
 
 let products = [];
 let filterStall = "all";
@@ -40,7 +40,7 @@ function renderShop() {
   const grid = $("#productGrid"); grid.replaceChildren();
   $("#shopEmpty").hidden = shown.length > 0;
   $("#shopEmptyTitle").textContent = "No products yet";
-  $("#shopEmptyText").textContent = "When the kampung's sellers list their pecel semanggi, snacks and drinks, they appear here with prices.";
+  $("#shopEmptyText").textContent = "When the kampoeng's sellers list their pecel semanggi, snacks and drinks, they appear here with prices.";
   for (const p of shown) {
     grid.append(el("article", { class: "card" },
       el("div", { class: "photo" }, p.photo ? el("img", { src: p.photo, alt: p.name, loading: "lazy" }) : leafSvg()),
@@ -149,7 +149,7 @@ function renderOrders() {
         el("div", { style: "font-weight:700" }, el("span", { text: "Total" }), el("span", { text: rp(o.total) }))),
       el("div", { class: "meta" },
         el("span", { class: "code", text: "Code " + o.code }),
-        el("span", { text: o.fulfil === "delivery" ? "Delivery" : "Pick up in the kampung" }),
+        el("span", { text: o.fulfil === "delivery" ? "Delivery" : "Pick up in the kampoeng" }),
         o.stallPhone ? el("span", { text: "Seller WhatsApp: " + o.stallPhone }) : null),
       o.status === "new" ? el("div", { class: "actions" },
         el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, "Tap again to cancel", async () => {
@@ -174,4 +174,23 @@ $("#trackForm").addEventListener("submit", async (e) => {
 // Keep order statuses fresh while the tab is open.
 setInterval(() => { if (!$("#view-orders").hidden && !document.hidden) refreshOrders(); }, 20000);
 
+// ---------- shop locations ----------
+async function loadShops() {
+  let stalls = [];
+  try { ({ stalls } = await api("/api/stalls")); } catch { return; }
+  const grid = $("#shopGrid"); grid.replaceChildren();
+  $("#shopsEmpty").hidden = stalls.length > 0;
+  for (const s of stalls) {
+    const link = mapLink(s.shop);
+    grid.append(el("article", { class: "shop" },
+      mapFrame(s.shop, "Map of " + s.stallName) || el("div", { class: "photo" }, leafSvg()),
+      el("div", { class: "body" },
+        el("h3", { text: s.stallName }),
+        el("p", { class: "muted", text: s.shop.address || "Address not added yet" }),
+        el("p", {}, el("span", { class: "muted small", text: "Contact number  " }), el("span", { class: "contact", text: s.phone })),
+        link ? el("a", { href: link, target: "_blank", rel: "noopener", class: "small", text: "Open in Google Maps" }) : null)));
+  }
+}
+
 loadCatalog();
+loadShops();

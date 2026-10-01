@@ -1,4 +1,4 @@
-import { $, el, rp, when, STATUS, api, toast, confirmTap } from "/common.js";
+import { $, el, rp, when, STATUS, api, toast, confirmTap, locationEditor, mapLink } from "/common.js";
 
 let me = null;
 
@@ -50,23 +50,115 @@ async function loadOverview() {
 }
 
 // ---------- sellers ----------
+const shopLoc = locationEditor("n-shop", "Shop", "Shown to buyers on the main page with a Google Map.");
+const homeLoc = locationEditor("n-home", "Home", "Private: only the seller and admins can see this.");
+$("#n-shop").replaceWith(shopLoc.node);
+$("#n-home").replaceWith(homeLoc.node);
+
+let sellers = [];
+let editingSeller = null;
+
+function randomPassword() {
+  const abc = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(bytes, (b) => abc[b % abc.length]).join("");
+}
+$("#genPass").addEventListener("click", () => { $("#n-pass").value = randomPassword(); });
+$("#sellerFormToggle").addEventListener("click", () => {
+  const body = $("#sellerFormBody"); body.hidden = !body.hidden;
+  $("#sellerFormToggle").textContent = body.hidden ? "Show form" : "Hide form";
+});
+
+function resetSellerForm() {
+  editingSeller = null;
+  $("#sellerForm").reset(); shopLoc.set(null); homeLoc.set(null);
+  $("#accountFields").hidden = false;
+  $("#sellerFormTitle").textContent = "Create a seller account";
+  $("#sellerSubmit").textContent = "Create seller account";
+  $("#sellerCancel").hidden = true; $("#sellerErr").hidden = true;
+}
+$("#sellerCancel").addEventListener("click", resetSellerForm);
+
+function editSeller(s) {
+  editingSeller = s;
+  $("#sellerFormBody").hidden = false; $("#sellerFormToggle").textContent = "Hide form";
+  $("#accountFields").hidden = true;
+  $("#n-name").value = s.name; $("#n-stall").value = s.stallName; $("#n-phone").value = s.phone;
+  shopLoc.set(s.shop); homeLoc.set(s.home);
+  $("#sellerFormTitle").textContent = "Edit " + s.stallName;
+  $("#sellerSubmit").textContent = "Save changes";
+  $("#sellerCancel").hidden = false; $("#sellerErr").hidden = true;
+  $("#sellerForm").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("#sellerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errBox = $("#sellerErr"); errBox.hidden = true;
+  const btn = $("#sellerSubmit"); btn.disabled = true;
+  try {
+    const body = { name: $("#n-name").value, stallName: $("#n-stall").value, phone: $("#n-phone").value, shop: shopLoc.get(), home: homeLoc.get() };
+    if (editingSeller) {
+      await api("/api/admin/sellers/" + editingSeller.id, { method: "PUT", body });
+      toast(body.stallName + " saved");
+    } else {
+      body.email = $("#n-email").value; body.password = $("#n-pass").value;
+      if (!body.email) throw new Error("Enter the email the seller will sign in with.");
+      await api("/api/admin/sellers", { method: "POST", body });
+      showPassword(body.stallName, body.email, body.password);
+      toast("Seller account created");
+    }
+    resetSellerForm(); loadSellers(); loadOverview();
+  } catch (err) {
+    if (err.status === 401 || err.status === 403) handle(err);
+    else { errBox.textContent = err.message; errBox.hidden = false; }
+  }
+  btn.disabled = false;
+});
+
+// Show a new password once so the admin can pass it on to the seller.
+function showPassword(stall, email, password) {
+  const n = $("#pwNotice");
+  n.replaceChildren(
+    el("strong", { text: stall + ": " }), "sign-in email ", el("strong", { text: email }), ", password ",
+    el("strong", { class: "num", style: "font-family:ui-monospace,Consolas,monospace", text: password }),
+    ". Give these to the seller now; the password won't be shown again. ",
+    el("button", { class: "linkish", type: "button", onclick: () => (n.hidden = true) }, "Dismiss"));
+  n.hidden = false;
+  n.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function resetPassword(s) {
+  const password = randomPassword();
+  try {
+    await api(`/api/admin/sellers/${s.id}/password`, { method: "POST", body: { password } });
+    showPassword(s.stallName, s.email, password);
+  } catch (e) { handle(e); }
+}
+
+function locCell(loc) {
+  const link = mapLink(loc);
+  return el("td", { class: "loc-cell" },
+    el("div", { class: "small", text: loc.address || "Not added" }),
+    link ? el("a", { href: link, target: "_blank", rel: "noopener", text: "View on Google Maps" }) : null);
+}
+
 async function loadSellers() {
-  let sellers;
   try { ({ sellers } = await api("/api/admin/sellers")); } catch (e) { return handle(e); }
   const body = $("#sellerRows"); body.replaceChildren();
-  if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "8", class: "muted", text: "No sellers yet. They sign up at /seller and show up here for approval." })));
+  if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "8", class: "muted", text: "No sellers yet. Create the first account with the form above." })));
   for (const s of sellers) {
-    const act = (status, label, cls = "ghost") => el("button", { class: "btn small " + cls, onclick: () => setSeller(s, status) }, label);
     body.append(el("tr", {},
-      el("td", {}, el("strong", { text: s.stallName })),
-      el("td", { text: s.name }),
-      el("td", {}, el("div", { text: s.phone }), el("div", { class: "muted small", text: s.email })),
+      el("td", {}, el("strong", { text: s.stallName }), el("div", { class: "muted small", text: "Joined " + when(s.createdAt) })),
+      el("td", {}, el("div", { text: s.name }), el("div", { class: "num", text: s.phone }), el("div", { class: "muted small", text: s.email })),
+      locCell(s.shop),
+      locCell(s.home),
       el("td", { class: "num", text: String(s.products) }),
       el("td", { class: "num", text: String(s.orders) }),
-      el("td", { class: "num small", text: when(s.createdAt) }),
       el("td", {}, el("span", { class: "pill " + s.status, text: s.status })),
       el("td", {}, el("div", { class: "acts" },
-        s.status !== "approved" ? act("approved", "Approve", "") : null,
+        el("button", { class: "btn small ghost", onclick: () => editSeller(s) }, "Edit"),
+        el("button", { class: "btn small ghost", onclick: (ev) => confirmTap(ev.currentTarget, "Tap to reset", () => resetPassword(s)) }, "Reset password"),
+        s.status !== "approved" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, s.status === "suspended" ? "Reactivate" : "Approve") : null,
         s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, "Tap to suspend", () => setSeller(s, "suspended")) }, "Suspend") : null))));
   }
 }

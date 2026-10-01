@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
+<link rel="icon" type="image/png" href="/logo-mark.png">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -24,7 +25,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="/">
-      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
+      <img src="/logo-mark.png" alt="">
       <b>Kampoeng Semanggi</b> <span class="role">Seller desk</span>
     </a>
     <nav>
@@ -39,33 +40,24 @@
   <section class="auth" id="authView" hidden>
     <form class="panel" id="loginForm">
       <p class="eyebrow">Sellers</p>
-      <h2>Sign in to your stall</h2>
+      <h2>Sign in to your shop</h2>
       <div class="field"><label for="l-email">Email</label><input type="email" id="l-email" autocomplete="username" required></div>
       <div class="field"><label for="l-pass">Password</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
       <p class="formerr" id="loginErr" hidden></p>
       <button class="btn" type="submit">Sign in</button>
     </form>
-    <form class="panel" id="registerForm">
-      <p class="eyebrow">New seller</p>
-      <h2>Open a stall</h2>
-      <p class="muted small">The kampung admin checks each new stall. Your products appear in the catalog once you're approved.</p>
-      <div class="row2">
-        <div class="field"><label for="r-name">Your name</label><input type="text" id="r-name" autocomplete="name" required maxlength="60"></div>
-        <div class="field"><label for="r-stall">Stall name</label><input type="text" id="r-stall" required maxlength="60" placeholder="Semanggi Bu Sri"></div>
-      </div>
-      <div class="field"><label for="r-phone">WhatsApp number</label><input type="tel" id="r-phone" autocomplete="tel" required maxlength="24"><span class="hint">Buyers see this on their orders.</span></div>
-      <div class="field"><label for="r-email">Email</label><input type="email" id="r-email" autocomplete="username" required maxlength="120"></div>
-      <div class="field"><label for="r-pass">Password</label><input type="password" id="r-pass" autocomplete="new-password" required minlength="8"><span class="hint">At least 8 characters.</span></div>
-      <p class="formerr" id="registerErr" hidden></p>
-      <button class="btn ghost" type="submit">Create seller account</button>
-    </form>
+    <div class="panel">
+      <p class="eyebrow">New seller?</p>
+      <h2>Ask the admin for an account</h2>
+      <p class="muted">Seller accounts are created by the Kampoeng Semanggi admin. They'll give you your email and a starting password. Change the password after you first sign in.</p>
+    </div>
   </section>
 
   <!-- signed in -->
   <section class="desk" id="deskView" hidden>
     <div class="desk-head">
       <div>
-        <p class="eyebrow">Your stall</p>
+        <p class="eyebrow">Your shop</p>
         <h1 style="font-size:var(--step-2)" id="stallTitle"></h1>
       </div>
       <span class="pill" id="statusPill"></span>
@@ -98,7 +90,7 @@
           </div>
           <div class="field"><label for="p-desc">Description</label><textarea id="p-desc" maxlength="240" placeholder="With krupuk puli and extra sauce."></textarea></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn" type="submit" id="saveProductBtn">Add to my stall</button>
+            <button class="btn" type="submit" id="saveProductBtn">Add to my shop</button>
             <button class="btn ghost" type="button" id="cancelEditBtn" hidden>Cancel edit</button>
           </div>
         </form>
@@ -109,11 +101,14 @@
         </div>
 
         <form class="panel" id="profileForm">
-          <h3>Stall details</h3>
+          <h3>Shop details</h3>
           <div class="field"><label for="s-name">Your name</label><input type="text" id="s-name" required maxlength="60"></div>
-          <div class="field"><label for="s-stall">Stall name</label><input type="text" id="s-stall" required maxlength="60"></div>
-          <div class="field"><label for="s-phone">WhatsApp number</label><input type="tel" id="s-phone" required maxlength="24"></div>
-          <button class="btn ghost" type="submit">Save details</button>
+          <div class="field"><label for="s-stall">Shop name</label><input type="text" id="s-stall" required maxlength="60"></div>
+          <div class="field"><label for="s-phone">Contact number</label><input type="tel" id="s-phone" required maxlength="24"><span class="hint">Shown to buyers with your shop's map and on their orders.</span></div>
+          <div id="s-shop"></div>
+          <div id="s-home"></div>
+          <p class="formerr" id="profileErr" hidden></p>
+          <button class="btn" type="submit">Save details</button>
         </form>
 
         <form class="panel" id="passwordForm">
