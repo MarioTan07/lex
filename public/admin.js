@@ -1,4 +1,4 @@
-import { $, el, rp, when, STATUS, api, toast, confirmTap } from "/common.js";
+import { $, el, rp, when, t, STATUSES, statusLabel, api, toast, confirmTap } from "/common.js";
 
 let me = null;
 
@@ -20,7 +20,7 @@ $("#loginForm").addEventListener("submit", async (e) => {
 $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/logout", { method: "POST" }).catch(() => {}); start(); });
 
 function handle(err) {
-  if (err.status === 401 || err.status === 403) { toast("You've been signed out. Sign in again."); me = null; start(); return; }
+  if (err.status === 401 || err.status === 403) { toast(t("signedOut")); me = null; start(); return; }
   toast(err.message);
 }
 
@@ -54,7 +54,7 @@ async function loadSellers() {
   let sellers;
   try { ({ sellers } = await api("/api/admin/sellers")); } catch (e) { return handle(e); }
   const body = $("#sellerRows"); body.replaceChildren();
-  if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "8", class: "muted", text: "No sellers yet. They sign up at /seller and show up here for approval." })));
+  if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "8", class: "muted", text: t("admin.noSellers") })));
   for (const s of sellers) {
     const act = (status, label, cls = "ghost") => el("button", { class: "btn small " + cls, onclick: () => setSeller(s, status) }, label);
     body.append(el("tr", {},
@@ -64,14 +64,14 @@ async function loadSellers() {
       el("td", { class: "num", text: String(s.products) }),
       el("td", { class: "num", text: String(s.orders) }),
       el("td", { class: "num small", text: when(s.createdAt) }),
-      el("td", {}, el("span", { class: "pill " + s.status, text: s.status })),
+      el("td", {}, el("span", { class: "pill " + s.status, text: t("sellerStatus." + s.status) })),
       el("td", {}, el("div", { class: "acts" },
-        s.status !== "approved" ? act("approved", "Approve", "") : null,
-        s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, "Tap to suspend", () => setSeller(s, "suspended")) }, "Suspend") : null))));
+        s.status !== "approved" ? act("approved", t("admin.approve"), "") : null,
+        s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.suspendConfirm"), () => setSeller(s, "suspended")) }, t("admin.suspend")) : null))));
   }
 }
 async function setSeller(s, status) {
-  try { await api("/api/admin/sellers/" + s.id, { method: "PATCH", body: { status } }); toast(`${s.stallName} is now ${status}`); loadSellers(); loadOverview(); loadProducts(); }
+  try { await api("/api/admin/sellers/" + s.id, { method: "PATCH", body: { status } }); toast(t("admin.sellerNow", { stall: s.stallName, status: t("sellerStatus." + status).toLowerCase() })); loadSellers(); loadOverview(); loadProducts(); }
   catch (e) { handle(e); }
 }
 
@@ -80,26 +80,26 @@ async function loadProducts() {
   let products;
   try { ({ products } = await api("/api/admin/products")); } catch (e) { return handle(e); }
   const body = $("#productRows"); body.replaceChildren();
-  if (!products.length) body.append(el("tr", {}, el("td", { colspan: "6", class: "muted", text: "No products yet." })));
+  if (!products.length) body.append(el("tr", {}, el("td", { colspan: "6", class: "muted", text: t("admin.noProducts") })));
   for (const p of products) {
-    const state = p.hidden ? ["hidden", "Hidden"] : p.available ? ["live", "On sale"] : ["done", "Sold out"];
+    const state = p.hidden ? ["hidden", t("admin.stateHidden")] : p.available ? ["live", t("admin.stateLive")] : ["done", t("admin.stateSoldOut")];
     body.append(el("tr", {},
       el("td", {}, p.photo ? el("img", { src: p.photo, alt: "" }) : el("img", { alt: "" })),
       el("td", {}, el("strong", { text: p.name }), p.description ? el("div", { class: "muted small", text: p.description }) : null),
       el("td", { text: p.stallName }),
-      el("td", { class: "num" }, rp(p.price), p.unit ? el("div", { class: "muted small", text: "per " + p.unit }) : null),
+      el("td", { class: "num" }, rp(p.price), p.unit ? el("div", { class: "muted small", text: t("admin.perUnit", { unit: p.unit }) }) : null),
       el("td", {}, el("span", { class: "pill " + state[0], text: state[1] })),
       el("td", {}, el("div", { class: "acts" },
-        el("button", { class: "btn small ghost", onclick: () => setHidden(p, !p.hidden) }, p.hidden ? "Show" : "Hide"),
-        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, "Tap to delete", () => deleteProduct(p)) }, "Delete")))));
+        el("button", { class: "btn small ghost", onclick: () => setHidden(p, !p.hidden) }, t(p.hidden ? "admin.showProduct" : "admin.hideProduct")),
+        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => deleteProduct(p)) }, t("admin.delete"))))));
   }
 }
 async function setHidden(p, hidden) {
-  try { await api("/api/admin/products/" + p.id, { method: "PATCH", body: { hidden } }); toast(hidden ? p.name + " hidden from the catalog" : p.name + " is back in the catalog"); loadProducts(); }
+  try { await api("/api/admin/products/" + p.id, { method: "PATCH", body: { hidden } }); toast(t(hidden ? "admin.hidden" : "admin.shown", { name: p.name })); loadProducts(); }
   catch (e) { handle(e); }
 }
 async function deleteProduct(p) {
-  try { await api("/api/admin/products/" + p.id, { method: "DELETE" }); toast("Deleted " + p.name); loadProducts(); loadOverview(); }
+  try { await api("/api/admin/products/" + p.id, { method: "DELETE" }); toast(t("admin.deleted", { name: p.name })); loadProducts(); loadOverview(); }
   catch (e) { handle(e); }
 }
 
@@ -110,17 +110,17 @@ async function loadOrders() {
   const f = $("#orderStatus").value;
   try { ({ orders } = await api("/api/admin/orders" + (f ? "?status=" + f : ""))); } catch (e) { return handle(e); }
   const body = $("#orderRows"); body.replaceChildren();
-  if (!orders.length) body.append(el("tr", {}, el("td", { colspan: "7", class: "muted", text: f ? "No orders with this status." : "No orders yet." })));
+  if (!orders.length) body.append(el("tr", {}, el("td", { colspan: "7", class: "muted", text: t(f ? "admin.noOrdersStatus" : "admin.noOrders") })));
   for (const o of orders) {
-    const sel = el("select", { "aria-label": "Status of order " + o.code, onchange: async (ev) => {
-      try { await api("/api/admin/orders/" + o.id, { method: "PATCH", body: { status: ev.target.value } }); toast(`Order ${o.code} set to ${STATUS[ev.target.value].toLowerCase()}`); loadOverview(); }
+    const sel = el("select", { "aria-label": t("admin.statusOf", { code: o.code }), onchange: async (ev) => {
+      try { await api("/api/admin/orders/" + o.id, { method: "PATCH", body: { status: ev.target.value } }); toast(t("admin.orderSet", { code: o.code, status: statusLabel(ev.target.value).toLowerCase() })); loadOverview(); }
       catch (e) { handle(e); ev.target.value = o.status; }
-    } }, Object.entries(STATUS).map(([v, l]) => el("option", { value: v, selected: v === o.status }, l)));
+    } }, STATUSES.map((v) => el("option", { value: v, selected: v === o.status }, statusLabel(v))));
     body.append(el("tr", {},
       el("td", { class: "num small", text: when(o.createdAt) }),
       el("td", { class: "small", style: "font-family:ui-monospace,Consolas,monospace", text: o.code }),
       el("td", { text: o.stallName }),
-      el("td", {}, el("div", { text: o.buyerName }), el("div", { class: "muted small", text: o.contact + (o.fulfil === "delivery" ? " · delivery" : " · pick up") })),
+      el("td", {}, el("div", { text: o.buyerName }), el("div", { class: "muted small", text: o.contact + t(o.fulfil === "delivery" ? "admin.viaDelivery" : "admin.viaPickup") })),
       el("td", { class: "small", text: o.items.map((i) => i.qty + "× " + i.name).join(", ") }),
       el("td", { class: "num", text: rp(o.total) }),
       el("td", {}, sel)));
@@ -130,8 +130,10 @@ async function loadOrders() {
 // ---------- account ----------
 $("#passwordForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  try { await api("/api/auth/password", { method: "POST", body: { current: $("#pw-cur").value, next: $("#pw-new").value } }); e.target.reset(); toast("Password changed"); }
+  try { await api("/api/auth/password", { method: "POST", body: { current: $("#pw-cur").value, next: $("#pw-new").value } }); e.target.reset(); toast(t("common.passwordChanged")); }
   catch (err) { handle(err); }
 });
+
+window.addEventListener("langchange", () => { if (me) refreshAll(); });
 
 start();

@@ -115,19 +115,131 @@ if (!db.prepare("SELECT 1 FROM users WHERE role = 'admin'").get()) {
   }
 }
 
-// ---------- helpers ----------
-class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
-const bad = (msg) => new HttpError(400, msg);
+// ---------- messages ----------
+// Error messages in Indonesian (default) and English. A var whose value is itself a key here
+// (a field label or an order status) is translated too.
+const MESSAGES = {
+  id: {
+    required: "{label} wajib diisi.",
+    tooLong: "{label} maksimal {max} karakter.",
+    "label.field": "Kolom ini",
+    "label.email": "Email",
+    "label.name": "Nama Anda",
+    "label.stall": "Nama lapak",
+    "label.whatsapp": "Nomor WhatsApp",
+    "label.contact": "WhatsApp atau telepon",
+    "label.address": "Alamat pengiriman",
+    "label.product": "Nama produk",
+    price: "Masukkan harga dalam Rupiah, misalnya 15000.",
+    photoType: "Foto harus berupa gambar JPG, PNG, atau WebP.",
+    photoSize: "Foto terlalu besar. Gunakan foto di bawah 1,5 MB.",
+    signIn: "Silakan masuk terlebih dahulu.",
+    forbidden: "Akun Anda tidak bisa melakukan itu.",
+    throttle: "Terlalu banyak percobaan masuk. Tunggu 15 menit lalu coba lagi.",
+    emailInvalid: "Masukkan alamat email yang valid.",
+    passwordShort: "Gunakan kata sandi minimal 8 karakter.",
+    emailTaken: "Sudah ada akun dengan email ini. Silakan masuk.",
+    loginWrong: "Email dan kata sandi tidak cocok.",
+    suspended: "Akun ini ditangguhkan. Hubungi admin Kampoeng Semanggi.",
+    adminAccount: "Ini akun admin. Masuk di /admin.",
+    sellerAccount: "Ini akun penjual. Masuk di /seller.",
+    currentWrong: "Kata sandi Anda saat ini salah.",
+    newShort: "Gunakan kata sandi baru minimal 8 karakter.",
+    basketEmpty: "Keranjang Anda kosong.",
+    qty: "Jumlah setiap barang harus antara 1 dan 99.",
+    unavailable: "Ada barang di keranjang Anda yang sudah tidak tersedia. Hapus barang itu lalu coba lagi.",
+    noOrderCode: "Tidak ada pesanan dengan kode itu.",
+    alreadyAccepted: "Penjual sudah menerima pesanan ini. Hubungi penjual untuk mengubahnya.",
+    notYourProduct: "Produk itu bukan milik lapak Anda.",
+    maxProducts: "Satu lapak bisa memajang maksimal 200 produk.",
+    notYourOrder: "Pesanan itu bukan untuk lapak Anda.",
+    badTransition: "Pesanan berstatus {from} tidak bisa diubah menjadi {to}.",
+    unknownSellerStatus: "Status penjual tidak dikenal.",
+    noSeller: "Tidak ada penjual dengan id itu.",
+    noProduct: "Tidak ada produk dengan id itu.",
+    unknownOrderStatus: "Status pesanan tidak dikenal.",
+    noOrder: "Tidak ada pesanan dengan id itu.",
+    notFound: "Tidak ditemukan.",
+    tooLarge: "Unggahan itu terlalu besar.",
+    badRequest: "Permintaan tidak bisa dibaca. Coba lagi.",
+    server: "Terjadi kesalahan di server. Coba lagi.",
+    new: "baru", accepted: "diterima", ready: "siap", done: "selesai", declined: "ditolak", cancelled: "dibatalkan",
+  },
+  en: {
+    required: "{label} is required.",
+    tooLong: "{label} must be {max} characters or fewer.",
+    "label.field": "This field",
+    "label.email": "Email",
+    "label.name": "Your name",
+    "label.stall": "Stall name",
+    "label.whatsapp": "WhatsApp number",
+    "label.contact": "WhatsApp or phone",
+    "label.address": "Delivery address",
+    "label.product": "Product name",
+    price: "Enter a price in Rupiah, for example 15000.",
+    photoType: "The photo must be a JPG, PNG or WebP image.",
+    photoSize: "The photo is too large. Use one under 1.5 MB.",
+    signIn: "Please sign in.",
+    forbidden: "Your account can't do that.",
+    throttle: "Too many sign-in attempts. Wait 15 minutes and try again.",
+    emailInvalid: "Enter a valid email address.",
+    passwordShort: "Use a password of at least 8 characters.",
+    emailTaken: "An account with this email already exists. Sign in instead.",
+    loginWrong: "That email and password don't match.",
+    suspended: "This account is suspended. Contact the Kampoeng Semanggi admin.",
+    adminAccount: "This is an admin account. Sign in at /admin.",
+    sellerAccount: "This is a seller account. Sign in at /seller.",
+    currentWrong: "Your current password is wrong.",
+    newShort: "Use a new password of at least 8 characters.",
+    basketEmpty: "Your basket is empty.",
+    qty: "Each quantity must be between 1 and 99.",
+    unavailable: "Something in your basket is no longer available. Remove it and try again.",
+    noOrderCode: "No order with that code.",
+    alreadyAccepted: "The seller has already accepted this order. Contact them to change it.",
+    notYourProduct: "That product isn't in your stall.",
+    maxProducts: "A stall can list up to 200 products.",
+    notYourOrder: "That order isn't for your stall.",
+    badTransition: "An order that is {from} can't be changed to {to}.",
+    unknownSellerStatus: "Unknown seller status.",
+    noSeller: "No seller with that id.",
+    noProduct: "No product with that id.",
+    unknownOrderStatus: "Unknown order status.",
+    noOrder: "No order with that id.",
+    notFound: "Not found.",
+    tooLarge: "That upload is too large.",
+    badRequest: "The request couldn't be read. Try again.",
+    server: "Something went wrong on the server. Try again.",
+    new: "new", accepted: "accepted", ready: "ready", done: "completed", declined: "declined", cancelled: "cancelled",
+  },
+};
+function requestLang(req) {
+  const asked = req.get("x-lang");
+  if (asked in MESSAGES) return asked;
+  return req.acceptsLanguages("id", "en") === "en" ? "en" : "id";
+}
+function translate(lang, key, vars = {}) {
+  const m = MESSAGES[lang];
+  return (m[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => {
+    const v = String(vars[k] ?? "");
+    return Object.hasOwn(m, v) ? m[v] : v;
+  });
+}
 
-function text(v, max, { required = false, label = "This field" } = {}) {
+// ---------- helpers ----------
+class HttpError extends Error {
+  constructor(status, key, vars = {}) { super(key); this.status = status; this.key = key; this.vars = vars; }
+}
+const bad = (key, vars) => new HttpError(400, key, vars);
+
+function text(v, max, { required = false, label = "label.field" } = {}) {
   const s = typeof v === "string" ? v.trim() : "";
-  if (required && !s) throw bad(`${label} is required.`);
-  if (s.length > max) throw bad(`${label} must be ${max} characters or fewer.`);
+  if (required && !s) throw bad("required", { label });
+  if (s.length > max) throw bad("tooLong", { label, max });
   return s;
 }
 function money(v) {
   const n = Number(v);
-  if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("Enter a price in Rupiah, for example 15000.");
+  if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("price");
   return Math.round(n);
 }
 function makeCode() {
@@ -138,9 +250,9 @@ function makeCode() {
 }
 function savePhoto(dataUrl) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || "");
-  if (!m) throw bad("The photo must be a JPG, PNG or WebP image.");
+  if (!m) throw bad("photoType");
   const buf = Buffer.from(m[2], "base64");
-  if (buf.length > 1.5 * 1024 * 1024) throw bad("The photo is too large. Use one under 1.5 MB.");
+  if (buf.length > 1.5 * 1024 * 1024) throw bad("photoSize");
   const name = crypto.randomBytes(12).toString("hex") + "." + (m[1] === "jpeg" ? "jpg" : m[1]);
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
   return "/uploads/" + name;
@@ -189,8 +301,8 @@ app.use((req, _res, next) => {
   next();
 });
 const requireRole = (...roles) => (req, _res, next) => {
-  if (!req.user) return next(new HttpError(401, "Please sign in."));
-  if (!roles.includes(req.user.role)) return next(new HttpError(403, "Your account can't do that."));
+  if (!req.user) return next(new HttpError(401, "signIn"));
+  if (!roles.includes(req.user.role)) return next(new HttpError(403, "forbidden"));
   next();
 };
 
@@ -200,19 +312,19 @@ function throttle(req) {
   const now = Date.now(), key = req.ip;
   const a = attempts.get(key);
   if (!a || a.reset < now) { attempts.set(key, { n: 1, reset: now + 15 * 6e4 }); return; }
-  if (++a.n > 10) throw new HttpError(429, "Too many sign-in attempts. Wait 15 minutes and try again.");
+  if (++a.n > 10) throw new HttpError(429, "throttle");
 }
 
 // ----- auth -----
 app.post("/api/auth/register", (req, res) => {
-  const email = text(req.body.email, 120, { required: true, label: "Email" }).toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad("Enter a valid email address.");
+  const email = text(req.body.email, 120, { required: true, label: "label.email" }).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad("emailInvalid");
   const password = typeof req.body.password === "string" ? req.body.password : "";
-  if (password.length < 8) throw bad("Use a password of at least 8 characters.");
-  const name = text(req.body.name, 60, { required: true, label: "Your name" });
-  const stallName = text(req.body.stallName, 60, { required: true, label: "Stall name" });
-  const phone = text(req.body.phone, 24, { required: true, label: "WhatsApp number" });
-  if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) throw bad("An account with this email already exists. Sign in instead.");
+  if (password.length < 8) throw bad("passwordShort");
+  const name = text(req.body.name, 60, { required: true, label: "label.name" });
+  const stallName = text(req.body.stallName, 60, { required: true, label: "label.stall" });
+  const phone = text(req.body.phone, 24, { required: true, label: "label.whatsapp" });
+  if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) throw bad("emailTaken");
   const r = db.prepare("INSERT INTO users (email, password_hash, role, status, name, stall_name, phone, created_at) VALUES (?, ?, 'seller', 'pending', ?, ?, ?, ?)")
     .run(email, hashPassword(password), name, stallName, phone, Date.now());
   createSession(res, Number(r.lastInsertRowid));
@@ -224,9 +336,9 @@ app.post("/api/auth/login", (req, res) => {
   const email = text(req.body.email, 120).toLowerCase();
   const password = typeof req.body.password === "string" ? req.body.password : "";
   const u = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
-  if (!u || !checkPassword(password, u.password_hash)) throw new HttpError(401, "That email and password don't match.");
-  if (u.status === "suspended") throw new HttpError(403, "This account is suspended. Contact the kampung admin.");
-  if (req.body.role && req.body.role !== u.role) throw new HttpError(403, u.role === "admin" ? "This is an admin account. Sign in at /admin." : "This is a seller account. Sign in at /seller.");
+  if (!u || !checkPassword(password, u.password_hash)) throw new HttpError(401, "loginWrong");
+  if (u.status === "suspended") throw new HttpError(403, "suspended");
+  if (req.body.role && req.body.role !== u.role) throw new HttpError(403, u.role === "admin" ? "adminAccount" : "sellerAccount");
   attempts.delete(req.ip);
   createSession(res, u.id);
   res.json({ user: publicUser(u) });
@@ -242,8 +354,8 @@ app.get("/api/me", (req, res) => res.json({ user: publicUser(req.user) || null }
 
 app.post("/api/auth/password", requireRole("seller", "admin"), (req, res) => {
   const { current, next } = req.body;
-  if (typeof current !== "string" || !checkPassword(current, req.user.password_hash)) throw bad("Your current password is wrong.");
-  if (typeof next !== "string" || next.length < 8) throw bad("Use a new password of at least 8 characters.");
+  if (typeof current !== "string" || !checkPassword(current, req.user.password_hash)) throw bad("currentWrong");
+  if (typeof next !== "string" || next.length < 8) throw bad("newShort");
   db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(next), req.user.id);
   db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").run(req.user.id, req.sessionHash);
   res.json({ ok: true });
@@ -259,22 +371,22 @@ app.get("/api/catalog", (_req, res) => {
 });
 
 app.post("/api/orders", (req, res) => {
-  const buyerName = text(req.body.buyerName, 60, { required: true, label: "Your name" });
-  const contact = text(req.body.contact, 24, { required: true, label: "WhatsApp or phone" });
+  const buyerName = text(req.body.buyerName, 60, { required: true, label: "label.name" });
+  const contact = text(req.body.contact, 24, { required: true, label: "label.contact" });
   const fulfil = req.body.fulfil === "delivery" ? "delivery" : "pickup";
-  const address = fulfil === "delivery" ? text(req.body.address, 300, { required: true, label: "Delivery address" }) : "";
+  const address = fulfil === "delivery" ? text(req.body.address, 300, { required: true, label: "label.address" }) : "";
   const note = text(req.body.note, 300);
   const items = Array.isArray(req.body.items) ? req.body.items.slice(0, 50) : [];
-  if (!items.length) throw bad("Your basket is empty.");
+  if (!items.length) throw bad("basketEmpty");
 
   const getProduct = db.prepare(`SELECT p.* FROM products p JOIN users u ON u.id = p.seller_id
     WHERE p.id = ? AND p.hidden = 0 AND p.available = 1 AND u.status = 'approved' AND u.role = 'seller'`);
   const bySeller = new Map();
   for (const it of items) {
     const qty = Math.floor(Number(it.qty));
-    if (!(qty >= 1 && qty <= 99)) throw bad("Each quantity must be between 1 and 99.");
+    if (!(qty >= 1 && qty <= 99)) throw bad("qty");
     const p = getProduct.get(Number(it.productId));
-    if (!p) throw bad("Something in your basket is no longer available. Remove it and try again.");
+    if (!p) throw bad("unavailable");
     if (!bySeller.has(p.seller_id)) bySeller.set(p.seller_id, []);
     bySeller.get(p.seller_id).push({ p, qty });
   }
@@ -307,8 +419,8 @@ app.get("/api/orders", (req, res) => {
 
 app.post("/api/orders/:code/cancel", (req, res) => {
   const o = db.prepare("SELECT * FROM orders WHERE code = ?").get(String(req.params.code).toUpperCase());
-  if (!o) throw new HttpError(404, "No order with that code.");
-  if (o.status !== "new") throw bad("The seller has already accepted this order. Contact them to change it.");
+  if (!o) throw new HttpError(404, "noOrderCode");
+  if (o.status !== "new") throw bad("alreadyAccepted");
   db.prepare("UPDATE orders SET status = 'cancelled', updated_at = ? WHERE id = ?").run(Date.now(), o.id);
   res.json({ ok: true });
 });
@@ -318,9 +430,9 @@ const seller = express.Router();
 seller.use(requireRole("seller"));
 
 seller.patch("/profile", (req, res) => {
-  const stallName = text(req.body.stallName, 60, { required: true, label: "Stall name" });
-  const phone = text(req.body.phone, 24, { required: true, label: "WhatsApp number" });
-  const name = text(req.body.name, 60, { required: true, label: "Your name" });
+  const stallName = text(req.body.stallName, 60, { required: true, label: "label.stall" });
+  const phone = text(req.body.phone, 24, { required: true, label: "label.whatsapp" });
+  const name = text(req.body.name, 60, { required: true, label: "label.name" });
   db.prepare("UPDATE users SET stall_name = ?, phone = ?, name = ? WHERE id = ?").run(stallName, phone, name, req.user.id);
   res.json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)) });
 });
@@ -332,7 +444,7 @@ seller.get("/products", (req, res) => {
 
 function productFields(body, partial) {
   const f = {};
-  if (!partial || body.name !== undefined) f.name = text(body.name, 60, { required: true, label: "Product name" });
+  if (!partial || body.name !== undefined) f.name = text(body.name, 60, { required: true, label: "label.product" });
   if (!partial || body.price !== undefined) f.price = money(body.price);
   if (!partial || body.unit !== undefined) f.unit = text(body.unit, 30);
   if (!partial || body.description !== undefined) f.description = text(body.description, 240);
@@ -341,13 +453,13 @@ function productFields(body, partial) {
 }
 const ownProduct = (req) => {
   const p = db.prepare("SELECT * FROM products WHERE id = ? AND seller_id = ?").get(Number(req.params.id), req.user.id);
-  if (!p) throw new HttpError(404, "That product isn't in your stall.");
+  if (!p) throw new HttpError(404, "notYourProduct");
   return p;
 };
 
 seller.post("/products", (req, res) => {
   const f = productFields(req.body, false);
-  if (db.prepare("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?").get(req.user.id).n >= 200) throw bad("A stall can list up to 200 products.");
+  if (db.prepare("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?").get(req.user.id).n >= 200) throw bad("maxProducts");
   const photo = req.body.photo ? savePhoto(req.body.photo) : "";
   const r = db.prepare("INSERT INTO products (seller_id, name, price, unit, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)")
     .run(req.user.id, f.name, f.price, f.unit, f.description, photo, Date.now());
@@ -377,9 +489,9 @@ seller.get("/orders", (req, res) => {
 
 seller.patch("/orders/:id", (req, res) => {
   const o = db.prepare("SELECT * FROM orders WHERE id = ? AND seller_id = ?").get(Number(req.params.id), req.user.id);
-  if (!o) throw new HttpError(404, "That order isn't for your stall.");
+  if (!o) throw new HttpError(404, "notYourOrder");
   const status = req.body.status;
-  if (!(SELLER_NEXT[o.status] || []).includes(status)) throw bad(`An order that is ${o.status} can't be changed to ${status}.`);
+  if (!(SELLER_NEXT[o.status] || []).includes(status)) throw bad("badTransition", { from: o.status, to: status });
   db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(status, Date.now(), o.id);
   res.json({ ok: true });
 });
@@ -414,9 +526,9 @@ admin.get("/sellers", (_req, res) => {
 
 admin.patch("/sellers/:id", (req, res) => {
   const status = req.body.status;
-  if (!["approved", "suspended", "pending"].includes(status)) throw bad("Unknown seller status.");
+  if (!["approved", "suspended", "pending"].includes(status)) throw bad("unknownSellerStatus");
   const r = db.prepare("UPDATE users SET status = ? WHERE id = ? AND role = 'seller'").run(status, Number(req.params.id));
-  if (!r.changes) throw new HttpError(404, "No seller with that id.");
+  if (!r.changes) throw new HttpError(404, "noSeller");
   if (status === "suspended") db.prepare("DELETE FROM sessions WHERE user_id = ?").run(Number(req.params.id));
   res.json({ ok: true });
 });
@@ -428,13 +540,13 @@ admin.get("/products", (_req, res) => {
 
 admin.patch("/products/:id", (req, res) => {
   const r = db.prepare("UPDATE products SET hidden = ? WHERE id = ?").run(req.body.hidden ? 1 : 0, Number(req.params.id));
-  if (!r.changes) throw new HttpError(404, "No product with that id.");
+  if (!r.changes) throw new HttpError(404, "noProduct");
   res.json({ ok: true });
 });
 
 admin.delete("/products/:id", (req, res) => {
   const p = db.prepare("SELECT * FROM products WHERE id = ?").get(Number(req.params.id));
-  if (!p) throw new HttpError(404, "No product with that id.");
+  if (!p) throw new HttpError(404, "noProduct");
   db.prepare("DELETE FROM products WHERE id = ?").run(p.id);
   removePhoto(p.photo);
   res.json({ ok: true });
@@ -449,9 +561,9 @@ admin.get("/orders", (req, res) => {
 });
 
 admin.patch("/orders/:id", (req, res) => {
-  if (!STATUSES.includes(req.body.status)) throw bad("Unknown order status.");
+  if (!STATUSES.includes(req.body.status)) throw bad("unknownOrderStatus");
   const r = db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(req.body.status, Date.now(), Number(req.params.id));
-  if (!r.changes) throw new HttpError(404, "No order with that id.");
+  if (!r.changes) throw new HttpError(404, "noOrder");
   res.json({ ok: true });
 });
 app.use("/api/admin", admin);
@@ -460,11 +572,12 @@ app.use("/api/admin", admin);
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "30d", immutable: true }));
 app.use(express.static(path.join(__dirname, "public"), { extensions: ["html"] }));
 
-app.use("/api", (_req, _res, next) => next(new HttpError(404, "Not found.")));
-app.use((err, _req, res, _next) => {
+app.use("/api", (_req, _res, next) => next(new HttpError(404, "notFound")));
+app.use((err, req, res, _next) => {
   const status = err.status || (err.type === "entity.too.large" ? 413 : 500);
   if (status >= 500) console.error(err);
-  res.status(status).json({ error: status === 413 ? "That upload is too large." : status >= 500 ? "Something went wrong on the server. Try again." : err.message });
+  const key = err instanceof HttpError ? err.key : status === 413 ? "tooLarge" : status >= 500 ? "server" : "badRequest";
+  res.status(status).json({ error: translate(requestLang(req), key, err.vars) });
 });
 
 app.listen(PORT, () => console.log(`Kampoeng Semanggi running at http://localhost:${PORT}`));

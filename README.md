@@ -1,12 +1,14 @@
 # Kampoeng Semanggi
 
-A website about Kampung Semanggi (Jalan Kendung, Sememi, Benowo, Surabaya) with an online catalog. Sellers list their products, buyers order from the catalog, and an admin looks after the whole market.
+A website about Kampoeng Semanggi (Jalan Kendung, Sememi, Benowo, Surabaya) with an online catalog. Sellers list their products, buyers order from the catalog, and an admin looks after the whole market.
+
+The site is in Indonesian, with English as a second language. Every page has an **ID | EN** switch in the top bar.
 
 ## Pages
 
 | Page | Who uses it | What it does |
 | --- | --- | --- |
-| `/` | Everyone | About the kampung, the product catalog, basket and order tracking. Buyers don't need an account. |
+| `/` | Everyone | About Kampoeng Semanggi, the product catalog, basket and order tracking. Buyers don't need an account. |
 | `/seller` | Sellers | Sign up, add, edit and remove products with photos and prices, mark items sold out, and handle incoming orders. |
 | `/admin` | Admin | Approve or suspend sellers, hide or delete products, see and change every order, and view totals. |
 
@@ -46,7 +48,15 @@ GitHub Pages can't run this, because it only serves static files and this site n
 ## How it's built
 
 - `server.js` is an Express server using Node's built-in SQLite (`node:sqlite`), so the only dependency is Express.
-- `public/` holds the pages: `index.html` + `shop.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css` and `common.js`.
+- `public/` holds the pages: `index.html` + `shop.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
+
+### Languages
+
+- `public/i18n.js` holds all page text in Indonesian and English. HTML elements point at it with `data-i18n="key"` (text), `data-i18n-html="key"` (text with markup) or `data-i18n-attr="placeholder:key"` (attributes). Scripts call `t("key")`.
+- A visitor's choice is remembered in their browser. On a first visit the site uses the browser's language if it's Indonesian or English, and Indonesian otherwise.
+- Server error messages are in `MESSAGES` at the top of `server.js`. The pages send the chosen language in an `X-Lang` header.
+- To add a language, add its code to `LANGS` in `i18n.js` and a column to `TEXT` there and to `MESSAGES` in `server.js`.
+- Text that sellers type (stall names, product names and descriptions) isn't translated.
 - Passwords are hashed with scrypt. Sign-in uses an HTTP-only session cookie. Sign-in attempts are limited to 10 per 15 minutes per IP address.
 - Prices are always taken from the database when an order is placed, so buyers can't change what they pay.
 - Buyers only see their order status and the seller's WhatsApp number. The buyer's contact details and address are visible only to that seller and the admin.

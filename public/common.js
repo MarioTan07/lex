@@ -1,4 +1,6 @@
 // Shared helpers for the shop, seller desk and admin desk.
+import { t, lang } from "/i18n.js";
+export { t };
 export const $ = (s, root = document) => root.querySelector(s);
 
 export function el(tag, props = {}, ...kids) {
@@ -14,10 +16,11 @@ export function el(tag, props = {}, ...kids) {
 }
 
 export const rp = (n) => "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(n || 0));
-export const when = (t) =>
-  new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(t));
+export const when = (time) =>
+  new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(time));
 
-export const STATUS = { new: "New", accepted: "Accepted", ready: "Ready", done: "Completed", declined: "Declined", cancelled: "Cancelled" };
+export const STATUSES = ["new", "accepted", "ready", "done", "declined", "cancelled"];
+export const statusLabel = (s) => (STATUSES.includes(s) ? t("status." + s) : s);
 
 export function leafSvg() {
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -32,16 +35,16 @@ export async function api(path, { method = "GET", body } = {}) {
   try {
     res = await fetch(path, {
       method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
+      headers: { "X-Lang": lang, ...(body ? { "Content-Type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined,
       credentials: "same-origin",
     });
   } catch {
-    throw new Error("Can't reach the server. Check your connection and try again.");
+    throw new Error(t("err.offline"));
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = new Error(data.error || "Something went wrong. Try again.");
+    const err = new Error(data.error || t("err.generic"));
     err.status = res.status;
     throw err;
   }

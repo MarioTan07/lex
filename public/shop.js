@@ -1,8 +1,9 @@
-import { $, el, rp, when, STATUS, leafSvg, api, toast, confirmTap } from "/common.js";
+import { $, el, rp, when, t, statusLabel, leafSvg, api, toast, confirmTap } from "/common.js";
 
 let products = [];
 let filterStall = "all";
 let myOrders = [];
+let catalogLoaded = false;
 
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -21,9 +22,10 @@ document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("cli
 async function loadCatalog() {
   try {
     ({ products } = await api("/api/catalog"));
+    catalogLoaded = true;
     $("#notice").hidden = true;
   } catch (e) {
-    $("#notice").textContent = "The catalog couldn't load. " + e.message;
+    $("#notice").textContent = t("shop.loadFailed") + e.message;
     $("#notice").hidden = false;
   }
   renderShop(); renderBasket();
@@ -34,13 +36,15 @@ function renderShop() {
   const chips = $("#stallChips"); chips.replaceChildren();
   if (stalls.length > 1) {
     const mk = (id, label) => el("button", { "aria-pressed": String(filterStall === id), onclick: () => { filterStall = id; renderShop(); } }, label);
-    chips.append(mk("all", "All stalls"), ...stalls.map(([id, name]) => mk(id, name)));
+    chips.append(mk("all", t("shop.allStalls")), ...stalls.map(([id, name]) => mk(id, name)));
   }
   const shown = products.filter((p) => filterStall === "all" || p.sellerId === filterStall);
   const grid = $("#productGrid"); grid.replaceChildren();
   $("#shopEmpty").hidden = shown.length > 0;
-  $("#shopEmptyTitle").textContent = "No products yet";
-  $("#shopEmptyText").textContent = "When the kampung's sellers list their pecel semanggi, snacks and drinks, they appear here with prices.";
+  if (catalogLoaded) {
+    $("#shopEmptyTitle").textContent = t("shop.empty");
+    $("#shopEmptyText").textContent = t("shop.emptyText");
+  }
   for (const p of shown) {
     grid.append(el("article", { class: "card" },
       el("div", { class: "photo" }, p.photo ? el("img", { src: p.photo, alt: p.name, loading: "lazy" }) : leafSvg()),
@@ -51,8 +55,8 @@ function renderShop() {
         el("div", { class: "buy" },
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
           p.available
-            ? el("button", { class: "btn small", onclick: () => addToBasket(p) }, "Add")
-            : el("span", { class: "soldout", text: "Sold out" })))));
+            ? el("button", { class: "btn small", onclick: () => addToBasket(p) }, t("shop.add"))
+            : el("span", { class: "soldout", text: t("shop.soldOut") })))));
   }
 }
 
@@ -60,7 +64,7 @@ function renderShop() {
 function addToBasket(p) {
   const line = basket.find((l) => l.productId === p.id);
   if (line) line.qty = Math.min(99, line.qty + 1); else basket.push({ productId: p.id, qty: 1 });
-  store("ks-basket", basket); renderBasket(); toast(p.name + " added to your basket");
+  store("ks-basket", basket); renderBasket(); toast(t("shop.added", { name: p.name }));
 }
 function basketLines() {
   return basket.map((l) => ({ ...l, p: products.find((p) => p.id === l.productId) })).filter((l) => l.p && l.p.available);
@@ -72,8 +76,8 @@ function renderBasket() {
   const n = lines.reduce((a, l) => a + l.qty, 0);
   $("#basketCount").textContent = n; $("#basketCount").hidden = !n;
   $("#placeBtn").disabled = !lines.length;
-  const box = $("#basketList"); box.replaceChildren(el("h3", { text: "Basket" }));
-  if (!lines.length) { box.append(el("p", { class: "muted", text: "Your basket is empty. Add something from the Catalog tab." })); return; }
+  const box = $("#basketList"); box.replaceChildren(el("h3", { text: t("basket.title") }));
+  if (!lines.length) { box.append(el("p", { class: "muted", text: t("basket.empty") })); return; }
   let grand = 0;
   for (const ls of groupBy(lines, (l) => l.p.sellerId).values()) {
     const sub = ls.reduce((a, l) => a + l.qty * l.p.price, 0); grand += sub;
@@ -82,13 +86,13 @@ function renderBasket() {
       ls.map((l) => el("div", { class: "line" },
         el("span", {}, l.p.name, el("small", { class: "muted", text: " · " + rp(l.p.price) })),
         el("span", { class: "qty" },
-          el("button", { type: "button", "aria-label": "One less " + l.p.name, onclick: () => changeQty(l.productId, -1) }, "−"),
+          el("button", { type: "button", "aria-label": t("basket.less", { name: l.p.name }), onclick: () => changeQty(l.productId, -1) }, "−"),
           el("span", { text: String(l.qty) }),
-          el("button", { type: "button", "aria-label": "One more " + l.p.name, onclick: () => changeQty(l.productId, 1) }, "+")),
+          el("button", { type: "button", "aria-label": t("basket.more", { name: l.p.name }), onclick: () => changeQty(l.productId, 1) }, "+")),
         el("span", { class: "num", text: rp(l.qty * l.p.price) }))),
-      el("div", { class: "total muted" }, el("span", { text: "Subtotal" }), el("span", { text: rp(sub) }))));
+      el("div", { class: "total muted" }, el("span", { text: t("common.subtotal") }), el("span", { text: rp(sub) }))));
   }
-  box.append(el("div", { class: "total", style: "border-top:1px solid var(--line);padding-top:12px" }, el("span", { text: "Total" }), el("span", { text: rp(grand) })));
+  box.append(el("div", { class: "total", style: "border-top:1px solid var(--line);padding-top:12px" }, el("span", { text: t("common.total") }), el("span", { text: rp(grand) })));
 }
 function changeQty(id, d) {
   const line = basket.find((x) => x.productId === id);
@@ -104,7 +108,7 @@ $("#checkout").addEventListener("submit", async (e) => {
   e.preventDefault();
   const lines = basketLines();
   if (!lines.length) return;
-  const btn = $("#placeBtn"); btn.disabled = true; btn.textContent = "Placing order…";
+  const btn = $("#placeBtn"); btn.disabled = true; btn.textContent = t("checkout.placing");
   try {
     const delivery = $("#c-delivery").checked;
     const { orders } = await api("/api/orders", { method: "POST", body: {
@@ -116,12 +120,12 @@ $("#checkout").addEventListener("submit", async (e) => {
     basket = []; store("ks-basket", basket);
     $("#c-note").value = "";
     renderBasket(); showTab("orders");
-    toast(orders.length > 1 ? `${orders.length} orders placed. Keep the codes to track them.` : `Order ${orders[0].code} placed. The seller can see it now.`);
+    toast(orders.length > 1 ? t("checkout.placedMany", { n: orders.length }) : t("checkout.placedOne", { code: orders[0].code }));
   } catch (err) {
     toast(err.message);
     loadCatalog();
   }
-  btn.textContent = "Place order"; renderBasket();
+  btn.textContent = t("checkout.place"); renderBasket();
 });
 
 // ---------- my orders ----------
@@ -134,38 +138,38 @@ async function refreshOrders() {
 function renderOrders() {
   const box = $("#myOrders"); box.replaceChildren();
   if (!myOrders.length) {
-    box.append(el("div", { class: "empty" }, el("h3", { text: "No orders yet" }),
-      el("p", { text: "Orders you place on this device appear here, with their status as the seller updates it. On another device, track an order with its code." })));
+    box.append(el("div", { class: "empty" }, el("h3", { text: t("common.noOrders") }),
+      el("p", { text: t("orders.emptyText") })));
     return;
   }
   for (const o of myOrders) {
-    const statusText = o.status === "ready" ? (o.fulfil === "delivery" ? "On the way" : "Ready to pick up") : STATUS[o.status] || o.status;
+    const statusText = o.status === "ready" ? t(o.fulfil === "delivery" ? "orders.onTheWay" : "orders.readyPickup") : statusLabel(o.status);
     box.append(el("article", { class: "order" },
       el("header", {},
         el("div", {}, el("strong", { text: o.stallName }), el("span", { class: "muted num", text: "  " + when(o.createdAt) })),
         el("span", { class: "pill " + o.status, text: statusText })),
       el("div", { class: "items" },
         o.items.map((i) => el("div", {}, el("span", { text: i.qty + " × " + i.name }), el("span", { text: rp(i.qty * i.price) }))),
-        el("div", { style: "font-weight:700" }, el("span", { text: "Total" }), el("span", { text: rp(o.total) }))),
+        el("div", { style: "font-weight:700" }, el("span", { text: t("common.total") }), el("span", { text: rp(o.total) }))),
       el("div", { class: "meta" },
-        el("span", { class: "code", text: "Code " + o.code }),
-        el("span", { text: o.fulfil === "delivery" ? "Delivery" : "Pick up in the kampung" }),
-        o.stallPhone ? el("span", { text: "Seller WhatsApp: " + o.stallPhone }) : null),
+        el("span", { class: "code", text: t("common.code", { code: o.code }) }),
+        el("span", { text: t(o.fulfil === "delivery" ? "orders.delivery" : "common.pickup") }),
+        o.stallPhone ? el("span", { text: t("orders.sellerWa", { phone: o.stallPhone }) }) : null),
       o.status === "new" ? el("div", { class: "actions" },
-        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, "Tap again to cancel", async () => {
-          try { await api(`/api/orders/${o.code}/cancel`, { method: "POST" }); toast("Order cancelled"); refreshOrders(); }
+        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("orders.cancelConfirm"), async () => {
+          try { await api(`/api/orders/${o.code}/cancel`, { method: "POST" }); toast(t("orders.cancelled")); refreshOrders(); }
           catch (err) { toast(err.message); refreshOrders(); }
-        }) }, "Cancel order")) : null));
+        }) }, t("orders.cancel"))) : null));
   }
 }
 
 $("#trackForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const code = $("#t-code").value.trim().toUpperCase();
-  if (!/^[A-Z0-9]{8}$/.test(code)) return toast("Order codes are 8 letters and numbers.");
+  if (!/^[A-Z0-9]{8}$/.test(code)) return toast(t("track.format"));
   const { orders } = await api("/api/orders?codes=" + code).catch((err) => (toast(err.message), { orders: null }));
   if (!orders) return;
-  if (!orders.length) return toast("No order with that code.");
+  if (!orders.length) return toast(t("track.none"));
   if (!codes.includes(code)) { codes = [code, ...codes].slice(0, 50); store("ks-orders", codes); }
   $("#t-code").value = "";
   refreshOrders();
@@ -173,5 +177,10 @@ $("#trackForm").addEventListener("submit", async (e) => {
 
 // Keep order statuses fresh while the tab is open.
 setInterval(() => { if (!$("#view-orders").hidden && !document.hidden) refreshOrders(); }, 20000);
+
+window.addEventListener("langchange", () => {
+  if (catalogLoaded) { renderShop(); renderBasket(); } else loadCatalog();
+  renderOrders();
+});
 
 loadCatalog();
