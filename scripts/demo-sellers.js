@@ -3,21 +3,14 @@
 //   npm run demo:remove  deletes them and their products
 // Every example seller signs in with an @contoh.test email; their passwords are saved in
 // DATA_DIR/demo-sellers.txt. Remove them before real sellers and buyers use the site.
-import { DatabaseSync } from "node:sqlite";
+// Works on the local database, or on Turso when TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set (e.g. in .env).
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { connect, setupSchema, DATA_DIR } from "../db.js";
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DATA_DIR = process.env.DATA_DIR || path.join(root, "data");
-const dbFile = path.join(DATA_DIR, "semanggi.db");
-if (!fs.existsSync(dbFile)) {
-  console.error("No database yet. Run `npm start` once, stop it, then run this again.");
-  process.exit(1);
-}
-const db = new DatabaseSync(dbFile);
-db.exec("PRAGMA foreign_keys = ON");
+const db = connect();
+await setupSchema(db);
 
 // Shops around Jalan Kendung, Sememi. Pins are approximate.
 const SELLERS = [
@@ -91,51 +84,54 @@ function hashPassword(pw) {
   return salt.toString("hex") + ":" + crypto.scryptSync(pw, salt, 64).toString("hex");
 }
 
-function add() {
+async function add() {
   const notes = [];
   let added = 0, items = 0;
-  db.exec("BEGIN");
-  try {
-    for (const s of SELLERS) {
-      if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(s.email)) continue;
-      const password = crypto.randomBytes(6).toString("base64url");
-      const now = Date.now();
-      const r = db.prepare(`INSERT INTO users (email, password_hash, role, status, name, stall_name, phone,
-          shop_address, shop_lat, shop_lng, home_address, home_lat, home_lng, paused, pause_note, created_at)
-        VALUES (?, ?, 'seller', 'approved', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .run(s.email, hashPassword(password), s.name, s.stall, s.phone, ...s.shop, ...s.home, s.paused ? 1 : 0, s.paused || "", now);
-      const ins = db.prepare("INSERT INTO products (seller_id, name, price, unit, description, available, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-      s.products.forEach(([name, price, unit, desc, available = true], i) => { ins.run(r.lastInsertRowid, name, price, unit, desc, available ? 1 : 0, now + i); items++; });
-      notes.push(`${s.stall}\n  Email: ${s.email}\n  Password: ${password}`);
-      added++;
-    }
-    db.exec("COMMIT");
-  } catch (e) { db.exec("ROLLBACK"); throw e; }
+  for (const s of SELLERS) {
+    if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", s.email)) continue;
+    const password = crypto.randomBytes(6).toString("base64url");
+    const now = Date.now();
+    const r = await db.run(`INSERT INTO users (email, password_hash, role, status, name, stall_name, phone,
+        shop_address, shop_lat, shop_lng, home_address, home_lat, home_lng, paused, pause_note, created_at)
+      VALUES (?, ?, 'seller', 'approved', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      s.email, hashPassword(password), s.name, s.stall, s.phone, ...s.shop, ...s.home, s.paused ? 1 : 0, s.paused || "", now);
+    await db.batch(s.products.map(([name, price, unit, desc, available = true], i) =>
+      ["INSERT INTO products (seller_id, name, price, unit, description, available, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        r.id, name, price, unit, desc, available ? 1 : 0, now + i]));
+    items += s.products.length;
+    notes.push(`${s.stall}
+  Email: ${s.email}
+  Password: ${password}`);
+    added++;
+  }
   if (notes.length) {
     const file = path.join(DATA_DIR, "demo-sellers.txt");
+    fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.appendFileSync(file, notes.join("\n\n") + "\n\n");
-    console.log(`Added ${added} example sellers with ${items} products. Their sign-in details are in ${file}`);
+    console.log(`Added ${added} example sellers with ${items} products${db.remote ? " to the online database" : ""}. Their sign-in details are in ${file}`);
   } else {
     console.log("The example sellers are already there.");
   }
 }
 
-function remove() {
-  const ids = db.prepare("SELECT id FROM users WHERE role = 'seller' AND email LIKE '%@contoh.test'").all().map((r) => r.id);
+async function remove() {
+  const ids = (await db.all("SELECT id FROM users WHERE role = 'seller' AND email LIKE '%@contoh.test'")).map((r) => r.id);
   if (!ids.length) return console.log("No example sellers to remove.");
   const marks = ids.map(() => "?").join(",");
-  db.exec("BEGIN");
-  try {
-    // Old orders reference sellers, so clear any that belong to example sellers first.
-    db.prepare(`DELETE FROM orders WHERE seller_id IN (${marks})`).run(...ids);
-    db.prepare(`DELETE FROM users WHERE id IN (${marks})`).run(...ids); // products and sign-ins go with them
-    db.exec("COMMIT");
-  } catch (e) { db.exec("ROLLBACK"); throw e; }
+  await db.batch([
+    // Old orders and sign-ins reference sellers, so clear those first.
+    [`DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE seller_id IN (${marks}))`, ...ids],
+    [`DELETE FROM orders WHERE seller_id IN (${marks})`, ...ids],
+    [`DELETE FROM sessions WHERE user_id IN (${marks})`, ...ids],
+    [`DELETE FROM products WHERE seller_id IN (${marks})`, ...ids],
+    [`DELETE FROM users WHERE id IN (${marks})`, ...ids],
+  ]);
   fs.rmSync(path.join(DATA_DIR, "demo-sellers.txt"), { force: true });
   console.log(`Removed ${ids.length} example sellers and their products.`);
 }
 
 const cmd = process.argv[2];
-if (cmd === "add") add();
-else if (cmd === "remove") remove();
+if (cmd === "add") await add();
+else if (cmd === "remove") await remove();
 else console.log("Use: node scripts/demo-sellers.js add | remove");
+db.close();

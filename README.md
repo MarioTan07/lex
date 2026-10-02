@@ -45,19 +45,22 @@ Each seller has a **shop location** and a **home address**, each an address plus
 
 Maps use Google Maps' standard embed, so no API key is needed.
 
-## Deploy it
+## Deploy it on Vercel
 
-Any host that runs Node.js works, such as Render, Railway or Fly.io.
+On Vercel the data lives online: accounts, shops and products in a **Turso** database, and product photos in **Vercel Blob**. On your own computer the same code uses `data/semanggi.db` and `data/uploads` instead.
 
-- Start command: `npm start`
-- Environment variables: see `.env.example`. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN2_EMAIL` and `ADMIN2_PASSWORD` for the first start, and `NODE_ENV=production`.
-- **Persistent disk:** all data (the SQLite database and uploaded photos) lives in `DATA_DIR`. Point it at a persistent disk or volume, or everything is lost when the host restarts.
+1. In the Vercel project, open **Storage** and connect a **Turso** database and a **Blob** store to the project. This adds `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and `BLOB_READ_WRITE_TOKEN` to the project's environment variables.
+2. Either copy your local data up (step 3), or set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN2_EMAIL` and `ADMIN2_PASSWORD` under **Settings → Environment Variables** so the two admins are created on first start.
+3. To copy your local admins, sellers, products and photos: create a `.env` file in the project folder with the three values from step 1 (copy them from Vercel's environment variables page; see `.env.example`), then run `npm run copy-to-turso`. The `.env` file is never uploaded to GitHub.
+4. Push to GitHub, or press **Redeploy** in Vercel. `vercel.json` makes `/seller` and `/admin` work without `.html`.
 
-GitHub Pages can't run this, because it only serves static files and this site needs its server.
+To remove the example shops from the live site: `npm run demo:remove:online` (uses the `.env` file).
+
+Any other Node.js host (Render, Railway, Fly.io) also works: run `npm start` and either set the Turso and Blob variables, or point `DATA_DIR` at a persistent disk.
 
 ## How it's built
 
-- `server.js` is an Express server using Node's built-in SQLite (`node:sqlite`), so the only dependency is Express.
+- `server.js` is an Express server. `db.js` connects it to Turso (online) or a local SQLite file, and photos go to Vercel Blob or `data/uploads`.
 - `public/` holds the pages: `index.html` + `shop.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
 - Passwords are hashed with scrypt. Sign-in uses an HTTP-only session cookie. Sign-in attempts are limited to 10 per 15 minutes per IP address.
 - The public pages show each seller's shop name, shop location and contact number. Home addresses are visible only to that seller and the admins.

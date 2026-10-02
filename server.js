@@ -1,94 +1,16 @@
 import express from "express";
-import { DatabaseSync } from "node:sqlite";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { put, del } from "@vercel/blob";
+import { connect, setupSchema, ROOT, DATA_DIR } from "./db.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
+const ON_VERCEL = !!process.env.VERCEL;
+// Photos go to Vercel Blob when it's connected (BLOB_READ_WRITE_TOKEN); otherwise to DATA_DIR/uploads.
+const USE_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN;
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const SESSION_DAYS = 30;
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-// ---------- database ----------
-const db = new DatabaseSync(path.join(DATA_DIR, "semanggi.db"));
-db.exec(`
-  PRAGMA journal_mode = WAL;
-  PRAGMA foreign_keys = ON;
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY,
-    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('seller', 'admin')),
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'suspended')),
-    name TEXT NOT NULL DEFAULT '',
-    stall_name TEXT NOT NULL DEFAULT '',
-    phone TEXT NOT NULL DEFAULT '',
-    created_at INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS sessions (
-    token_hash TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY,
-    seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    price INTEGER NOT NULL,
-    unit TEXT NOT NULL DEFAULT '',
-    description TEXT NOT NULL DEFAULT '',
-    photo TEXT NOT NULL DEFAULT '',
-    available INTEGER NOT NULL DEFAULT 1,
-    hidden INTEGER NOT NULL DEFAULT 0,
-    created_at INTEGER NOT NULL
-  );
-  -- Orders from when the site took online orders. Buyers now call or WhatsApp the seller,
-  -- so nothing writes to these tables any more; they're kept so old orders aren't lost.
-  CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY,
-    code TEXT NOT NULL UNIQUE,
-    seller_id INTEGER NOT NULL REFERENCES users(id),
-    buyer_name TEXT NOT NULL,
-    contact TEXT NOT NULL,
-    fulfil TEXT NOT NULL CHECK (fulfil IN ('pickup', 'delivery')),
-    address TEXT NOT NULL DEFAULT '',
-    note TEXT NOT NULL DEFAULT '',
-    status TEXT NOT NULL DEFAULT 'new',
-    total INTEGER NOT NULL,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS order_items (
-    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    product_id INTEGER,
-    name TEXT NOT NULL,
-    unit TEXT NOT NULL DEFAULT '',
-    price INTEGER NOT NULL,
-    qty INTEGER NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS idx_orders_seller ON orders(seller_id);
-  CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
-`);
-
-// Columns added after the first release; add them to older databases.
-{
-  const have = new Set(db.prepare("PRAGMA table_info(users)").all().map((c) => c.name));
-  const add = {
-    shop_address: "TEXT NOT NULL DEFAULT ''", shop_lat: "REAL", shop_lng: "REAL",
-    home_address: "TEXT NOT NULL DEFAULT ''", home_lat: "REAL", home_lng: "REAL",
-    paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
-  };
-  for (const [col, type] of Object.entries(add)) if (!have.has(col)) db.exec(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
-}
-// Sellers used to sign themselves up and wait for approval. Admins now create sellers already
-// approved, so any still waiting are suspended: hidden from buyers until an admin reactivates them.
-{
-  const r = db.prepare("UPDATE users SET status = 'suspended' WHERE role = 'seller' AND status = 'pending'").run();
-  if (r.changes) console.log(`Moved ${r.changes} seller(s) still waiting for approval to suspended. Reactivate them under Sellers in /admin.`);
-}
 
 // ---------- passwords & sessions ----------
 function hashPassword(pw) {
@@ -103,38 +25,42 @@ function checkPassword(pw, stored) {
 }
 const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
 
-function createSession(res, userId) {
-  const token = crypto.randomBytes(32).toString("hex");
-  const expires = Date.now() + SESSION_DAYS * 864e5;
-  db.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)").run(sha256(token), userId, expires);
-  res.cookie("ks_session", token, {
-    httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_DAYS * 864e5, path: "/",
-  });
-}
+// ---------- database ----------
+let db;
 
-// ---------- admin accounts ----------
-// There are two admin accounts. Missing ones are created on start, from
-// ADMIN_EMAIL/ADMIN_PASSWORD and ADMIN2_EMAIL/ADMIN2_PASSWORD, or with a
-// generated password written to DATA_DIR/initial-admin.txt.
-{
+async function setup() {
+  db = connect();
+  await setupSchema(db);
+
+  // Sellers used to sign themselves up and wait for approval. Admins now create sellers already
+  // approved, so any still waiting are suspended: hidden from buyers until an admin reactivates them.
+  const moved = await db.run("UPDATE users SET status = 'suspended' WHERE role = 'seller' AND status = 'pending'");
+  if (moved.changes) console.log(`Moved ${moved.changes} seller(s) still waiting for approval to suspended. Reactivate them under Sellers in /admin.`);
+
+  // There are two admin accounts. Missing ones are created from ADMIN_EMAIL/ADMIN_PASSWORD and
+  // ADMIN2_EMAIL/ADMIN2_PASSWORD. On your own computer, a missing password is generated and
+  // written to DATA_DIR/initial-admin.txt; on Vercel the passwords must be set.
   const slots = [
     { email: process.env.ADMIN_EMAIL || "admin1@kampoengsemanggi.local", password: process.env.ADMIN_PASSWORD, name: "Admin 1" },
     { email: process.env.ADMIN2_EMAIL || "admin2@kampoengsemanggi.local", password: process.env.ADMIN2_PASSWORD, name: "Admin 2" },
   ];
   // The first release created admin@kampungsemanggi.local; move it to the Kampoeng spelling.
-  const old = db.prepare("SELECT id FROM users WHERE email = 'admin@kampungsemanggi.local' AND role = 'admin'").get();
-  if (old && !db.prepare("SELECT 1 FROM users WHERE email = ?").get(slots[0].email)) {
-    db.prepare("UPDATE users SET email = ?, name = 'Admin 1' WHERE id = ?").run(slots[0].email, old.id);
+  const old = await db.one("SELECT id FROM users WHERE email = 'admin@kampungsemanggi.local' AND role = 'admin'");
+  if (old && !(await db.one("SELECT 1 AS x FROM users WHERE email = ?", slots[0].email))) {
+    await db.run("UPDATE users SET email = ?, name = 'Admin 1' WHERE id = ?", slots[0].email, old.id);
     console.log(`Renamed the admin sign-in email admin@kampungsemanggi.local to ${slots[0].email}. The password is unchanged.`);
   }
-  const existing = db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'").get().n;
+  const existing = (await db.one("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'")).n;
   const notes = [];
   for (const slot of slots.slice(existing)) {
-    if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(slot.email)) continue;
+    if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", slot.email)) continue;
+    if (!slot.password && ON_VERCEL) {
+      console.error(`Admin account ${slot.name} is missing. Set ${slot === slots[0] ? "ADMIN_EMAIL and ADMIN_PASSWORD" : "ADMIN2_EMAIL and ADMIN2_PASSWORD"} in the Vercel project's environment variables and redeploy.`);
+      continue;
+    }
     const password = slot.password || crypto.randomBytes(9).toString("base64url");
-    db.prepare("INSERT INTO users (email, password_hash, role, status, name, created_at) VALUES (?, ?, 'admin', 'approved', ?, ?)")
-      .run(slot.email, hashPassword(password), slot.name, Date.now());
+    await db.run("INSERT INTO users (email, password_hash, role, status, name, created_at) VALUES (?, ?, 'admin', 'approved', ?, ?)",
+      slot.email, hashPassword(password), slot.name, Date.now());
     if (slot.password) console.log(`Created the admin account ${slot.email}.`);
     else notes.push(`${slot.name}\n  Email: ${slot.email}\n  Password: ${password}\n`);
   }
@@ -143,6 +69,22 @@ function createSession(res, userId) {
     fs.appendFileSync(file, `\n${notes.join("\n")}Sign in at /admin and change these passwords under Account.\n`);
     console.log(`Created ${notes.length} admin account(s). Sign-in details are in ${file}`);
   }
+
+  // Sign-ins that have expired are no longer needed.
+  await db.run("DELETE FROM sessions WHERE expires_at < ?", Date.now());
+}
+
+const ready = setup();
+ready.catch((e) => console.error("Startup failed:", e.message));
+
+async function createSession(res, userId) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = Date.now() + SESSION_DAYS * 864e5;
+  await db.run("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)", sha256(token), userId, expires);
+  res.cookie("ks_session", token, {
+    httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" || ON_VERCEL,
+    maxAge: SESSION_DAYS * 864e5, path: "/",
+  });
 }
 
 // ---------- messages ----------
@@ -188,6 +130,7 @@ const MESSAGES = {
     tooLarge: "Unggahan itu terlalu besar.",
     badRequest: "Permintaan tidak bisa dibaca. Coba lagi.",
     server: "Terjadi kesalahan di server. Coba lagi.",
+    photoStorage: "Penyimpanan foto belum disiapkan. Hubungi admin.",
   },
   en: {
     required: "{label} is required.",
@@ -228,6 +171,7 @@ const MESSAGES = {
     tooLarge: "That upload is too large.",
     badRequest: "The request couldn't be read. Try again.",
     server: "Something went wrong on the server. Try again.",
+    photoStorage: "Photo storage isn't set up yet. Contact the admin.",
   },
 };
 function requestLang(req) {
@@ -260,18 +204,28 @@ function money(v) {
   if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("price");
   return Math.round(n);
 }
-function savePhoto(dataUrl) {
+async function savePhoto(dataUrl) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || "");
   if (!m) throw bad("photoType");
   const buf = Buffer.from(m[2], "base64");
   if (buf.length > 1.5 * 1024 * 1024) throw bad("photoSize");
   const name = crypto.randomBytes(12).toString("hex") + "." + (m[1] === "jpeg" ? "jpg" : m[1]);
+  if (USE_BLOB) {
+    const blob = await put("products/" + name, buf, { access: "public", contentType: "image/" + m[1], addRandomSuffix: false });
+    return blob.url;
+  }
+  if (ON_VERCEL) throw new HttpError(503, "photoStorage");
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
   return "/uploads/" + name;
 }
 function removePhoto(p) {
-  if (!p || !p.startsWith("/uploads/")) return;
-  fs.rm(path.join(UPLOAD_DIR, path.basename(p)), () => {});
+  if (!p) return;
+  if (/^https:\/\/[^/]+\.blob\.vercel-storage\.com\//.test(p)) {
+    if (USE_BLOB) del(p).catch((e) => console.error("Couldn't delete photo", p, e.message));
+    return;
+  }
+  if (p.startsWith("/uploads/") && !ON_VERCEL) fs.rm(path.join(UPLOAD_DIR, path.basename(p)), () => {});
 }
 function publicUser(u) {
   return u && {
@@ -306,8 +260,9 @@ function sellerFields(body) {
 }
 function updateUser(id, f) {
   const keys = Object.keys(f);
-  db.prepare(`UPDATE users SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`).run(...keys.map((k) => f[k]), id);
+  return db.run(`UPDATE users SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), id);
 }
+const userById = (id) => db.one("SELECT * FROM users WHERE id = ?", id);
 function productOut(p) {
   return {
     id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit,
@@ -319,12 +274,15 @@ const app = express();
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "3mb" }));
 
-app.use((req, _res, next) => {
+// Wait for the database to be ready before handling anything.
+app.use(async (_req, _res, next) => { await ready; next(); });
+
+app.use(async (req, _res, next) => {
   const cookie = req.headers.cookie || "";
   const token = /(?:^|;\s*)ks_session=([a-f0-9]{64})/.exec(cookie)?.[1];
   if (token) {
-    const row = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`)
-      .get(sha256(token), Date.now());
+    const row = await db.one(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`,
+      sha256(token), Date.now());
     if (row && row.status !== "suspended") { req.user = row; req.sessionHash = sha256(token); }
   }
   next();
@@ -335,7 +293,7 @@ const requireRole = (...roles) => (req, _res, next) => {
   next();
 };
 
-// Simple login throttle: 10 attempts per 15 minutes per IP.
+// Simple login throttle: 10 attempts per 15 minutes per IP (per server instance).
 const attempts = new Map();
 function throttle(req) {
   const now = Date.now(), key = req.ip;
@@ -351,48 +309,48 @@ function newPassword(v) {
   return v;
 }
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   throttle(req);
   const email = text(req.body.email, 120).toLowerCase();
   const password = typeof req.body.password === "string" ? req.body.password : "";
-  const u = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+  const u = await db.one("SELECT * FROM users WHERE email = ?", email);
   if (!u || !checkPassword(password, u.password_hash)) throw new HttpError(401, "loginWrong");
   if (u.status === "suspended") throw new HttpError(403, "suspended");
   if (req.body.role && req.body.role !== u.role) throw new HttpError(403, u.role === "admin" ? "adminAccount" : "sellerAccount");
   attempts.delete(req.ip);
-  createSession(res, u.id);
+  await createSession(res, u.id);
   res.json({ user: publicUser(u) });
 });
 
-app.post("/api/auth/logout", (req, res) => {
-  if (req.sessionHash) db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(req.sessionHash);
+app.post("/api/auth/logout", async (req, res) => {
+  if (req.sessionHash) await db.run("DELETE FROM sessions WHERE token_hash = ?", req.sessionHash);
   res.clearCookie("ks_session", { path: "/" });
   res.json({ ok: true });
 });
 
 app.get("/api/me", (req, res) => res.json({ user: publicUser(req.user) || null }));
 
-app.post("/api/auth/password", requireRole("seller", "admin"), (req, res) => {
+app.post("/api/auth/password", requireRole("seller", "admin"), async (req, res) => {
   const { current, next } = req.body;
   if (typeof current !== "string" || !checkPassword(current, req.user.password_hash)) throw bad("currentWrong");
-  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(newPassword(next)), req.user.id);
-  db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").run(req.user.id, req.sessionHash);
+  await db.run("UPDATE users SET password_hash = ? WHERE id = ?", hashPassword(newPassword(next)), req.user.id);
+  await db.run("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?", req.user.id, req.sessionHash);
   res.json({ ok: true });
 });
 
 // ----- public catalog -----
 // Buyers order by calling or messaging the seller, so the public API only lists products and shops.
-app.get("/api/catalog", (_req, res) => {
-  const rows = db.prepare(`
+app.get("/api/catalog", async (_req, res) => {
+  const rows = await db.all(`
     SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id
     WHERE u.role = 'seller' AND u.status = 'approved' AND p.hidden = 0
-    ORDER BY u.stall_name COLLATE NOCASE, p.created_at`).all();
+    ORDER BY u.stall_name COLLATE NOCASE, p.created_at`);
   res.json({ products: rows.map(productOut) });
 });
 
 // Shop name, shop location, contact number and open/paused state of every approved seller. Home addresses stay private.
-app.get("/api/stalls", (_req, res) => {
-  const rows = db.prepare("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY stall_name COLLATE NOCASE").all();
+app.get("/api/stalls", async (_req, res) => {
+  const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY stall_name COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
     return { id: u.id, stallName: u.stall_name, phone: u.phone, shop: p.shop, paused: p.paused, pauseNote: p.pauseNote };
@@ -403,21 +361,21 @@ app.get("/api/stalls", (_req, res) => {
 const seller = express.Router();
 seller.use(requireRole("seller"));
 
-seller.patch("/profile", (req, res) => {
-  updateUser(req.user.id, sellerFields(req.body));
-  res.json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)) });
+seller.patch("/profile", async (req, res) => {
+  await updateUser(req.user.id, sellerFields(req.body));
+  res.json({ user: publicUser(await userById(req.user.id)) });
 });
 
 // Temporarily close the shop (with a note for buyers, like "Closed for Lebaran, back 15 Oct") or reopen it.
-seller.put("/pause", (req, res) => {
+seller.put("/pause", async (req, res) => {
   const paused = !!req.body.paused;
   const note = paused ? text(req.body.note, 120, { required: true, label: "label.pauseNote" }) : "";
-  db.prepare("UPDATE users SET paused = ?, pause_note = ? WHERE id = ?").run(paused ? 1 : 0, note, req.user.id);
-  res.json({ user: publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)) });
+  await db.run("UPDATE users SET paused = ?, pause_note = ? WHERE id = ?", paused ? 1 : 0, note, req.user.id);
+  res.json({ user: publicUser(await userById(req.user.id)) });
 });
 
-seller.get("/products", (req, res) => {
-  const rows = db.prepare("SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id WHERE p.seller_id = ? ORDER BY p.created_at").all(req.user.id);
+seller.get("/products", async (req, res) => {
+  const rows = await db.all("SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id WHERE p.seller_id = ? ORDER BY p.created_at", req.user.id);
   res.json({ products: rows.map(productOut) });
 });
 
@@ -430,33 +388,33 @@ function productFields(body, partial) {
   if (body.available !== undefined) f.available = body.available ? 1 : 0;
   return f;
 }
-const ownProduct = (req) => {
-  const p = db.prepare("SELECT * FROM products WHERE id = ? AND seller_id = ?").get(Number(req.params.id), req.user.id);
+async function ownProduct(req) {
+  const p = await db.one("SELECT * FROM products WHERE id = ? AND seller_id = ?", Number(req.params.id), req.user.id);
   if (!p) throw new HttpError(404, "notYourProduct");
   return p;
-};
+}
 
-seller.post("/products", (req, res) => {
+seller.post("/products", async (req, res) => {
   const f = productFields(req.body, false);
-  if (db.prepare("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?").get(req.user.id).n >= 200) throw bad("maxProducts");
-  const photo = req.body.photo ? savePhoto(req.body.photo) : "";
-  const r = db.prepare("INSERT INTO products (seller_id, name, price, unit, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)")
-    .run(req.user.id, f.name, f.price, f.unit, f.description, photo, Date.now());
-  res.status(201).json({ id: Number(r.lastInsertRowid) });
+  if ((await db.one("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?", req.user.id)).n >= 200) throw bad("maxProducts");
+  const photo = req.body.photo ? await savePhoto(req.body.photo) : "";
+  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
+    req.user.id, f.name, f.price, f.unit, f.description, photo, Date.now());
+  res.status(201).json({ id: r.id });
 });
 
-seller.patch("/products/:id", (req, res) => {
-  const p = ownProduct(req);
+seller.patch("/products/:id", async (req, res) => {
+  const p = await ownProduct(req);
   const f = productFields(req.body, true);
-  if (req.body.photo) { f.photo = savePhoto(req.body.photo); removePhoto(p.photo); }
+  if (req.body.photo) { f.photo = await savePhoto(req.body.photo); removePhoto(p.photo); }
   const keys = Object.keys(f);
-  if (keys.length) db.prepare(`UPDATE products SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`).run(...keys.map((k) => f[k]), p.id);
+  if (keys.length) await db.run(`UPDATE products SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), p.id);
   res.json({ ok: true });
 });
 
-seller.delete("/products/:id", (req, res) => {
-  const p = ownProduct(req);
-  db.prepare("DELETE FROM products WHERE id = ?").run(p.id);
+seller.delete("/products/:id", async (req, res) => {
+  const p = await ownProduct(req);
+  await db.run("DELETE FROM products WHERE id = ?", p.id);
   removePhoto(p.photo);
   res.json({ ok: true });
 });
@@ -467,78 +425,78 @@ app.use("/api/seller", seller);
 const admin = express.Router();
 admin.use(requireRole("admin"));
 
-admin.get("/overview", (_req, res) => {
-  const count = (sql) => db.prepare(sql).get().n;
+admin.get("/overview", async (_req, res) => {
+  const count = async (sql) => (await db.one(sql)).n;
   res.json({
     sellers: {
-      approved: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'approved'"),
-      suspended: count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'suspended'"),
+      approved: await count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'approved'"),
+      suspended: await count("SELECT COUNT(*) AS n FROM users WHERE role = 'seller' AND status = 'suspended'"),
     },
-    products: count("SELECT COUNT(*) AS n FROM products"),
+    products: await count("SELECT COUNT(*) AS n FROM products"),
   });
 });
 
-admin.get("/sellers", (_req, res) => {
-  const rows = db.prepare(`SELECT u.*, (SELECT COUNT(*) FROM products p WHERE p.seller_id = u.id) AS products
-    FROM users u WHERE u.role = 'seller' ORDER BY u.status = 'suspended', u.created_at DESC`).all();
+admin.get("/sellers", async (_req, res) => {
+  const rows = await db.all(`SELECT u.*, (SELECT COUNT(*) FROM products p WHERE p.seller_id = u.id) AS products
+    FROM users u WHERE u.role = 'seller' ORDER BY u.status = 'suspended', u.created_at DESC`);
   res.json({ sellers: rows.map((u) => ({ ...publicUser(u), products: u.products, createdAt: u.created_at })) });
 });
 
-admin.post("/sellers", (req, res) => {
+admin.post("/sellers", async (req, res) => {
   const email = text(req.body.email, 120, { required: true, label: "label.email" }).toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad("emailInvalid");
   const password = newPassword(req.body.password);
   const f = sellerFields(req.body);
-  if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) throw bad("emailTaken");
-  const r = db.prepare("INSERT INTO users (email, password_hash, role, status, created_at) VALUES (?, ?, 'seller', 'approved', ?)")
-    .run(email, hashPassword(password), Date.now());
-  updateUser(Number(r.lastInsertRowid), f);
-  res.status(201).json({ id: Number(r.lastInsertRowid) });
+  if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", email)) throw bad("emailTaken");
+  const r = await db.run("INSERT INTO users (email, password_hash, role, status, created_at) VALUES (?, ?, 'seller', 'approved', ?)",
+    email, hashPassword(password), Date.now());
+  await updateUser(r.id, f);
+  res.status(201).json({ id: r.id });
 });
 
-const sellerById = (id) => {
-  const u = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'seller'").get(Number(id));
+async function sellerById(id) {
+  const u = await db.one("SELECT * FROM users WHERE id = ? AND role = 'seller'", Number(id));
   if (!u) throw new HttpError(404, "noSeller");
   return u;
-};
+}
 
-admin.put("/sellers/:id", (req, res) => {
-  const u = sellerById(req.params.id);
-  updateUser(u.id, sellerFields(req.body));
+admin.put("/sellers/:id", async (req, res) => {
+  const u = await sellerById(req.params.id);
+  await updateUser(u.id, sellerFields(req.body));
   res.json({ ok: true });
 });
 
-admin.post("/sellers/:id/password", (req, res) => {
-  const u = sellerById(req.params.id);
-  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(newPassword(req.body.password)), u.id);
-  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(u.id);
+admin.post("/sellers/:id/password", async (req, res) => {
+  const u = await sellerById(req.params.id);
+  await db.run("UPDATE users SET password_hash = ? WHERE id = ?", hashPassword(newPassword(req.body.password)), u.id);
+  await db.run("DELETE FROM sessions WHERE user_id = ?", u.id);
   res.json({ ok: true });
 });
 
-admin.patch("/sellers/:id", (req, res) => {
+admin.patch("/sellers/:id", async (req, res) => {
   const status = req.body.status;
   if (!["approved", "suspended"].includes(status)) throw bad("unknownSellerStatus");
-  const r = db.prepare("UPDATE users SET status = ? WHERE id = ? AND role = 'seller'").run(status, Number(req.params.id));
+  const r = await db.run("UPDATE users SET status = ? WHERE id = ? AND role = 'seller'", status, Number(req.params.id));
   if (!r.changes) throw new HttpError(404, "noSeller");
-  if (status === "suspended") db.prepare("DELETE FROM sessions WHERE user_id = ?").run(Number(req.params.id));
+  if (status === "suspended") await db.run("DELETE FROM sessions WHERE user_id = ?", Number(req.params.id));
   res.json({ ok: true });
 });
 
-admin.get("/products", (_req, res) => {
-  const rows = db.prepare("SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id ORDER BY p.created_at DESC").all();
+admin.get("/products", async (_req, res) => {
+  const rows = await db.all("SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id ORDER BY p.created_at DESC");
   res.json({ products: rows.map(productOut) });
 });
 
-admin.patch("/products/:id", (req, res) => {
-  const r = db.prepare("UPDATE products SET hidden = ? WHERE id = ?").run(req.body.hidden ? 1 : 0, Number(req.params.id));
+admin.patch("/products/:id", async (req, res) => {
+  const r = await db.run("UPDATE products SET hidden = ? WHERE id = ?", req.body.hidden ? 1 : 0, Number(req.params.id));
   if (!r.changes) throw new HttpError(404, "noProduct");
   res.json({ ok: true });
 });
 
-admin.delete("/products/:id", (req, res) => {
-  const p = db.prepare("SELECT * FROM products WHERE id = ?").get(Number(req.params.id));
+admin.delete("/products/:id", async (req, res) => {
+  const p = await db.one("SELECT * FROM products WHERE id = ?", Number(req.params.id));
   if (!p) throw new HttpError(404, "noProduct");
-  db.prepare("DELETE FROM products WHERE id = ?").run(p.id);
+  await db.run("DELETE FROM products WHERE id = ?", p.id);
   removePhoto(p.photo);
   res.json({ ok: true });
 });
@@ -546,8 +504,9 @@ admin.delete("/products/:id", (req, res) => {
 app.use("/api/admin", admin);
 
 // ----- static files -----
+// On Vercel, files in public/ are served directly and never reach this app.
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "30d", immutable: true }));
-app.use(express.static(path.join(__dirname, "public"), { extensions: ["html"] }));
+app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));
 
 app.use("/api", (_req, _res, next) => next(new HttpError(404, "notFound")));
 app.use((err, req, res, _next) => {
@@ -557,4 +516,6 @@ app.use((err, req, res, _next) => {
   res.status(status).json({ error: translate(requestLang(req), key, err.vars) });
 });
 
-app.listen(PORT, () => console.log(`Kampoeng Semanggi running at http://localhost:${PORT}`));
+export default app;
+
+if (!ON_VERCEL) app.listen(PORT, () => console.log(`Kampoeng Semanggi running at http://localhost:${PORT}`));
