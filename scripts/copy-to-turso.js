@@ -26,9 +26,12 @@ const TABLES = ["users", "products", "orders", "order_items"];
 
 const existing = (await remote.one("SELECT (SELECT COUNT(*) FROM users) + (SELECT COUNT(*) FROM products) AS n")).n;
 if (existing && !replace) {
-  console.error(`The Turso database already has ${existing} accounts and products. To overwrite it with your local data, run: npm run copy-to-turso -- --replace`);
-  process.exit(1);
-}
+  console.error(`The Turso database already has ${existing} accounts and products, so nothing was copied. To overwrite it with your local data, run: npm run copy-to-turso -- --replace`);
+  // Close the connections before stopping; exiting with them open crashes Node on Windows.
+  local.close();
+  remote.close();
+  process.exitCode = 1;
+} else {
 if (existing) {
   await remote.batch([...TABLES].reverse().map((t) => [`DELETE FROM ${t}`]).concat([["DELETE FROM sessions"]]));
   console.log("Cleared the Turso database.");
@@ -66,3 +69,4 @@ for (const table of TABLES) {
 console.log("Done. Your Vercel site now has the same admins, sellers and products as your computer.");
 local.close();
 remote.close();
+}

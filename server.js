@@ -114,6 +114,8 @@ const MESSAGES = {
     signIn: "Silakan masuk terlebih dahulu.",
     forbidden: "Akun Anda tidak bisa melakukan itu.",
     throttle: "Terlalu banyak percobaan masuk. Tunggu 15 menit lalu coba lagi.",
+    translateBusy: "Terlalu banyak catatan diterjemahkan. Coba lagi sebentar lagi.",
+    translateFailed: "Catatan tidak bisa diterjemahkan sekarang.",
     emailInvalid: "Masukkan alamat email yang valid.",
     passwordShort: "Gunakan kata sandi minimal 8 karakter.",
     emailTaken: "Sudah ada akun dengan email ini.",
@@ -155,6 +157,8 @@ const MESSAGES = {
     signIn: "Please sign in.",
     forbidden: "Your account can't do that.",
     throttle: "Too many sign-in attempts. Wait 15 minutes and try again.",
+    translateBusy: "Too many notes translated. Try again in a little while.",
+    translateFailed: "The note couldn't be translated right now.",
     emailInvalid: "Enter a valid email address.",
     passwordShort: "Use a password of at least 8 characters.",
     emailTaken: "An account with this email already exists.",
@@ -356,6 +360,37 @@ app.get("/api/stalls", async (_req, res) => {
     const p = publicUser(u);
     return { id: u.id, stallName: u.stall_name, phone: u.phone, shop: p.shop, paused: p.paused, pauseNote: p.pauseNote };
   }) });
+});
+
+// Buyers writing in English can add a note to their WhatsApp order; it's translated to Indonesian for the seller,
+// and back to English so the buyer can check the meaning survived.
+// Uses the free MyMemory service (no account). Set TRANSLATE_EMAIL to raise its daily limit from 5,000 to 50,000 characters.
+const translations = new Map(); // small cache so the same note isn't translated twice
+const translateUse = new Map();  // 30 notes per hour per IP
+app.post("/api/translate", async (req, res) => {
+  const note = text(req.body.text, 200, { required: true, label: "label.field" });
+  const from = req.body.from, to = req.body.to;
+  if (!(from === "en" && to === "id") && !(from === "id" && to === "en")) return res.json({ text: note });
+  const cacheKey = from + to + "|" + note;
+  if (translations.has(cacheKey)) return res.json({ text: translations.get(cacheKey) });
+  const now = Date.now(), use = translateUse.get(req.ip);
+  if (!use || use.reset < now) translateUse.set(req.ip, { n: 1, reset: now + 36e5 });
+  else if (++use.n > 30) throw new HttpError(429, "translateBusy");
+  const url = new URL("https://api.mymemory.translated.net/get");
+  url.searchParams.set("q", note);
+  url.searchParams.set("langpair", from + "|" + to);
+  if (process.env.TRANSLATE_EMAIL) url.searchParams.set("de", process.env.TRANSLATE_EMAIL);
+  let out;
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const data = await r.json();
+    out = data.responseStatus == 200 && !data.quotaFinished ? String(data.responseData?.translatedText || "").trim() : "";
+  } catch { out = ""; }
+  // The free service sometimes hands the text back untranslated; treat that as a failure too.
+  if (!out || out.toLowerCase() === note.toLowerCase()) throw new HttpError(502, "translateFailed");
+  if (translations.size > 500) translations.clear();
+  translations.set(cacheKey, out);
+  res.json({ text: out });
 });
 
 // ----- seller -----

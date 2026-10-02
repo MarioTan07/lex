@@ -295,6 +295,30 @@ dialog.compare::backdrop { background: rgb(28 32 24 / .5); }
 .offer-head h3 { font-size: 1.25rem; }
 .dist { font-weight: 700; color: var(--leaf); }
 
+/* order helper: a short chat that builds the WhatsApp message */
+dialog.order { width: min(560px, calc(100% - 24px)); }
+.chat { display: grid; gap: 10px; padding: 18px 20px 22px; }
+.bubble { max-width: 86%; padding: 10px 14px; border-radius: 18px; line-height: 1.45; }
+.bubble.bot { justify-self: start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+.bubble.me { justify-self: end; background: var(--leaf); color: var(--on-leaf); border-bottom-right-radius: 6px; font-weight: 600; }
+.order-step { display: grid; gap: 14px; margin-top: 4px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+.order-items { display: grid; gap: 10px; }
+.order-item .muted { display: block; }
+.order-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.stepper { display: flex; align-items: center; gap: 4px; flex: none; }
+.stepper button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--paper); color: var(--leaf); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
+.stepper button:hover { border-color: var(--leaf); }
+.stepper output { min-width: 2ch; text-align: center; font-weight: 700; }
+.order-total { display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--line); }
+.order-nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.order-nav .btn { flex: 0 1 auto; }
+.order-nav .btn[aria-disabled="true"] { opacity: .45; cursor: progress; }
+.order-message { margin: 0; padding: 14px; white-space: pre-wrap; word-break: break-word; font: 500 .9375rem/1.55 var(--font-body); background: var(--paper); border: 1px dashed var(--line-strong); border-radius: 12px; }
+.order-back { padding: 12px 14px; border-radius: 12px; background: var(--sauce-soft); font-size: .9375rem; }
+.order-back:empty { display: none; }
+.order-meaning summary { cursor: pointer; font-weight: 600; font-size: var(--step--1); color: var(--leaf); margin-bottom: 8px; }
+.chips button:disabled { opacity: .45; cursor: not-allowed; }
+
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 11px 20px; border-radius: 999px; font-size: .9375rem; font-weight: 500; z-index: 20; max-width: calc(100% - 32px); }
 
 @media (max-width: 900px) {

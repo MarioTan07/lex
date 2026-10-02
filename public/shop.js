@@ -1,5 +1,6 @@
 import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons } from "/common.js";
 import { lang } from "/i18n.js";
+import { openOrder } from "/order.js";
 
 let products = [];
 let stalls = [];
@@ -10,6 +11,9 @@ let catalogLoaded = false;
 try { localStorage.removeItem("ks-basket"); localStorage.removeItem("ks-orders"); } catch {}
 
 const stallById = (id) => stalls.find((s) => s.id === id);
+// What a shop has in stock, for the order helper; `firstId` starts the order with one of that product.
+const menuOf = (stall) => products.filter((p) => p.sellerId === stall.id && p.available);
+const orderFrom = (stall, firstId) => () => openOrder(stall, menuOf(stall), firstId);
 
 // "Temporarily closed" label with the seller's note, shown instead of the contact buttons while a shop is paused.
 const closedNotice = (stall) => el("p", { class: "closed" },
@@ -66,7 +70,7 @@ function renderShop() {
         p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false }) : null)));
+          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id) }) : null)));
   }
   renderHero();
 }
@@ -178,7 +182,7 @@ function renderCompare() {
         !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name })) : null)));
+          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id) }) : null)));
   }
 }
 
@@ -199,7 +203,7 @@ function renderShops() {
         el("h3", { text: s.stallName }),
         el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
-        s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName })))));
+        s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null }))));
   }
 }
 
