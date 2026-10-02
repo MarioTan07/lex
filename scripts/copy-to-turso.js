@@ -4,7 +4,8 @@
 //   npm run copy-to-turso              stops if the Turso database already has accounts or products
 //   npm run copy-to-turso -- --replace  first deletes everything in the Turso database
 //
-// Needs TURSO_DATABASE_URL, TURSO_AUTH_TOKEN and BLOB_READ_WRITE_TOKEN, e.g. in a .env file.
+// Needs TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in a .env file. Photos are uploaded only when Blob
+// credentials are there too: BLOB_READ_WRITE_TOKEN, or BLOB_STORE_ID with VERCEL_OIDC_TOKEN.
 import fs from "node:fs";
 import path from "node:path";
 import { put } from "@vercel/blob";
@@ -36,11 +37,12 @@ if (existing) {
 // Upload local photos and point products at their new addresses.
 const products = await local.all("SELECT id, photo FROM products WHERE photo LIKE '/uploads/%'");
 const newPhoto = new Map();
-if (products.length && !process.env.BLOB_READ_WRITE_TOKEN) {
-  console.warn(`BLOB_READ_WRITE_TOKEN isn't set, so ${products.length} product photo(s) won't be copied. Those products will show without a photo.`);
+const BLOB_OK = !!(process.env.BLOB_READ_WRITE_TOKEN || (process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN));
+if (products.length && !BLOB_OK) {
+  console.warn(`No Blob credentials in .env, so ${products.length} product photo(s) won't be copied. Those products will show without a photo; sellers can add it again on the live site.`);
 }
 for (const p of products) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) { newPhoto.set(p.id, ""); continue; }
+  if (!BLOB_OK) { newPhoto.set(p.id, ""); continue; }
   const file = path.join(DATA_DIR, "uploads", path.basename(p.photo));
   if (!fs.existsSync(file)) { newPhoto.set(p.id, ""); continue; }
   const ext = path.extname(file).slice(1).toLowerCase();
@@ -49,7 +51,7 @@ for (const p of products) {
   });
   newPhoto.set(p.id, blob.url);
 }
-if (process.env.BLOB_READ_WRITE_TOKEN && newPhoto.size) console.log(`Uploaded ${[...newPhoto.values()].filter(Boolean).length} photo(s) to Vercel Blob.`);
+if (BLOB_OK && newPhoto.size) console.log(`Uploaded ${[...newPhoto.values()].filter(Boolean).length} photo(s) to Vercel Blob.`);
 
 for (const table of TABLES) {
   const cols = (await local.all(`PRAGMA table_info(${table})`)).map((c) => c.name);

@@ -49,9 +49,9 @@ Maps use Google Maps' standard embed, so no API key is needed.
 
 On Vercel the data lives online: accounts, shops and products in a **Turso** database, and product photos in **Vercel Blob**. On your own computer the same code uses `data/semanggi.db` and `data/uploads` instead.
 
-1. In the Vercel project, open **Storage** and connect a **Turso** database and a **Blob** store to the project. This adds `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and `BLOB_READ_WRITE_TOKEN` to the project's environment variables.
+1. In the Vercel project, open **Storage** and connect a **Turso** database and a **Blob** store to the project. This adds `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN` for older Blob stores) to the project's environment variables.
 2. Either copy your local data up (step 3), or set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN2_EMAIL` and `ADMIN2_PASSWORD` under **Settings → Environment Variables** so the two admins are created on first start.
-3. To copy your local admins, sellers, products and photos: create a `.env` file in the project folder with the three values from step 1 (copy them from Vercel's environment variables page; see `.env.example`), then run `npm run copy-to-turso`. The `.env` file is never uploaded to GitHub.
+3. To copy your local admins, sellers, products and photos: create a `.env` file in the project folder with `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` (copy them from Vercel's environment variables page; see `.env.example`), then run `npm run copy-to-turso`. Product photos are only copied if Blob credentials are in `.env` too; otherwise re-add them on the live site. The `.env` file is never uploaded to GitHub.
 4. Push to GitHub, or press **Redeploy** in Vercel. `vercel.json` makes `/seller` and `/admin` work without `.html`.
 
 To remove the example shops from the live site: `npm run demo:remove:online` (uses the `.env` file).

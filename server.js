@@ -7,8 +7,9 @@ import { connect, setupSchema, ROOT, DATA_DIR } from "./db.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const ON_VERCEL = !!process.env.VERCEL;
-// Photos go to Vercel Blob when it's connected (BLOB_READ_WRITE_TOKEN); otherwise to DATA_DIR/uploads.
-const USE_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN;
+// Photos go to Vercel Blob when a Blob store is connected; otherwise to DATA_DIR/uploads.
+// A connected store gives either BLOB_STORE_ID (Vercel signs in for us) or BLOB_READ_WRITE_TOKEN.
+const USE_BLOB = !!(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const SESSION_DAYS = 30;
 
