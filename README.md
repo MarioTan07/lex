@@ -66,7 +66,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 ### Languages
 
 - `public/i18n.js` holds all page text in Indonesian and English. HTML elements point at it with `data-i18n="key"` (text), `data-i18n-html="key"` (text with markup) or `data-i18n-attr="placeholder:key"` (attributes). Scripts call `t("key")`.
-- A visitor's choice is remembered in their browser. On a first visit the site uses the browser's language if it's Indonesian or English, and Indonesian otherwise.
+- The site always opens in Indonesian. English only shows after a visitor taps **EN**, and that choice is remembered in their browser.
 - Server error messages are in `MESSAGES` at the top of `server.js`. The pages send the chosen language in an `X-Lang` header.
 - To add a language, add its code to `LANGS` in `i18n.js` and a column to `TEXT` there and to `MESSAGES` in `server.js`.
 - Text that sellers type (shop names, product names and descriptions, addresses) isn't translated.

@@ -531,13 +531,10 @@ const TEXT = {
   },
 };
 
-// A saved choice wins; otherwise the first of the browser's languages we have; otherwise Indonesian.
+// The site is written in Indonesian and always opens in Indonesian. English is only shown after
+// the visitor picks EN, and that choice is remembered in this browser.
 function pickLang() {
   try { const saved = localStorage.getItem("ks-lang"); if (LANGS.includes(saved)) return saved; } catch {}
-  for (const l of navigator.languages || [navigator.language]) {
-    const base = String(l).slice(0, 2).toLowerCase();
-    if (LANGS.includes(base)) return base;
-  }
   return "id";
 }
 
