@@ -163,7 +163,7 @@ function renderSellers() {
         el("button", { class: "btn small ghost", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.resetConfirm"), () => resetPassword(s)) }, t("admin.resetPassword")),
         s.status === "suspended" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, t("admin.reactivate")) : null,
         s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.suspendConfirm"), () => setSeller(s, "suspended")) }, t("admin.suspend")) : null,
-        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => deleteSeller(s)) }, t("admin.deleteShop"))))));
+        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteShopConfirm"), () => deleteSeller(s)) }, t("admin.deleteShop"))))));
   }
 }
 // Permanent: removes the seller's account, products and photos. Suspend is the reversible option.
@@ -171,7 +171,7 @@ async function deleteSeller(s) {
   try {
     await api("/api/admin/sellers/" + s.id, { method: "DELETE" });
     if (editingSeller && editingSeller.id === s.id) resetSellerForm();
-    toast(t("admin.deleted", { stall: s.stallName }));
+    toast(t("admin.shopDeleted", { stall: s.stallName }));
     loadSellers(); loadOverview(); loadProducts();
   } catch (e) { handle(e); }
 }
