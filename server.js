@@ -518,6 +518,21 @@ admin.patch("/sellers/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
+// Permanently delete a shop: the seller's account, sign-ins, products, photos and any old orders.
+admin.delete("/sellers/:id", async (req, res) => {
+  const u = await sellerById(req.params.id);
+  const photos = (await db.all("SELECT photo FROM products WHERE seller_id = ? AND photo != ''", u.id)).map((p) => p.photo);
+  await db.batch([
+    ["DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE seller_id = ?)", u.id],
+    ["DELETE FROM orders WHERE seller_id = ?", u.id],
+    ["DELETE FROM sessions WHERE user_id = ?", u.id],
+    ["DELETE FROM products WHERE seller_id = ?", u.id],
+    ["DELETE FROM users WHERE id = ?", u.id],
+  ]);
+  photos.forEach(removePhoto);
+  res.json({ ok: true });
+});
+
 admin.get("/products", async (_req, res) => {
   const rows = await db.all("SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id ORDER BY p.created_at DESC");
   res.json({ products: rows.map(productOut) });
