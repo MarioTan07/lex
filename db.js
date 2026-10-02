@@ -73,6 +73,7 @@ const ADDED_USER_COLUMNS = {
   paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
 };
 
+const isNetworkError = (e) => /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network/i.test(`${e?.message} ${e?.cause?.message ?? ""} ${e?.cause?.code ?? ""}`);
 const arg = (v) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);
 const plainRows = (r) => r.rows.map((row) => Object.fromEntries(r.columns.map((c, i) => [c, row[i]])));
 
@@ -86,7 +87,18 @@ export function connect({ local = false } = {}) {
   const client = createClient(url
     ? { url, authToken: process.env.TURSO_AUTH_TOKEN }
     : { url: pathToFileURL(path.join(DATA_DIR, "semanggi.db")).href });
-  const exec = (sql, args) => client.execute({ sql, args: args.map(arg) });
+  // Reads are retried when the network to the database drops for a moment ("fetch failed").
+  // Writes aren't, so a write that did reach the database is never applied twice.
+  const exec = async (sql, args) => {
+    const read = /^\s*(SELECT|PRAGMA)\b/i.test(sql);
+    for (let attempt = 1; ; attempt++) {
+      try { return await client.execute({ sql, args: args.map(arg) }); }
+      catch (e) {
+        if (!read || attempt === 3 || !isNetworkError(e)) throw e;
+        await new Promise((r) => setTimeout(r, 200 * attempt));
+      }
+    }
+  };
   return {
     remote: !!url,
     all: async (sql, ...args) => plainRows(await exec(sql, args)),
