@@ -75,8 +75,20 @@ async function setup() {
   await db.run("DELETE FROM sessions WHERE expires_at < ?", Date.now());
 }
 
-const ready = setup();
-ready.catch((e) => console.error("Startup failed:", e.message));
+// If starting up fails (for example the database can't be reached for a moment), the next
+// request tries again instead of this server copy failing until Vercel replaces it.
+let ready = null;
+function whenReady() {
+  if (!ready) {
+    ready = setup().catch((e) => {
+      console.error("Startup failed:", e.message);
+      ready = null;
+      throw e;
+    });
+  }
+  return ready;
+}
+whenReady().catch(() => {});
 
 async function createSession(res, userId) {
   const token = crypto.randomBytes(32).toString("hex");
@@ -280,7 +292,7 @@ app.set("trust proxy", 1);
 app.use(express.json({ limit: "3mb" }));
 
 // Wait for the database to be ready before handling anything.
-app.use(async (_req, _res, next) => { await ready; next(); });
+app.use(async (_req, _res, next) => { await whenReady(); next(); });
 
 app.use(async (req, _res, next) => {
   const cookie = req.headers.cookie || "";
