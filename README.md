@@ -79,3 +79,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 | `POST /api/auth/login`, `/logout`, `/password`, `GET /api/me` | sellers and admins |
 | `/api/seller/profile`, `/api/seller/products[/:id]` | signed-in sellers |
 | `/api/admin/overview`, `/api/admin/sellers[/:id]` (create, edit, status), `/api/admin/sellers/:id/password`, `/api/admin/products[/:id]` | admins |
+
+## Example sellers
+
+To try the site with some shops and products, run `npm run demo:add`. It adds six example shops with 20 products, all with `@contoh.test` sign-in emails; their passwords are saved in `data/demo-sellers.txt`. Run `npm run demo:remove` to delete them again before real sellers use the site.

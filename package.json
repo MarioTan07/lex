@@ -6,7 +6,9 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "demo:add": "node scripts/demo-sellers.js add",
+    "demo:remove": "node scripts/demo-sellers.js remove"
   },
   "engines": {
     "node": ">=22.13"
