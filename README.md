@@ -65,7 +65,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 
 ### Languages
 
-- `public/i18n.js` holds all page text in Indonesian and English. HTML elements point at it with `data-i18n="key"` (text), `data-i18n-html="key"` (text with markup) or `data-i18n-attr="placeholder:key"` (attributes). Scripts call `t("key")`.
+- The Indonesian text lives in the HTML pages: to change wording, edit the HTML. `public/i18n.js` holds the English translation of each piece of text, plus Indonesian only for text the scripts build. HTML elements are linked to their translation with `data-i18n="key"` (text), `data-i18n-html="key"` (text with markup) or `data-i18n-attr="placeholder:key"` (attributes). Scripts call `t("key")`. If you change Indonesian text in the HTML, update its English line in `i18n.js` too.
 - The site always opens in Indonesian. English only shows after a visitor taps **EN**, and that choice is remembered in their browser.
 - Server error messages are in `MESSAGES` at the top of `server.js`. The pages send the chosen language in an `X-Lang` header.
 - To add a language, add its code to `LANGS` in `i18n.js` and a column to `TEXT` there and to `MESSAGES` in `server.js`.
