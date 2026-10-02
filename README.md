@@ -17,9 +17,16 @@ The site is in Indonesian, with English as a second language. Every page has an 
 1. An admin creates the seller's account at `/admin` and gives the seller their email and starting password. There is no public sign-up.
 2. The seller signs in at `/seller`, changes their password and lists products, which show up in the catalog on `/`.
 3. A buyer finds something in the catalog and taps **Call** or **WhatsApp** on it. WhatsApp opens with a message naming the shop and product, ready to send. The seller's contact number is used for both, so it should be one that's on WhatsApp.
+   On the English version of the site the WhatsApp button says **Order** and opens a short step-by-step helper instead (see below).
 4. The buyer taps **Directions** on the seller's shop to get there, picks up the order and pays in person.
 
 Tapping a product's photo or name opens **every shop that sells it**, each with its price, a small Google Map and the contact buttons. Names match when they're the same apart from capitals and spaces, or when one contains the other ("Pecel semanggi" matches "Pecel Semanggi Suroboyo"). The list can be sorted by **cheapest** or **closest** (straight-line distance from the buyer's location, which the browser asks permission for; shops without a map pin go last), and sold-out or temporarily closed shops can be hidden.
+
+### Order helper for English-speaking buyers
+
+Sellers read Indonesian, so on the English site the **Order** button asks the buyer, one question at a time: which products from that shop and how many, when they'll pick up (as soon as possible, or a half-hour slot between 07.00 and 21.00 today or tomorrow), any ready-made requests (sauce on the side, not spicy, extra spicy, extra krupuk), an optional note, and the name for the order. It then shows the finished WhatsApp message **in Indonesian**, with the English meaning, and an **Open WhatsApp** button. The site still doesn't store the order.
+
+The optional note is translated to Indonesian through `POST /api/translate`, which uses the free [MyMemory](https://mymemory.translated.net/) service (no account; about 5,000 characters a day, or 50,000 with `TRANSLATE_EMAIL` set). Free machine translation can get things wrong, so the message also includes the buyer's original English, and the buyer is shown the translation turned back into English to check it. If translation fails, the note is sent as written.
 
 The site doesn't take orders itself. Orders placed before this change are still in the database (`orders` and `order_items` tables) but aren't shown anywhere.
 
@@ -58,7 +65,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 ## How it's built
 
 - `server.js` is an Express server using Node's built-in SQLite (`node:sqlite`), so the only dependency is Express.
-- `public/` holds the pages: `index.html` + `shop.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
+- `public/` holds the pages: `index.html` + `shop.js` (+ `order.js` for the order helper), `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
 - Passwords are hashed with scrypt. Sign-in uses an HTTP-only session cookie. Sign-in attempts are limited to 10 per 15 minutes per IP address.
 - The public pages show each seller's shop name, shop location and contact number. Home addresses are visible only to that seller and the admins.
 - Call buttons are `tel:` links and WhatsApp buttons are `wa.me` links; Indonesian numbers like `0812…` are converted to `62812…` for WhatsApp.
@@ -75,7 +82,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 
 | Method & path | Who |
 | --- | --- |
-| `GET /api/catalog`, `GET /api/stalls` | anyone |
+| `GET /api/catalog`, `GET /api/stalls`, `POST /api/translate` (30 notes per hour per IP) | anyone |
 | `POST /api/auth/login`, `/logout`, `/password`, `GET /api/me` | sellers and admins |
 | `/api/seller/profile`, `/api/seller/products[/:id]` | signed-in sellers |
 | `/api/admin/overview`, `/api/admin/sellers[/:id]` (create, edit, status), `/api/admin/sellers/:id/password`, `/api/admin/products[/:id]` | admins |

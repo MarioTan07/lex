@@ -128,7 +128,7 @@ export function directionsLink(loc) {
 
 // ---------- calling & WhatsApp ----------
 // Indonesian numbers are written like 0812 3456 7890; WhatsApp needs them as 62812...
-function waNumber(phone) {
+export function waNumber(phone) {
   let d = String(phone || "").replace(/\D/g, "");
   if (d.startsWith("0")) d = "62" + d.slice(1);
   else if (d.startsWith("8")) d = "62" + d;
@@ -139,13 +139,15 @@ function telNumber(phone) {
   return d.replace(/\D/g, "").length >= 5 ? d : null;
 }
 
-// Call / WhatsApp / Directions buttons for a seller. `message` pre-fills the WhatsApp chat.
-export function contactButtons(stall, message, { directions = true } = {}) {
+// Call / WhatsApp / Directions buttons for a seller. `message` pre-fills the WhatsApp chat;
+// with `order`, English-speaking buyers get the step-by-step order helper instead; Indonesian buyers just message the seller.
+export function contactButtons(stall, message, { directions = true, order = null } = {}) {
   const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
   const name = stall.stallName;
   return el("div", { class: "reach" },
     tel ? el("a", { class: "btn ghost", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, icon("phone"), t("contact.call")) : null,
-    wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
+    wa && order && lang === "en" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
+    : wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
     dir ? el("a", { class: "btn ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, icon("navigation"), t("contact.directions")) : null);
 }
 
