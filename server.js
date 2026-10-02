@@ -540,7 +540,11 @@ admin.delete("/products/:id", async (req, res) => {
 app.use("/api/admin", admin);
 
 // ----- static files -----
-// On Vercel, files in public/ are served directly and never reach this app.
+// On Vercel, files in public/ are served directly and never reach this app, except the home
+// page "/", which Vercel routes here. Reading it via import.meta.url makes Vercel bundle the file.
+let homePage = null;
+try { homePage = fs.readFileSync(new URL("./public/index.html", import.meta.url), "utf8"); } catch {}
+app.get("/", (_req, res, next) => (homePage ? res.type("html").send(homePage) : next()));
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "30d", immutable: true }));
 app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));
 
