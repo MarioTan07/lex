@@ -184,9 +184,9 @@ const TEXT = {
     "loc.shortLink": "Short links can't be read. Open the link, then copy the full address from the browser's address bar, or right-click the place in Google Maps and copy its coordinates.",
     "loc.badPin": "Paste a full Google Maps link or coordinates like -7.2431, 112.6345.",
 
-    "home.title": "Kampoeng Semanggi · A taste of home",
+    "home.title": "Kampoeng Semanggi · Tastes Like Coming Home",
     "home.meta": "Pecel semanggi and semanggi treats from Kampoeng Semanggi, Sememi, Surabaya. Order straight from the sellers by phone or WhatsApp.",
-    "hero.title": "A taste of <em>home.</em>",
+    "hero.title": "Tastes Like <em>Coming Home.</em>",
     "hero.lede": "Discover pecel semanggi, snacks and home-made semanggi treats from the sellers of Kampoeng Semanggi.",
     "notes.since": "Selling pecel semanggi since",
     "notes.sinceValue": "the 1950s",
