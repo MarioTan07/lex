@@ -29,10 +29,10 @@ function handle(err) {
 // ---------- tabs ----------
 document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-  ["sellers", "products", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
+  ["sellers", "products", "site", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
 }));
 
-function refreshAll() { loadOverview(); loadSellers(); loadProducts(); }
+function refreshAll() { loadOverview(); loadSellers(); loadProducts(); loadSite(); }
 $("#refreshBtn").addEventListener("click", refreshAll);
 
 // ---------- overview ----------
@@ -49,6 +49,8 @@ const shopLoc = locationEditor("n-shop", "shop", "sellerForm.shopHint");
 const homeLoc = locationEditor("n-home", "home", "sellerForm.homeHint");
 $("#n-shop").replaceWith(shopLoc.node);
 $("#n-home").replaceWith(homeLoc.node);
+// A shop without a name goes by the seller's name.
+const shopName = (s) => s.stallName || s.name;
 
 let sellers = [];
 let editingSeller = null;
@@ -66,7 +68,7 @@ $("#sellerFormToggle").addEventListener("click", () => {
 
 // Title, submit and show/hide buttons of the seller form, which depend on whether it's creating or editing.
 function labelSellerForm() {
-  $("#sellerFormTitle").textContent = editingSeller ? t("common.editTitle", { name: editingSeller.stallName }) : t("sellerForm.createTitle");
+  $("#sellerFormTitle").textContent = editingSeller ? t("common.editTitle", { name: shopName(editingSeller) }) : t("sellerForm.createTitle");
   $("#sellerSubmit").textContent = t(editingSeller ? "common.saveChanges" : "sellerForm.createTitle");
   $("#sellerFormToggle").textContent = t($("#sellerFormBody").hidden ? "sellerForm.show" : "sellerForm.hide");
 }
@@ -85,6 +87,7 @@ function editSeller(s) {
   $("#sellerFormBody").hidden = false;
   $("#accountFields").hidden = true;
   $("#n-name").value = s.name; $("#n-stall").value = s.stallName; $("#n-phone").value = s.phone;
+  $("#n-ig").value = s.instagram ? "@" + s.instagram : ""; $("#n-fromhome").checked = s.fromHome;
   shopLoc.set(s.shop); homeLoc.set(s.home);
   labelSellerForm();
   $("#sellerCancel").hidden = false; $("#sellerErr").hidden = true;
@@ -96,15 +99,15 @@ $("#sellerForm").addEventListener("submit", async (e) => {
   const errBox = $("#sellerErr"); errBox.hidden = true;
   const btn = $("#sellerSubmit"); btn.disabled = true;
   try {
-    const body = { name: $("#n-name").value, stallName: $("#n-stall").value, phone: $("#n-phone").value, shop: shopLoc.get(), home: homeLoc.get() };
+    const body = { name: $("#n-name").value, stallName: $("#n-stall").value, phone: $("#n-phone").value, instagram: $("#n-ig").value, fromHome: $("#n-fromhome").checked, shop: shopLoc.get(), home: homeLoc.get() };
     if (editingSeller) {
       await api("/api/admin/sellers/" + editingSeller.id, { method: "PUT", body });
-      toast(t("sellerForm.saved", { name: body.stallName }));
+      toast(t("sellerForm.saved", { name: body.stallName || body.name }));
     } else {
       body.email = $("#n-email").value; body.password = $("#n-pass").value;
       if (!body.email) throw new Error(t("sellerForm.needEmail"));
       await api("/api/admin/sellers", { method: "POST", body });
-      showPassword(body.stallName, body.email, body.password);
+      showPassword(body.stallName || body.name, body.email, body.password);
       toast(t("sellerForm.created"));
     }
     resetSellerForm(); loadSellers(); loadOverview();
@@ -131,15 +134,16 @@ async function resetPassword(s) {
   const password = randomPassword();
   try {
     await api(`/api/admin/sellers/${s.id}/password`, { method: "POST", body: { password } });
-    showPassword(s.stallName, s.email, password);
+    showPassword(shopName(s), s.email, password);
   } catch (e) { handle(e); }
 }
 
-function locCell(loc) {
+function locCell(loc, fromHome = false) {
   const link = mapLink(loc);
   return el("td", { class: "loc-cell" },
     el("div", { class: "small", text: loc.address || t("admin.notAdded") }),
-    link ? el("a", { href: link, target: "_blank", rel: "noopener", text: t("admin.viewMaps") }) : null);
+    link ? el("a", { href: link, target: "_blank", rel: "noopener", text: t("admin.viewMaps") }) : null,
+    fromHome ? el("div", { class: "small muted", text: t("admin.alsoFromHome") }) : null);
 }
 
 async function loadSellers() {
@@ -151,9 +155,10 @@ function renderSellers() {
   if (!sellers.length) body.append(el("tr", {}, el("td", { colspan: "7", class: "muted", text: t("admin.noSellers") })));
   for (const s of sellers) {
     body.append(el("tr", {},
-      el("td", {}, el("strong", { text: s.stallName }), el("div", { class: "muted small", text: t("admin.joined", { date: when(s.createdAt) }) })),
+      el("td", {}, el("strong", { text: shopName(s) }), el("div", { class: "muted small", text: t("admin.joined", { date: when(s.createdAt) }) }),
+        s.instagram ? el("a", { class: "small", href: "https://instagram.com/" + s.instagram, target: "_blank", rel: "noopener", text: "@" + s.instagram }) : null),
       el("td", {}, el("div", { text: s.name }), el("div", { class: "num", text: s.phone }), el("div", { class: "muted small", text: s.email })),
-      locCell(s.shop),
+      locCell(s.shop, s.fromHome),
       locCell(s.home),
       el("td", { class: "num", text: String(s.products) }),
       el("td", {},
@@ -173,12 +178,12 @@ async function deleteSeller(s) {
   try {
     await api("/api/admin/sellers/" + s.id, { method: "DELETE" });
     if (editingSeller && editingSeller.id === s.id) resetSellerForm();
-    toast(t("admin.shopDeleted", { stall: s.stallName }));
+    toast(t("admin.shopDeleted", { stall: shopName(s) }));
     loadSellers(); loadOverview(); loadProducts();
   } catch (e) { handle(e); }
 }
 async function setSeller(s, status) {
-  try { await api("/api/admin/sellers/" + s.id, { method: "PATCH", body: { status } }); toast(t("admin.sellerNow", { stall: s.stallName, status: t("sellerStatus." + status).toLowerCase() })); loadSellers(); loadOverview(); loadProducts(); }
+  try { await api("/api/admin/sellers/" + s.id, { method: "PATCH", body: { status } }); toast(t("admin.sellerNow", { stall: shopName(s), status: t("sellerStatus." + status).toLowerCase() })); loadSellers(); loadOverview(); loadProducts(); }
   catch (e) { handle(e); }
 }
 
@@ -209,6 +214,32 @@ async function deleteProduct(p) {
   try { await api("/api/admin/products/" + p.id, { method: "DELETE" }); toast(t("admin.deleted", { name: p.name })); loadProducts(); loadOverview(); }
   catch (e) { handle(e); }
 }
+
+// ---------- site settings ----------
+async function loadSite() {
+  try {
+    const { site } = await api("/api/site");
+    $("#site-ig").value = site.instagram ? "@" + site.instagram : "";
+    $("#site-sponsor-name").value = site.sponsorName;
+    $("#site-sponsor-phone").value = site.sponsorPhone;
+    $("#site-sponsor-email").value = site.sponsorEmail;
+    $("#site-homestay-phone").value = site.homestayPhone;
+  } catch (e) { handle(e); }
+}
+$("#siteForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("#siteErr"); err.hidden = true;
+  try {
+    await api("/api/admin/site", { method: "PUT", body: {
+      instagram: $("#site-ig").value, sponsorName: $("#site-sponsor-name").value,
+      sponsorPhone: $("#site-sponsor-phone").value, sponsorEmail: $("#site-sponsor-email").value, homestayPhone: $("#site-homestay-phone").value,
+    } });
+    toast(t("site.saved")); loadSite();
+  } catch (x) {
+    if (x.status === 401 || x.status === 403) return handle(x);
+    err.textContent = x.message; err.hidden = false;
+  }
+});
 
 // ---------- account ----------
 $("#passwordForm").addEventListener("submit", async (e) => {

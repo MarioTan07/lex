@@ -333,6 +333,19 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .order-meaning summary { cursor: pointer; font-weight: 600; font-size: var(--step--1); color: var(--leaf); margin-bottom: 8px; }
 .chips button:disabled { opacity: .45; cursor: not-allowed; }
 
+/* homestay (coming soon) and sponsors */
+.extras { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: stretch; }
+.extra { display: grid; gap: 12px; align-content: start; padding: clamp(24px, 4vw, 36px); border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.extra.stay { background: var(--leaf-soft); border-color: transparent; }
+.extra .badge { justify-self: start; background: var(--surface); }
+.extra h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); }
+.extra > p:not(.eyebrow) { color: var(--muted); line-height: 1.7; }
+.extra .reach { justify-content: flex-start; }
+.extra .reach .btn { flex: 0 1 auto; }
+.home-note { color: var(--leaf-ink) !important; }
+.site-footer .site-ig a { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+@media (max-width: 900px) { .extras { grid-template-columns: minmax(0, 1fr); } }
+
 /* history page */
 .hist { display: grid; gap: clamp(32px, 5vw, 56px); padding-block: clamp(36px, 6vw, 72px); }
 .hist-head { display: grid; gap: 14px; max-width: 46em; }

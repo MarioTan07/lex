@@ -35,7 +35,7 @@ $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/log
 
 // Suspended sellers can't sign in, so a signed-in seller's shop is either live or paused by the seller.
 function renderHead() {
-  $("#stallTitle").textContent = me.stallName;
+  $("#stallTitle").textContent = me.stallName || me.name;
   const pill = $("#statusPill");
   pill.className = "pill " + (me.paused ? "paused" : "live");
   pill.textContent = t(me.paused ? "seller.paused" : "seller.live");
@@ -68,6 +68,7 @@ $("#pauseForm").addEventListener("submit", async (e) => {
 });
 function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
+  $("#s-ig").value = me.instagram ? "@" + me.instagram : ""; $("#s-fromhome").checked = me.fromHome;
   shopLoc.set(me.shop); homeLoc.set(me.home);
 }
 
@@ -156,7 +157,7 @@ $("#profileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
-    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, shop: shopLoc.get(), home: homeLoc.get() };
+    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, shop: shopLoc.get(), home: homeLoc.get() };
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     renderHead(); fillProfile(); toast(t("profile.saved"));
   } catch (err) {

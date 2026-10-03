@@ -16,6 +16,11 @@ const menuOf = (stall) => products.filter((p) => p.sellerId === stall.id && p.av
 const orderFrom = (stall, firstId) => () => openOrder(stall, menuOf(stall), firstId);
 
 // "Temporarily closed" label with the seller's note, shown instead of the contact buttons while a shop is paused.
+// Sellers who also sell from home keep the address private and send it to the buyer on WhatsApp.
+const hasShop = (stall) => !!(stall.shop.address || (stall.shop.lat != null && stall.shop.lng != null));
+const homeNote = (stall) => stall.fromHome
+  ? el("p", { class: "addr home-note" }, icon("home"), t(hasShop(stall) ? "shops.alsoHome" : "shops.homeOnly")) : null;
+
 const closedNotice = (stall) => el("p", { class: "closed" },
   el("strong", { text: t("pause.badge") }), stall.pauseNote ? " · " + stall.pauseNote : "");
 
@@ -181,6 +186,7 @@ function renderCompare() {
           el("span", { class: "price" }, rp(q.price), q.unit ? el("small", { text: " / " + q.unit }) : null)),
         norm(q.name) !== norm(comparing.name) ? el("p", { class: "small", text: q.name }) : null,
         stall && stall.shop.address ? el("p", { class: "muted small", text: stall.shop.address }) : null,
+        stall ? homeNote(stall) : null,
         sortBy === "closest" ? el("p", { class: "small dist", text: dist != null ? distText(dist) : t("compare.noDistance") }) : null,
         !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
         !stall ? null
@@ -205,7 +211,8 @@ function renderShops() {
       mapFrame(s.shop, t("shops.mapOf", { name: s.stallName })) || el("div", { class: "photo" }, leafSvg()),
       el("div", { class: "body" },
         el("h3", { text: s.stallName }),
-        el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")),
+        hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
+        homeNote(s),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
         s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null }))));
   }

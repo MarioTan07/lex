@@ -29,6 +29,9 @@ const ICONS = {
   leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   "chevron-down": '<path d="m6 9 6 6 6-6"/>',
+  instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
 };
 export function icon(name) {
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -157,7 +160,9 @@ function telNumber(phone) {
   return d.replace(/\D/g, "").length >= 5 ? d : null;
 }
 
-// Call / WhatsApp / Directions buttons for a seller. `message` pre-fills the WhatsApp chat;
+export const instagramLink = (handle) => "https://instagram.com/" + encodeURIComponent(handle);
+
+// Call / WhatsApp / Directions / Instagram buttons for a seller (Directions only when they have a shop, Instagram only when set). `message` pre-fills the WhatsApp chat;
 // with `order`, English-speaking buyers get the step-by-step order helper instead; Indonesian buyers just message the seller.
 export function contactButtons(stall, message, { directions = true, order = null } = {}) {
   const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
@@ -166,7 +171,8 @@ export function contactButtons(stall, message, { directions = true, order = null
     tel ? el("a", { class: "btn ghost", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, icon("phone"), t("contact.call")) : null,
     wa && order && lang === "en" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
     : wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
-    dir ? el("a", { class: "btn ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, icon("navigation"), t("contact.directions")) : null);
+    dir ? el("a", { class: "btn ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, icon("navigation"), t("contact.directions")) : null,
+    stall.instagram ? el("a", { class: "btn ghost", href: instagramLink(stall.instagram), target: "_blank", rel: "noopener", "aria-label": t("contact.instagramLabel", { name }) }, icon("instagram"), "Instagram") : null);
 }
 
 // Read a pin from "lat, lng" or a full Google Maps link.
@@ -254,4 +260,34 @@ export function confirmTap(btn, label, action) {
   const orig = btn.textContent;
   btn.textContent = label;
   setTimeout(() => { if (btn.isConnected && btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = orig; } }, 3000);
+}
+
+// ---------- site contacts ----------
+// Kampoeng Semanggi's Instagram (in every footer), and the homestay and sponsor contacts on /cerita.
+// An admin sets them under Admin → Situs; a contact without a number shows "coming soon" instead of buttons.
+const siteSpots = { ig: document.querySelector(".site-ig"), stay: document.querySelector("#homestayContact"), sponsor: document.querySelector("#sponsorContact") };
+let site = null;
+function siteContact(box, label, phone, message, email = "") {
+  if (!box) return;
+  const name = label || "Kampoeng Semanggi";
+  const mail = email ? el("a", { class: "btn ghost", href: "mailto:" + email + "?subject=" + encodeURIComponent(t("contact.emailSubject")), "aria-label": t("contact.emailLabel", { name }) }, icon("mail"), t("contact.email")) : null;
+  const buttons = phone ? contactButtons({ stallName: name, phone }, message, { directions: false }) : el("div", { class: "reach" });
+  if (mail) buttons.append(mail);
+  box.replaceChildren(phone || email
+    ? el("div", {}, label ? el("p", { class: "small" }, el("span", { class: "muted", text: t("site.contactPerson") + " " }), el("strong", { text: label })) : null,
+        buttons, email ? el("p", { class: "small muted", text: email }) : null)
+    : el("p", { class: "muted small", text: t("site.soon") }));
+}
+function renderSite() {
+  if (!site) return;
+  siteContact(siteSpots.stay, "", site.homestayPhone, t("contact.waHomestay"));
+  siteContact(siteSpots.sponsor, site.sponsorName, site.sponsorPhone, t("contact.waSponsor"), site.sponsorEmail);
+  if (siteSpots.ig) {
+    siteSpots.ig.hidden = !site.instagram;
+    if (site.instagram) siteSpots.ig.replaceChildren(el("a", { href: instagramLink(site.instagram), target: "_blank", rel: "noopener" }, icon("instagram"), " @" + site.instagram));
+  }
+}
+if (Object.values(siteSpots).some(Boolean)) {
+  api("/api/site").then((r) => { site = r.site; renderSite(); }).catch(() => {});
+  window.addEventListener("langchange", renderSite);
 }
