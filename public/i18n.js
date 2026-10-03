@@ -672,6 +672,7 @@ const TEXT = {
     "catalog.noMatchText": "Try another word, like the name of a dish or a shop.",
     "shops.intro": "Come by, say hello and take home a taste of Sememi. Every seller here is one of our neighbours.",
     "story.eyebrow": "Our story",
+    "catalog.pageTitle": "Catalog · Kampoeng Semanggi",
     "shops.pageTitle": "Shop locations · Kampoeng Semanggi",
     "story.pageTitle": "Our story · Kampoeng Semanggi",
     "nav.label": "Main menu",

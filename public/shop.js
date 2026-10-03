@@ -27,12 +27,13 @@ const homeNote = (stall) => stall.fromHome
 const closedNotice = (stall) => el("p", { class: "closed" },
   el("strong", { text: t("pause.badge") }), stall.pauseNote ? " · " + stall.pauseNote : "");
 
-// This script runs on the catalog page (/) and the shop-locations page (/lokasi); each has only its own part.
+// This script runs on the home page (/: welcome banner and story), the catalog (/katalog) and the
+// shop-locations page (/lokasi); each has only its own part.
 const onCatalog = !!$("#productGrid");
 const onShops = !!$("#shopGrid");
-// Links from before the site had separate pages pointed at sections of the home page.
-const moved = { "#shops": "/lokasi", "#story": "/cerita", "#history": "/cerita#history" };
-if (moved[location.hash]) location.replace(moved[location.hash]);
+// Links from before the site had separate pages pointed at sections of one page.
+const moved = { "#shops": "/lokasi", "#catalog": "/katalog" };
+if (moved[location.hash] && !$(location.hash)) location.replace(moved[location.hash]);
 
 // ---------- catalog ----------
 async function loadCatalog() {
@@ -50,7 +51,8 @@ let query = "";
 if (onCatalog) $("#search").addEventListener("input", (e) => { query = norm(e.target.value); renderShop(); });
 
 function renderShop() {
-  if (!onCatalog) return;
+  // The home page has the welcome banner (today's pick) and opens shared product links, but no catalog.
+  if (!onCatalog) { renderHero(); openLinkedProduct(); return; }
   const names = [...new Map(products.map((p) => [p.sellerId, p.stallName])).entries()];
   const chips = $("#stallChips"); chips.replaceChildren();
   chips.hidden = names.length < 2;
@@ -91,7 +93,7 @@ function renderShop() {
       hot.includes(p.id) ? el("span", { class: "hot-badge" }, icon("flame"), t("hot.label")) : null,
       el("div", { class: "tools" },
         favButton("p", p.id, p.name, renderShop),
-        shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id, "share") })),
+        shareButton({ title: p.name, text: shareText(p), url: location.origin + "/katalog?p=" + p.id, onShare: () => tap(p.id, "share") })),
       el("div", { class: "body" },
         el("div", { class: "card-head" },
           el("div", {},
@@ -140,6 +142,7 @@ function photoBox(p, open) {
 // ---------- hero: today's pick & seller count ----------
 // One product from a shop that's open, changing once a day, so the hero shows something real.
 function renderHero() {
+  if (!$("#pick")) return;
   const open = products.filter((p) => { const s = stallById(p.sellerId); return p.available && s && !s.paused; });
   const pick = $("#pick");
   pick.hidden = !open.length;
@@ -337,7 +340,7 @@ function renderProduct() {
         el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
         el("div", { class: "detail-tools" },
           favButton("p", p.id, p.name, () => { renderShop(); renderProduct(); }),
-          shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id, "share") }))),
+          shareButton({ title: p.name, text: shareText(p), url: location.origin + "/katalog?p=" + p.id, onShare: () => tap(p.id, "share") }))),
       perPieceLine(p),
       p.category ? el("p", {}, el("span", { class: "cat-tag", text: t("cat." + p.category) })) : null,
       p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),

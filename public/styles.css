@@ -460,8 +460,13 @@ dialog.book { width: min(560px, calc(100% - 24px)); }
   .timeline li::before { top: 6px; left: -7px; }
   .hist-body { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .hist-toc { position: static; }
-  .top nav .tabs-main { display: none; }
-  .navmenu { display: block; }
+  /* Phones and tablets: the logo row on top, then all main tabs in one row underneath */
+  .top nav { display: contents; }
+  .top nav .actions { order: 2; margin-left: auto; }
+  .tabs-main { order: 3; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; gap: 5px; padding-block: 2px; }
+  .tabs-main::-webkit-scrollbar { display: none; }
+  .top nav .tabs-main a { flex: 1 1 auto; text-align: center; white-space: nowrap; padding: 9px 8px; font-size: .8125rem; border: 1px solid var(--line-strong); background: var(--surface); }
+  .top nav .tabs-main a.current { border-color: var(--leaf); }
   .stats div + div { border-left: 0; }
   .site-footer .fright { text-align: left; }
 }
