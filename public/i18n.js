@@ -20,6 +20,7 @@ const TEXT = {
     "common.editTitle": "Ubah {name}",
     "common.saveChanges": "Simpan perubahan",
     "common.passwordChanged": "Kata sandi diganti",
+    "common.passwordMismatch": "Kata sandi baru dan konfirmasinya tidak sama. Ketik ulang keduanya.",
 
     // map & address editor
     "loc.map": "Peta",
@@ -216,6 +217,8 @@ const TEXT = {
     "common.currentPassword": "Current password",
     "common.newPassword": "New password",
     "common.passwordChanged": "Password changed",
+    "common.passwordMismatch": "The new password and its confirmation don't match. Type them both again.",
+    "common.confirmPassword": "Confirm new password",
 
     "loc.map": "Map",
     "loc.shop.legend": "Shop location",

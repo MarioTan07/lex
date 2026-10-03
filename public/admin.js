@@ -211,8 +211,16 @@ async function deleteProduct(p) {
 // ---------- account ----------
 $("#passwordForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const err = $("#pw-err"); err.hidden = true;
+  if ($("#pw-new").value !== $("#pw-confirm").value) {
+    err.textContent = t("common.passwordMismatch"); err.hidden = false; $("#pw-confirm").focus();
+    return;
+  }
   try { await api("/api/auth/password", { method: "POST", body: { current: $("#pw-cur").value, next: $("#pw-new").value } }); e.target.reset(); toast(t("common.passwordChanged")); }
-  catch (err) { handle(err); }
+  catch (x) {
+    if (x.status === 401 || x.status === 403) return handle(x);
+    err.textContent = x.message; err.hidden = false;
+  }
 });
 
 window.addEventListener("langchange", () => {
