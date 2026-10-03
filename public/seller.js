@@ -16,6 +16,8 @@ async function start() {
   const { user } = await api("/api/me").catch(() => ({ user: null }));
   if (user && user.role === "admin") { location.href = "/pengelola"; return; }
   me = user;
+  // Tells password managers which account the change-password form is for (kept when the form resets).
+  $("#pw-user").setAttribute("value", me?.email || "");
   $("#authView").hidden = !!me;
   $("#deskView").hidden = !me;
   $("#logoutBtn").hidden = !me;
