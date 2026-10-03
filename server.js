@@ -2,7 +2,8 @@ import express from "express";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { put, del } from "@vercel/blob";
+import { put, del, get } from "@vercel/blob";
+import { Readable } from "node:stream";
 import { connect, setupSchema, ROOT, DATA_DIR } from "./db.js";
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -230,6 +231,23 @@ function blobAuth(req) {
   const oidcToken = req?.get("x-vercel-oidc-token") || process.env.VERCEL_OIDC_TOKEN;
   return oidcToken ? { oidcToken, storeId: process.env.BLOB_STORE_ID } : {};
 }
+// A public Blob store gives each photo its own public address. A private store doesn't, so private
+// photos are served by this app at /photo/<name> (see the route below) and cached by Vercel's CDN.
+// The store's type is found on the first upload: a public upload to a private store is refused.
+let blobAccess = process.env.BLOB_ACCESS === "private" ? "private" : "public";
+async function putBlobPhoto(name, buf, contentType, req) {
+  const opts = { contentType, addRandomSuffix: false, ...blobAuth(req) };
+  if (blobAccess === "public") {
+    try {
+      return (await put("products/" + name, buf, { ...opts, access: "public" })).url;
+    } catch (e) {
+      if (!/private store/i.test(e.message)) throw e;
+      blobAccess = "private";
+    }
+  }
+  await put("products/" + name, buf, { ...opts, access: "private" });
+  return "/photo/" + name;
+}
 async function savePhoto(dataUrl, req) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || "");
   if (!m) throw bad("photoType");
@@ -238,8 +256,7 @@ async function savePhoto(dataUrl, req) {
   const name = crypto.randomBytes(12).toString("hex") + "." + (m[1] === "jpeg" ? "jpg" : m[1]);
   if (USE_BLOB) {
     try {
-      const blob = await put("products/" + name, buf, { access: "public", contentType: "image/" + m[1], addRandomSuffix: false, ...blobAuth(req) });
-      return blob.url;
+      return await putBlobPhoto(name, buf, "image/" + m[1], req);
     } catch (e) {
       console.error("Photo upload to Vercel Blob failed:", e.message);
       throw new HttpError(503, "photoUpload");
@@ -254,6 +271,10 @@ function removePhoto(p, req) {
   if (!p) return;
   if (/^https:\/\/[^/]+\.blob\.vercel-storage\.com\//.test(p)) {
     if (USE_BLOB) del(p, blobAuth(req)).catch((e) => console.error("Couldn't delete photo", p, e.message));
+    return;
+  }
+  if (p.startsWith("/photo/")) {
+    if (USE_BLOB) del("products/" + path.basename(p), blobAuth(req)).catch((e) => console.error("Couldn't delete photo", p, e.message));
     return;
   }
   if (p.startsWith("/uploads/") && !ON_VERCEL) fs.rm(path.join(UPLOAD_DIR, path.basename(p)), () => {});
@@ -586,6 +607,18 @@ app.use("/api/admin", admin);
 let homePage = null;
 try { homePage = fs.readFileSync(new URL("./public/index.html", import.meta.url), "utf8"); } catch {}
 app.get("/", (_req, res, next) => (homePage ? res.type("html").send(homePage) : next()));
+// Product photos kept in a private Blob store. Names are random and never reused, so they can be cached for good.
+app.get("/photo/:name", async (req, res, next) => {
+  if (!USE_BLOB || !/^[a-f0-9]{24}\.(jpg|png|webp)$/.test(req.params.name)) return next();
+  const r = await get("products/" + req.params.name, { access: "private", ...blobAuth(req) }).catch((e) => {
+    console.error("Couldn't read photo", req.params.name, e.message);
+    return null;
+  });
+  if (!r || r.statusCode !== 200) return next();
+  res.set({ "Content-Type": r.blob.contentType, "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable" });
+  Readable.fromWeb(r.stream).pipe(res);
+});
+
 // The seller and admin pages moved to Indonesian addresses; old links still work.
 app.get(["/seller", "/seller.html"], (_req, res) => res.redirect(302, "/penjual"));
 app.get(["/admin", "/admin.html"], (_req, res) => res.redirect(302, "/pengelola"));
