@@ -30,7 +30,7 @@
       <b>Kampoeng <span>Semanggi</span></b> <span class="role" data-i18n="admin.role">Admin</span>
     </a>
     <nav>
-      <a href="/" data-i18n="nav.catalog">Katalog</a>
+      <a href="/" data-i18n="nav.home">Beranda</a>
       <button class="linkish" id="logoutBtn" hidden data-i18n="nav.signOut">Keluar</button>
     </nav>
   </div>
@@ -65,7 +65,7 @@
     <div class="tabs" role="tablist" data-i18n-attr="aria-label:admin.sections" aria-label="Bagian admin" style="justify-self:start">
       <button role="tab" aria-selected="true" data-tab="sellers" data-i18n="admin.tabSellers">Penjual</button>
       <button role="tab" aria-selected="false" data-tab="products" data-i18n="admin.tabProducts">Produk</button>
-      <button role="tab" aria-selected="false" data-tab="wisata" data-i18n="nav.wisata">Wisata</button>
+      <button role="tab" aria-selected="false" data-tab="wisata" data-i18n="nav.packages">Paket</button>
       <button role="tab" aria-selected="false" data-tab="site" data-i18n="admin.tabSite">Situs</button>
       <button role="tab" aria-selected="false" data-tab="account" data-i18n="admin.tabAccount">Akun</button>
     </div>
@@ -120,23 +120,38 @@
     <div id="view-wisata" role="tabpanel" class="stack" hidden>
       <form class="panel" id="listingForm" style="max-width:820px">
         <div class="desk-head">
-          <h3 id="listingFormTitle">Tambah tur atau homestay</h3>
+          <h3 id="listingFormTitle">Tambah tur, pengalaman, atau homestay</h3>
           <button class="btn ghost small" type="button" id="listingCancel" hidden data-i18n="common.cancelEdit">Batal ubah</button>
         </div>
         <div class="row2">
           <div class="field"><label for="l-kind" data-i18n="lst.kind">Jenis</label>
-            <select id="l-kind"><option value="tour" data-i18n="lst.tour">Tur</option><option value="homestay" data-i18n="lst.homestay">Homestay</option></select></div>
+            <select id="l-kind"><option value="tour" data-i18n="lst.tour">Tur</option><option value="experience" data-i18n="lst.experience">Pengalaman</option><option value="homestay" data-i18n="lst.homestay">Homestay</option></select>
+            <span class="hint kind-hint" id="l-kind-hint"></span></div>
           <div class="field"><label for="l-status" data-i18n="col.status">Status</label>
             <select id="l-status">
               <option value="shown" data-i18n="lst.shown">Tampil</option>
               <option value="hidden" data-i18n="lst.hidden">Disembunyikan (belum tampil)</option>
               <option value="full" data-i18n="lst.full">Penuh (tampil, pendaftaran ditutup)</option>
+              <option value="tours_only" class="exp-only" data-i18n="lst.toursOnly">Hanya di dalam tur (tidak dipesan sendiri)</option>
             </select></div>
         </div>
         <div class="row2">
           <div class="field"><label for="l-name" data-i18n="lst.name">Nama</label><input type="text" id="l-name" required maxlength="80" data-i18n-attr="placeholder:lst.namePlaceholder" placeholder="mis. Tur Kebun Semanggi"></div>
           <div class="field"><label for="l-name-en" data-i18n="lst.nameEn">Nama dalam bahasa Inggris (opsional)</label><input type="text" id="l-name-en" maxlength="80"></div>
         </div>
+        <details class="writer exp-only" id="l-writer">
+          <summary><span data-icon="sparkles"></span><span data-i18n="lst.writerTitle">Bantu tulis deskripsi</span></summary>
+          <p class="hint muted small" data-i18n="lst.writerHint">Jawab singkat dalam bahasa Indonesia, lalu tekan Tulis deskripsi. Hasilnya bisa diubah lagi, dan bahasa Inggrisnya diterjemahkan otomatis saat disimpan.</p>
+          <div class="row2">
+            <div class="field"><label for="w-do" data-i18n="lst.wDo">Apa yang dilakukan pengunjung?</label><input type="text" id="w-do" maxlength="200" data-i18n-attr="placeholder:lst.wDoPh" placeholder="mis. memasak pecel semanggi dari mengukus daun sampai membuat bumbu"></div>
+            <div class="field"><label for="w-who" data-i18n="lst.wWho">Siapa yang memandu?</label><input type="text" id="w-who" maxlength="120" data-i18n-attr="placeholder:lst.wWhoPh" placeholder="mis. Bu Ning, penjual semanggi sejak 1985"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="w-take" data-i18n="lst.wTake">Apa yang dibawa pulang?</label><input type="text" id="w-take" maxlength="120" data-i18n-attr="placeholder:lst.wTakePh" placeholder="mis. satu pincuk pecel semanggi buatan sendiri"></div>
+            <div class="field"><label for="w-for" data-i18n="lst.wFor">Cocok untuk siapa?</label><input type="text" id="w-for" maxlength="120" data-i18n-attr="placeholder:lst.wForPh" placeholder="mis. keluarga, pelajar, dan rombongan"></div>
+          </div>
+          <div><button class="btn small" type="button" id="w-go" data-i18n="lst.wGo">Tulis deskripsi</button></div>
+        </details>
         <div class="row2">
           <div class="field"><label for="l-desc" data-i18n="lst.desc">Deskripsi</label><textarea id="l-desc" maxlength="1500" rows="4"></textarea></div>
           <div class="field"><label for="l-desc-en" data-i18n="lst.descEn">Deskripsi dalam bahasa Inggris (opsional)</label><textarea id="l-desc-en" maxlength="1500" rows="4"></textarea></div>
@@ -148,12 +163,19 @@
         <p class="hint muted small" data-i18n="lst.enHint">Kolom bahasa Inggris boleh dikosongkan: website menerjemahkan otomatis saat disimpan. Terjemahan otomatis bisa kurang tepat, jadi isi sendiri kalau perlu.</p>
         <div class="row2">
           <div class="field"><label for="l-price" id="l-price-label">Harga per orang (Rp)</label><input type="number" id="l-price" min="0" step="500"><span class="hint" data-i18n="lst.priceHint">Kosongkan untuk "Tanya harga". Isi 0 untuk "Gratis".</span></div>
-          <div class="field tour-only"><label for="l-hours" data-i18n="lst.hours">Lama tur (jam)</label><input type="number" id="l-hours" min="0.5" max="240" step="0.5"></div>
+          <div class="field tour-only"><label for="l-hours" id="l-hours-label">Lama tur (jam)</label><input type="number" id="l-hours" min="0.5" max="240" step="0.5"></div>
         </div>
         <div class="row2">
           <div class="field tour-only"><label for="l-min" data-i18n="lst.groupMin">Jumlah orang minimal</label><input type="number" id="l-min" min="1" max="1000"></div>
           <div class="field"><label for="l-max" id="l-max-label">Jumlah orang maksimal</label><input type="number" id="l-max" min="1" max="1000"></div>
         </div>
+        <fieldset class="loc tour-pack" id="l-exps-box">
+          <legend data-i18n="lst.expsInTour">Pengalaman dalam tur ini</legend>
+          <p class="hint muted small" data-i18n="lst.expsHint">Centang pengalaman yang termasuk dalam tur ini. Belum ada? Tambahkan dulu dengan Jenis: Pengalaman.</p>
+          <div class="exp-checks" id="l-exps"></div>
+          <div><button class="btn small ghost" type="button" id="l-autofill"><span data-icon="sparkles"></span><span data-i18n="lst.autofill">Isi otomatis dari pengalaman</span></button></div>
+          <p class="hint muted small" id="l-autofill-note" hidden></p>
+        </fieldset>
         <div class="field"><label for="l-loc" id="l-loc-label">Titik kumpul</label><input type="text" id="l-loc" maxlength="200" data-i18n-attr="placeholder:lst.locPlaceholder" placeholder="mis. Balai RW 03, Jalan Kendung Gang 9"></div>
         <fieldset class="loc tour-only" id="l-sched">
           <legend data-i18n="lst.schedule">Jadwal</legend>
@@ -195,7 +217,7 @@
           <div class="field"><label for="site-sponsor-phone" data-i18n="site.sponsorPhone">Nomor sponsor</label><input type="tel" id="site-sponsor-phone" maxlength="24" placeholder="0812 3456 7890"></div>
         </div>
         <div class="field"><label for="site-sponsor-email" data-i18n="site.sponsorEmail">Email sponsor</label><input type="email" id="site-sponsor-email" maxlength="120" autocomplete="off" placeholder="nama@gmail.com"></div>
-        <div class="field"><label for="site-tour-phone" data-i18n="site.tourPhone">Nomor tur</label><input type="tel" id="site-tour-phone" maxlength="24" placeholder="0812 3456 7890"></div>
+        <div class="field"><label for="site-tour-phone" data-i18n="site.tourPhone">Nomor tur dan pengalaman</label><input type="tel" id="site-tour-phone" maxlength="24" placeholder="0812 3456 7890"></div>
         <div class="field"><label for="site-homestay-phone" data-i18n="site.homestayPhone">Nomor homestay</label><input type="tel" id="site-homestay-phone" maxlength="24" placeholder="0812 3456 7890"><span class="hint" data-i18n="site.phoneHint">Dipakai untuk tombol Telepon dan WhatsApp. Gunakan nomor yang ada WhatsApp-nya.</span></div>
         <p class="formerr" id="siteErr" hidden></p>
         <div><button class="btn" type="submit" data-i18n="site.save">Simpan pengaturan</button></div>

@@ -1,4 +1,4 @@
-// Wisata tab: tours and homestays the admins list, each with a "sign up / ask" helper that opens WhatsApp.
+// Packages page (/wisata): tours, experiences and homestays the admins list, each with a "sign up / ask" helper that opens WhatsApp.
 // The message to the host is always in Indonesian; English visitors also see what it says.
 import { $, el, t, rp, icon, api, leafSvg, waNumber, telNumber } from "/common.js";
 import { lang, tIn } from "/i18n.js";
@@ -7,6 +7,9 @@ let listings = [];
 let site = null;
 
 const pick = (l, field) => (lang === "en" && l[field + "En"]) || l[field];
+const timed = (l) => l.kind !== "homestay"; // tours and experiences: per person, with a length and a schedule
+const phoneFor = (l) => (timed(l) ? site?.tourPhone : site?.homestayPhone);
+const anchor = { tour: "tur-", experience: "pengalaman-", homestay: "homestay-" };
 const num = (n) => new Intl.NumberFormat(lang === "id" ? "id-ID" : "en-GB", { maximumFractionDigits: 1 }).format(n);
 
 // ---------- cards ----------
@@ -27,10 +30,10 @@ function photos(l) {
 function priceText(l) {
   if (l.price == null) return t("wisata.priceAsk");
   if (l.price === 0) return t("wisata.free");
-  return rp(l.price) + " " + t(l.kind === "tour" ? "wisata.perPerson" : "wisata.perNight");
+  return rp(l.price) + " " + t(timed(l) ? "wisata.perPerson" : "wisata.perNight");
 }
 function groupText(l) {
-  const who = l.kind === "tour" ? "wisata.people" : "wisata.guests";
+  const who = timed(l) ? "wisata.people" : "wisata.guests";
   if (l.groupMin && l.groupMax) return t(who, { n: l.groupMin + "–" + l.groupMax });
   if (l.groupMax) return t("wisata.atMost", { n: t(who, { n: l.groupMax }) });
   if (l.groupMin) return t("wisata.atLeast", { n: t(who, { n: l.groupMin }) });
@@ -50,11 +53,17 @@ function scheduleLine(l) {
   return el("div", { class: "fact dates" }, icon("calendar"),
     el("div", {}, el("strong", { text: t("wisata.nextDates") }), el("ul", {}, ...s.dates.slice(0, 4).map((d) => el("li", { text: dateText(d) })))));
 }
+// A tour's experiences, and the tours an experience is part of, link to each other's cards.
+function linkedList(title, items, prefix) {
+  return el("div", { class: "includes pack-links" }, el("strong", { text: title }),
+    el("ul", {}, ...items.map((x) => el("li", {}, x.linked === false ? pick(x, "name") : el("a", { href: "#" + prefix + x.id, text: pick(x, "name") }),
+      x.durationHours ? el("span", { class: "muted", text: " · " + t("wisata.duration", { n: num(x.durationHours) }) }) : null))));
+}
 function card(l) {
-  const phone = l.kind === "tour" ? site?.tourPhone : site?.homestayPhone;
+  const phone = phoneFor(l);
   const includes = (pick(l, "includes") || "").split("\n").map((x) => x.trim()).filter(Boolean);
   const full = l.status === "full";
-  return el("article", { class: "card listing", id: (l.kind === "tour" ? "tur-" : "homestay-") + l.id },
+  return el("article", { class: "card listing", id: anchor[l.kind] + l.id },
     photos(l),
     full ? el("span", { class: "full-badge", text: t("wisata.full") }) : null,
     el("div", { class: "body" },
@@ -65,16 +74,18 @@ function card(l) {
         groupText(l) ? el("p", { class: "fact" }, icon("home"), groupText(l)) : null,
         l.location ? el("p", { class: "fact" }, icon("map-pin"), l.location) : null,
         scheduleLine(l)),
-      includes.length ? el("div", { class: "includes" }, el("strong", { text: t(l.kind === "tour" ? "wisata.included" : "wisata.facilities") }),
+      l.experiences?.length ? linkedList(t("pack.inTour"), l.experiences, "pengalaman-") : null,
+      includes.length ? el("div", { class: "includes" }, el("strong", { text: t(timed(l) ? "wisata.included" : "wisata.facilities") }),
         el("ul", {}, ...includes.map((x) => el("li", { text: x })))) : null,
-      full ? el("p", { class: "muted small", text: t(l.kind === "tour" ? "wisata.fullText" : "wisata.fullTextStay") })
+      l.inTours?.length ? linkedList(t("pack.partOf"), l.inTours, "tur-") : null,
+      full ? el("p", { class: "muted small", text: t(timed(l) ? "wisata.fullText" : "wisata.fullTextStay") })
         : waNumber(phone) ? el("div", { class: "reach" },
-            el("button", { type: "button", class: "btn", onclick: () => openBooking(l) }, icon("message"), t(l.kind === "tour" ? "wisata.signUp" : "wisata.askStay")),
+            el("button", { type: "button", class: "btn", onclick: () => openBooking(l) }, icon("message"), t(timed(l) ? "wisata.signUp" : "wisata.askStay")),
             telNumber(phone) ? el("a", { class: "btn ghost", href: "tel:" + telNumber(phone) }, icon("phone"), t("contact.call")) : null)
         : el("p", { class: "muted small", text: t("site.soon") })));
 }
 function render() {
-  for (const [kind, grid, empty] of [["tour", "#tourGrid", "#toursEmpty"], ["homestay", "#stayGrid", "#staysEmpty"]]) {
+  for (const [kind, grid, empty] of [["tour", "#tourGrid", "#toursEmpty"], ["experience", "#expGrid", "#expsEmpty"], ["homestay", "#stayGrid", "#staysEmpty"]]) {
     const items = listings.filter((l) => l.kind === kind);
     $(grid).replaceChildren(...items.map(card));
     $(grid).hidden = !items.length;
@@ -92,23 +103,23 @@ const todayWib = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/
 const addDays = (d, n) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
 
 function openBooking(l) {
-  booking = { l, date: "", people: l.groupMin || (l.kind === "tour" ? 1 : 1), nights: 1, name: "" };
+  booking = { l, date: "", people: l.groupMin || 1, nights: 1, name: "" };
   const s = l.schedule;
-  if (l.kind === "tour" && s && s.mode === "dates" && s.dates.length) booking.date = s.dates[0];
+  if (timed(l) && s && s.mode === "dates" && s.dates.length) booking.date = s.dates[0];
   drawBooking();
   if (!dialog.open) dialog.showModal();
 }
 function message(l2) {
   const { l, date, people, nights, name } = booking;
   const say = (k, v) => tIn(l2, k, v);
-  const lines = l.kind === "tour"
-    ? [say("book.msgTour", { name: l.name }), date ? say("book.msgDate", { date: dateText(date, l2) }) : null, say("book.msgPeople", { n: people })]
+  const lines = timed(l)
+    ? [say(l.kind === "tour" ? "book.msgTour" : "book.msgExp", { name: l.name }), date ? say("book.msgDate", { date: dateText(date, l2) }) : null, say("book.msgPeople", { n: people })]
     : [say("book.msgStay", { name: l.name }), date ? say("book.msgCheckIn", { date: dateText(date, l2), n: nights }) : null, say("book.msgGuests", { n: people })];
   return [...lines, name ? say("book.msgName", { name }) : null, "", say("msg.thanks")].filter((x) => x != null).join("\n");
 }
 function drawBooking() {
   const { l } = booking;
-  const tour = l.kind === "tour";
+  const tour = timed(l);
   $("#bookTitle").textContent = t(tour ? "book.titleTour" : "book.titleStay", { name: pick(l, "name") });
   const form = $("#bookForm"); form.replaceChildren();
   const field = (id, label, input) => el("div", { class: "field" }, el("label", { for: id, text: label }), input);
@@ -133,7 +144,7 @@ function drawBooking() {
   const warn = el("p", { class: "formerr", hidden: true });
   form.append(el("p", { class: "small", text: t("book.preview") }), preview, meaning, warn, el("div", { class: "order-nav" }, send));
   function update() {
-    const phone = l.kind === "tour" ? site?.tourPhone : site?.homestayPhone;
+    const phone = phoneFor(l);
     const text = message("id");
     preview.textContent = text;
     if (meaning) meaning.querySelector("pre").textContent = message("en");

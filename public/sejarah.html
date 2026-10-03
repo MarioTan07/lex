@@ -20,10 +20,25 @@
     </a>
     <nav data-i18n-attr="aria-label:nav.label" aria-label="Menu utama">
       <div class="tabs-main">
-        <a class="opt" href="/" data-i18n="nav.catalog">Katalog</a>
-        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lokasi lapak</a>
-        <a class="opt current" href="/cerita" data-i18n="nav.story" aria-current="page">Cerita kami</a>
-        <a class="opt" href="/wisata" data-i18n="nav.wisata">Wisata</a>
+        <a class="opt" href="/" data-i18n="nav.home">Beranda</a>
+        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lapak</a>
+        <details class="navdrop">
+          <summary class="opt current"><span data-i18n="nav.about">Tentang kami</span><span data-icon="chevron-down"></span></summary>
+          <div class="navdrop-list">
+            <a href="/sejarah" data-i18n="nav.ourStory">Cerita kami</a>
+            <a href="/cerita#semanggi" data-i18n="nav.ourSemanggi">Semanggi kami</a>
+            <a href="/cerita#people" data-i18n="nav.ourPeople">Warga kami</a>
+            <a href="/cerita#collab" data-i18n="nav.collab">Kerja sama</a>
+          </div>
+        </details>
+        <details class="navdrop">
+          <summary class="opt"><span data-i18n="nav.packages">Paket</span><span data-icon="chevron-down"></span></summary>
+          <div class="navdrop-list">
+            <a href="/wisata#tur" data-i18n="nav.tours">Tur</a>
+            <a href="/wisata#pengalaman" data-i18n="nav.experiences">Pengalaman</a>
+            <a href="/wisata#homestay" data-i18n="nav.homestays">Homestay</a>
+          </div>
+        </details>
       </div>
       <span class="actions">
         <span class="lang-slot"></span>

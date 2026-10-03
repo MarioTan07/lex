@@ -86,6 +86,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .top nav .tabs-main a { padding: 8px 14px; border-radius: 999px; transition: background-color .15s, color .15s; }
 .top nav .tabs-main a:hover { background: var(--leaf-soft); }
 .top nav .tabs-main a.current { background: var(--leaf-soft); color: var(--leaf); font-weight: 600; }
+.navdrop { position: relative; }
+.navdrop summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 8px 10px 8px 14px; border-radius: 999px; color: var(--muted); transition: background-color .15s, color .15s; }
+.navdrop summary::-webkit-details-marker { display: none; }
+.navdrop summary:hover, .navdrop[open] summary { background: var(--leaf-soft); color: var(--leaf); }
+.navdrop summary.current { background: var(--leaf-soft); color: var(--leaf); font-weight: 600; }
+.navdrop summary .icon { width: 14px; height: 14px; transition: transform .15s; }
+.navdrop[open] summary .icon { transform: rotate(180deg); }
+.navdrop-list { position: absolute; left: 0; top: 100%; z-index: 30; min-width: 210px; display: grid; gap: 2px; padding: 6px; margin-top: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.navdrop-list::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
+.top nav .tabs-main .navdrop-list a { padding: 11px 14px; border-radius: 10px; color: var(--ink); white-space: nowrap; text-align: left; border: 0; background: none; font-size: .9375rem; font-weight: 500; }
+.top nav .tabs-main .navdrop-list a:hover { background: var(--leaf-soft); }
+.top nav .tabs-main .navdrop-list a.current { background: var(--leaf-soft); color: var(--leaf); font-weight: 600; }
 .navmenu { display: none; position: relative; }
 .navmenu summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px 8px 14px; border: 1px solid var(--line-strong); border-radius: 999px; font-weight: 600; color: var(--leaf); background: var(--surface); }
 .navmenu summary::-webkit-details-marker { display: none; }
@@ -205,6 +217,8 @@ button.photo { border: 0; padding: 0; width: 100%; cursor: pointer; }
 
 /* story: about, pincuk, field notes, history */
 .about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; }
+.people .prose { display: grid; gap: 16px; max-width: 34em; }
+.people .prose p:not(.eyebrow) { color: var(--muted); line-height: 1.75; }
 .about .prose { display: grid; gap: 16px; max-width: 34em; align-content: start; }
 .about .prose p { color: var(--muted); line-height: 1.75; }
 .about .prose p b, .about .prose p i { color: var(--ink); }
@@ -380,6 +394,43 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 #statsPanel { display: grid; gap: 12px; }
 #statsPanel .desk-head { flex-wrap: wrap; gap: 10px; }
 
+/* About us: our people and collaborations */
+.people { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.groups li { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; padding: 16px 18px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.groups .icon { grid-row: span 2; width: 20px; height: 20px; margin-top: 2px; color: var(--leaf); }
+.groups li > span:last-child { color: var(--muted); font-size: .9375rem; line-height: 1.6; }
+.people-sellers { display: grid; gap: 12px; margin-top: 36px; }
+.people-sellers h3 { font-size: 1.2rem; }
+.people-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.people-list a { background: var(--leaf-soft); color: var(--leaf-ink); padding: 7px 14px; border-radius: 999px; font-size: .875rem; font-weight: 600; text-decoration: none; }
+.people-list a:hover { background: var(--leaf); color: var(--on-leaf); }
+.partners { list-style: none; margin: 28px 0 32px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.partners li { display: grid; gap: 6px; align-content: start; padding: 20px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line); }
+.partners .yr { font-family: var(--font-display); color: var(--sauce); }
+.partners p { color: var(--muted); font-size: .9375rem; line-height: 1.6; }
+#people, #semanggi, #collab { scroll-margin-top: 120px; }
+@media (max-width: 900px) { .people { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 620px) { .partners { grid-template-columns: minmax(0, 1fr); } }
+
+/* Packages: what tours, experiences and homestays are; tours list their experiences */
+.pack-kinds { list-style: none; margin: 22px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pack-kinds a { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; height: 100%; padding: 16px 18px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .15s; }
+.pack-kinds a:hover { border-color: var(--leaf); }
+.pack-kinds .icon { grid-row: span 2; width: 20px; height: 20px; margin-top: 2px; color: var(--leaf); }
+.pack-kinds a > span:last-child { color: var(--muted); font-size: .875rem; line-height: 1.55; }
+.section-lede { color: var(--muted); max-width: 46em; margin-top: 8px; line-height: 1.65; }
+.pack-links a { color: var(--leaf); font-weight: 600; }
+.listing { scroll-margin-top: 120px; }
+#tur, #pengalaman, #homestay { scroll-margin-top: 110px; }
+.kind-hint { color: var(--muted); }
+.exp-checks { display: grid; gap: 6px; }
+.writer { padding: 14px 16px; border-radius: var(--radius); background: var(--leaf-soft); display: grid; gap: 12px; }
+.writer[open] { padding-bottom: 18px; }
+.writer summary { cursor: pointer; font-weight: 600; color: var(--leaf); display: inline-flex; gap: 6px; align-items: center; }
+.writer summary .icon, #l-autofill .icon { width: 16px; height: 16px; }
+@media (max-width: 760px) { .pack-kinds { grid-template-columns: minmax(0, 1fr); } }
+
 /* Wisata: tours and homestays */
 .page-title { font-size: var(--step-2); letter-spacing: -0.035em; margin-top: 8px; max-width: 18em; }
 .listings { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
@@ -465,8 +516,14 @@ dialog.book { width: min(560px, calc(100% - 24px)); }
   .top nav .actions { order: 2; margin-left: auto; }
   .tabs-main { order: 3; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; gap: 5px; padding-block: 2px; }
   .tabs-main::-webkit-scrollbar { display: none; }
-  .top nav .tabs-main a { flex: 1 1 auto; text-align: center; white-space: nowrap; padding: 9px 8px; font-size: .8125rem; border: 1px solid var(--line-strong); background: var(--surface); }
+  .top nav .tabs-main a { flex: 1 1 auto; text-align: center; white-space: nowrap; padding: 9px 7px; font-size: .8125rem; border: 1px solid var(--line-strong); background: var(--surface); }
   .top nav .tabs-main a.current { border-color: var(--leaf); }
+  /* The About us list hangs under the whole tab row, so the scrolling row doesn't cut it off */
+  .top .wrap { position: relative; }
+  .navdrop { position: static; flex: 1 1 auto; display: flex; }
+  .navdrop summary { flex: 1 1 auto; justify-content: center; white-space: nowrap; gap: 2px; padding: 9px 6px; font-size: .8125rem; border: 1px solid var(--line-strong); background: var(--surface); }
+  .navdrop summary.current { border-color: var(--leaf); background: var(--leaf-soft); }
+  .navdrop-list { left: 16px; right: 16px; top: calc(100% - 8px); }
   .stats div + div { border-left: 0; }
   .site-footer .fright { text-align: left; }
 }

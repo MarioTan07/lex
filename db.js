@@ -9,6 +9,30 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, "data");
 
+// Tours, experiences and homestays on the Packages page. A tour lists the experiences it includes
+// (experience_ids, a JSON list); status 'tours_only' is an experience that is only offered inside tours.
+const listingsTable = (name) => `CREATE TABLE IF NOT EXISTS ${name} (
+  id INTEGER PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('tour', 'experience', 'homestay')),
+  status TEXT NOT NULL DEFAULT 'shown' CHECK (status IN ('shown', 'hidden', 'full', 'tours_only')),
+  name TEXT NOT NULL,
+  name_en TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  description_en TEXT NOT NULL DEFAULT '',
+  includes TEXT NOT NULL DEFAULT '',
+  includes_en TEXT NOT NULL DEFAULT '',
+  en_auto INTEGER NOT NULL DEFAULT 0,
+  price INTEGER,
+  duration_hours REAL,
+  group_min INTEGER,
+  group_max INTEGER,
+  location TEXT NOT NULL DEFAULT '',
+  schedule TEXT NOT NULL DEFAULT '',
+  photos TEXT NOT NULL DEFAULT '',
+  experience_ids TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL
+)`;
+
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
@@ -82,26 +106,7 @@ const SCHEMA = `
   -- Tours and homestays the admins list on the Wisata tab. kind: tour | homestay; status: shown | hidden | full.
   -- English fields are typed by the admin or, when left empty, machine-translated on save (en_auto = 1).
   -- schedule (tours only) is JSON: { mode: "dates", dates: ["2026-10-18T08:00"] } or { mode: "request", noticeDays: 3 }.
-  CREATE TABLE IF NOT EXISTS listings (
-    id INTEGER PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('tour', 'homestay')),
-    status TEXT NOT NULL DEFAULT 'shown' CHECK (status IN ('shown', 'hidden', 'full')),
-    name TEXT NOT NULL,
-    name_en TEXT NOT NULL DEFAULT '',
-    description TEXT NOT NULL DEFAULT '',
-    description_en TEXT NOT NULL DEFAULT '',
-    includes TEXT NOT NULL DEFAULT '',
-    includes_en TEXT NOT NULL DEFAULT '',
-    en_auto INTEGER NOT NULL DEFAULT 0,
-    price INTEGER,
-    duration_hours REAL,
-    group_min INTEGER,
-    group_max INTEGER,
-    location TEXT NOT NULL DEFAULT '',
-    schedule TEXT NOT NULL DEFAULT '',
-    photos TEXT NOT NULL DEFAULT '',
-    created_at INTEGER NOT NULL
-  );
+  ${listingsTable("listings")};
   -- Site-wide settings the admins edit, such as the sponsor contact number. One row per setting.
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -185,6 +190,18 @@ export async function setupSchema(db) {
   const have = new Set((await db.all("PRAGMA table_info(users)")).map((c) => c.name));
   for (const [col, type] of Object.entries(ADDED_USER_COLUMNS)) {
     if (!have.has(col)) await db.run(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
+  }
+  // Databases from before experiences existed: rebuild the listings table with the new kinds and column, keeping every row.
+  const lt = await db.one("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'listings'");
+  if (lt && !lt.sql.includes("'experience'")) {
+    const cols = (await db.all("PRAGMA table_info(listings)")).map((c) => c.name).join(", ");
+    try {
+      await db.batch([["DROP TABLE IF EXISTS listings_new"], [listingsTable("listings_new")], [`INSERT INTO listings_new (${cols}) SELECT ${cols} FROM listings`], ["DROP TABLE listings"], ["ALTER TABLE listings_new RENAME TO listings"]]);
+    } catch (e) {
+      // Another server instance starting at the same moment may have done it already.
+      const now = await db.one("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'listings'");
+      if (!now?.sql.includes("'experience'")) throw e;
+    }
   }
   const haveP = new Set((await db.all("PRAGMA table_info(products)")).map((c) => c.name));
   for (const [col, type] of Object.entries(ADDED_PRODUCT_COLUMNS)) {

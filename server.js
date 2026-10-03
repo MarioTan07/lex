@@ -132,7 +132,7 @@ const MESSAGES = {
     "label.description": "Deskripsi",
     "label.includes": "Termasuk",
     "label.location": "Lokasi",
-    listingKind: "Pilih tur atau homestay.",
+    listingKind: "Pilih tur, pengalaman, atau homestay.",
     listingStatus: "Status tidak dikenal.",
     listingNumber: "{label} harus berupa angka yang wajar, atau dikosongkan.",
     listingGroup: "Jumlah orang minimal tidak boleh lebih besar dari maksimal.",
@@ -214,7 +214,7 @@ const MESSAGES = {
     "label.description": "Description",
     "label.includes": "Included",
     "label.location": "Location",
-    listingKind: "Choose tour or homestay.",
+    listingKind: "Choose tour, experience or homestay.",
     listingStatus: "Unknown status.",
     listingNumber: "{label} must be a sensible number, or left empty.",
     listingGroup: "The minimum group size can't be larger than the maximum.",
@@ -731,7 +731,9 @@ app.post("/api/translate", async (req, res) => {
   res.json({ text: out });
 });
 
-// ----- tours & homestays (Wisata) -----
+// ----- tours, experiences & homestays (Packages page, /wisata) -----
+// A tour is the full package and can include several experiences; an experience is one activity on its own.
+const listingExperienceIds = (l) => { try { return l.experience_ids ? JSON.parse(l.experience_ids) : []; } catch { return []; } };
 const listingPhotos = (l) => { try { return l.photos ? JSON.parse(l.photos) : []; } catch { return []; } };
 const listingSchedule = (l) => { try { return l.schedule ? JSON.parse(l.schedule) : null; } catch { return null; } };
 // "2026-10-18T08:00" in Surabaya time, for hiding tour dates that have passed.
@@ -743,6 +745,7 @@ function listingOut(l, { forAdmin = false } = {}) {
     id: l.id, kind: l.kind, status: l.status, name: l.name, nameEn: l.name_en, description: l.description, descriptionEn: l.description_en,
     includes: l.includes, includesEn: l.includes_en, enAuto: !!l.en_auto, price: l.price ?? null, durationHours: l.duration_hours ?? null,
     groupMin: l.group_min ?? null, groupMax: l.group_max ?? null, location: l.location, schedule: sched, photos: listingPhotos(l),
+    experienceIds: listingExperienceIds(l),
   };
 }
 function optNumber(v, label, { min, max, integer = true }) {
@@ -752,9 +755,10 @@ function optNumber(v, label, { min, max, integer = true }) {
   return n;
 }
 async function listingFields(body) {
-  if (!["tour", "homestay"].includes(body.kind)) throw bad("listingKind");
-  if (!["shown", "hidden", "full"].includes(body.status)) throw bad("listingStatus");
-  const tour = body.kind === "tour";
+  if (!["tour", "experience", "homestay"].includes(body.kind)) throw bad("listingKind");
+  if (!["shown", "hidden", "full", ...(body.kind === "experience" ? ["tours_only"] : [])].includes(body.status)) throw bad("listingStatus");
+  // Tours and experiences have a length, a group size and a schedule; homestays don't.
+  const tour = body.kind !== "homestay";
   const f = {
     kind: body.kind, status: body.status,
     name: text(body.name, 80, { required: true, label: "label.listingName" }),
@@ -766,6 +770,7 @@ async function listingFields(body) {
     group_min: optNumber(body.groupMin, "label.groupMin", { min: 1, max: 1000 }),
     group_max: optNumber(body.groupMax, "label.groupMax", { min: 1, max: 1000 }),
     schedule: "",
+    experience_ids: "",
   };
   if (f.group_min && f.group_max && f.group_min > f.group_max) throw bad("listingGroup");
   if (tour) {
@@ -777,6 +782,12 @@ async function listingFields(body) {
     } else {
       f.schedule = JSON.stringify({ mode: "request", noticeDays: optNumber(sc.noticeDays, "label.noticeDays", { min: 0, max: 60 }) ?? 0 });
     }
+  }
+  if (body.kind === "tour") {
+    // The experiences in this tour, in the order given; only ones that exist.
+    const wanted = Array.isArray(body.experienceIds) ? [...new Set(body.experienceIds.map(Number).filter(Number.isInteger))] : [];
+    const have = new Set((await db.all("SELECT id FROM listings WHERE kind = 'experience'")).map((r) => r.id));
+    f.experience_ids = JSON.stringify(wanted.filter((id) => have.has(id)).slice(0, 12));
   }
   // English: what the admin typed, or a machine translation of whatever they left empty.
   const typed = { name_en: text(body.nameEn, 80), description_en: text(body.descriptionEn, 1500), includes_en: text(body.includesEn, 600) };
@@ -796,7 +807,22 @@ async function listingById(id) {
 }
 app.get("/api/listings", async (_req, res) => {
   const rows = await db.all("SELECT * FROM listings WHERE status != 'hidden' ORDER BY kind, created_at");
-  res.json({ listings: rows.map((l) => listingOut(l)) });
+  const listed = rows.filter((l) => l.status !== "tours_only");
+  const experiences = new Map(rows.filter((l) => l.kind === "experience").map((l) => [l.id, l]));
+  res.json({ listings: listed.map((l) => {
+    const out = listingOut(l);
+    // Tours name their experiences (linked when the experience can also be booked on its own);
+    // experiences name the tours they are part of.
+    if (l.kind === "tour") {
+      out.experiences = out.experienceIds.map((id) => experiences.get(id)).filter(Boolean)
+        .map((e) => ({ id: e.id, name: e.name, nameEn: e.name_en, durationHours: e.duration_hours ?? null, linked: e.status !== "tours_only" }));
+    }
+    if (l.kind === "experience") {
+      out.inTours = listed.filter((x) => x.kind === "tour" && listingExperienceIds(x).includes(l.id)).map((x) => ({ id: x.id, name: x.name, nameEn: x.name_en }));
+    }
+    delete out.experienceIds;
+    return out;
+  }) });
 });
 
 // ----- seller -----
@@ -1050,6 +1076,13 @@ admin.put("/listings/:id", async (req, res) => {
 admin.delete("/listings/:id", async (req, res) => {
   const l = await listingById(req.params.id);
   await db.run("DELETE FROM listings WHERE id = ?", l.id);
+  // A deleted experience is taken out of the tours that included it.
+  if (l.kind === "experience") {
+    for (const tour of await db.all("SELECT id, experience_ids FROM listings WHERE kind = 'tour'")) {
+      const ids = listingExperienceIds(tour);
+      if (ids.includes(l.id)) await db.run("UPDATE listings SET experience_ids = ? WHERE id = ?", JSON.stringify(ids.filter((x) => x !== l.id)), tour.id);
+    }
+  }
   listingPhotos(l).forEach((p) => removePhoto(p, req));
   res.json({ ok: true });
 });

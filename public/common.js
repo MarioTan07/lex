@@ -58,13 +58,19 @@ if (siteHeader) {
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 }
-// On phones the three main tabs sit in a dropdown; close it on a tap outside or Escape.
-const navMenu = document.querySelector(".navmenu");
-if (navMenu) {
-  document.addEventListener("click", (e) => { if (navMenu.open && !navMenu.contains(e.target)) navMenu.open = false; });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && navMenu.open) { navMenu.open = false; navMenu.querySelector("summary").focus(); }
-  });
+// "About us" opens a small list: on hover with a mouse, on tap otherwise. A tap outside, Escape or picking a link closes it.
+for (const drop of document.querySelectorAll(".navdrop")) {
+  const summary = drop.querySelector("summary");
+  let viaHover = false;
+  drop.addEventListener("mouseenter", () => { if (matchMedia("(hover: hover)").matches && !drop.open) { drop.open = true; viaHover = true; } });
+  drop.addEventListener("mouseleave", () => { if (viaHover) { drop.open = false; viaHover = false; } });
+  summary.addEventListener("click", (e) => { if (viaHover) { e.preventDefault(); viaHover = false; } });
+  document.addEventListener("click", (e) => { if (drop.open && !drop.contains(e.target)) drop.open = false; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && drop.open) { drop.open = false; summary.focus(); } });
+  const mark = () => drop.querySelectorAll("a").forEach((a) => a.classList.toggle("current", a.href === location.href || (a.pathname === location.pathname && a.hash === "")));
+  drop.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => { drop.open = false; viaHover = false; setTimeout(mark); }));
+  window.addEventListener("hashchange", mark);
+  mark();
 }
 
 export const rp =(n) => "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(n || 0));

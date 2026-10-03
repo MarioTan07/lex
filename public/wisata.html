@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-i18n="wisata.pageTitle">Wisata · Kampoeng Semanggi</title>
-<meta name="description" data-i18n-attr="content:wisata.meta" content="Tur dan homestay di Kampoeng Semanggi, Sememi, Surabaya. Daftar atau tanya langsung lewat WhatsApp.">
+<title data-i18n="wisata.pageTitle">Paket wisata · Kampoeng Semanggi</title>
+<meta name="description" data-i18n-attr="content:wisata.meta" content="Tur, pengalaman, dan homestay di Kampoeng Semanggi, Sememi, Surabaya. Daftar atau tanya langsung lewat WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
@@ -33,10 +33,25 @@
     </a>
     <nav data-i18n-attr="aria-label:nav.label" aria-label="Menu utama">
       <div class="tabs-main">
-        <a class="opt" href="/" data-i18n="nav.catalog">Katalog</a>
-        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lokasi lapak</a>
-        <a class="opt" href="/cerita" data-i18n="nav.story">Cerita kami</a>
-        <a class="opt current" href="/wisata" data-i18n="nav.wisata" aria-current="page">Wisata</a>
+        <a class="opt" href="/" data-i18n="nav.home">Beranda</a>
+        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lapak</a>
+        <details class="navdrop">
+          <summary class="opt"><span data-i18n="nav.about">Tentang kami</span><span data-icon="chevron-down"></span></summary>
+          <div class="navdrop-list">
+            <a href="/sejarah" data-i18n="nav.ourStory">Cerita kami</a>
+            <a href="/cerita#semanggi" data-i18n="nav.ourSemanggi">Semanggi kami</a>
+            <a href="/cerita#people" data-i18n="nav.ourPeople">Warga kami</a>
+            <a href="/cerita#collab" data-i18n="nav.collab">Kerja sama</a>
+          </div>
+        </details>
+        <details class="navdrop">
+          <summary class="opt current"><span data-i18n="nav.packages">Paket</span><span data-icon="chevron-down"></span></summary>
+          <div class="navdrop-list">
+            <a href="/wisata#tur" data-i18n="nav.tours">Tur</a>
+            <a href="/wisata#pengalaman" data-i18n="nav.experiences">Pengalaman</a>
+            <a href="/wisata#homestay" data-i18n="nav.homestays">Homestay</a>
+          </div>
+        </details>
       </div>
       <span class="actions">
         <span class="lang-slot"></span>
@@ -54,6 +69,11 @@
         <h1 class="page-title" data-i18n="wisata.title">Datang, belajar, dan menginap di Kampoeng Semanggi</h1>
       </div>
     </div>
+    <ul class="pack-kinds">
+      <li><a href="#tur"><span data-icon="map-pin"></span><b data-i18n="nav.tours">Tur</b><span data-i18n="pack.tourShort">Paket lengkap: beberapa pengalaman dalam satu kunjungan berpemandu.</span></a></li>
+      <li><a href="#pengalaman"><span data-icon="sparkles"></span><b data-i18n="nav.experiences">Pengalaman</b><span data-i18n="pack.expShort">Satu kegiatan singkat yang bisa diikuti sendiri, tanpa ikut tur.</span></a></li>
+      <li><a href="#homestay"><span data-icon="home"></span><b data-i18n="nav.homestays">Homestay</b><span data-i18n="pack.stayShort">Menginap bersama keluarga warga Kendung.</span></a></li>
+    </ul>
     <p class="howto"><span data-icon="info"></span><span data-i18n="wisata.howTo">Daftar atau tanya lewat WhatsApp. Pembayaran dilakukan langsung di tempat.</span></p>
   </section>
 
@@ -63,6 +83,7 @@
         <div>
           <p class="eyebrow" data-i18n="wisata.toursEyebrow">Tur</p>
           <h2 data-i18n="wisata.toursTitle">Jalan-jalan di Kampoeng Semanggi</h2>
+          <p class="section-lede" data-i18n="pack.tourLede">Paket lengkap: satu kunjungan berpemandu yang menggabungkan beberapa pengalaman, sering kali dengan makan bersama. Cocok untuk rombongan, sekolah, dan siapa saja yang ingin merasakan semuanya.</p>
         </div>
       </div>
       <div class="grid listings" id="tourGrid"></div>
@@ -74,11 +95,29 @@
     </section>
   </div>
 
-  <section class="wrap section" id="homestay">
+  <section class="wrap section" id="pengalaman">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow" data-i18n="nav.experiences">Pengalaman</p>
+        <h2 data-i18n="pack.expTitle">Coba satu kegiatan</h2>
+        <p class="section-lede" data-i18n="pack.expLede">Satu kegiatan singkat, sekitar 1–2 jam, yang bisa diikuti sendiri tanpa ikut tur. Misalnya memasak pecel semanggi, melipat pincuk, atau mengunjungi kebun semanggi.</p>
+      </div>
+    </div>
+    <div class="grid listings" id="expGrid"></div>
+    <div class="empty soon" id="expsEmpty" hidden>
+      <span class="badge"><span data-icon="sparkles"></span><span data-i18n="homestay.badge">Segera hadir</span></span>
+      <h3 data-i18n="pack.expSoon">Pengalaman segera hadir</h3>
+      <p data-i18n="pack.expSoonText">Kami sedang menyiapkan kegiatan seperti memasak pecel semanggi dan melipat pincuk bersama ibu-ibu penjual. Nantikan kabar selanjutnya!</p>
+    </div>
+  </section>
+
+  <div class="band" id="homestay">
+  <section class="wrap section">
     <div class="section-head">
       <div>
         <p class="eyebrow" data-i18n="homestay.eyebrow">Homestay</p>
         <h2 data-i18n="homestay.title">Menginap di Kampoeng Semanggi</h2>
+        <p class="section-lede" data-i18n="pack.stayLede">Menginap bersama keluarga warga Kendung dan rasakan kehidupan kampung sehari-hari.</p>
       </div>
     </div>
     <div class="grid listings" id="stayGrid"></div>
@@ -88,6 +127,7 @@
       <p data-i18n="homestay.text">Homestay di Kampoeng Semanggi segera hadir. Nantikan kabar selanjutnya!</p>
     </div>
   </section>
+  </div>
 </main>
 
 <dialog id="book" class="compare book" aria-labelledby="bookTitle">
