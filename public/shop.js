@@ -19,23 +19,30 @@ const orderFrom = (stall, firstId) => () => openOrder(stall, menuOf(stall), firs
 const closedNotice = (stall) => el("p", { class: "closed" },
   el("strong", { text: t("pause.badge") }), stall.pauseNote ? " · " + stall.pauseNote : "");
 
+// This script runs on the catalog page (/) and the shop-locations page (/lokasi); each has only its own part.
+const onCatalog = !!$("#productGrid");
+const onShops = !!$("#shopGrid");
+// Links from before the site had separate pages pointed at sections of the home page.
+const moved = { "#shops": "/lokasi", "#story": "/cerita", "#history": "/cerita#history" };
+if (moved[location.hash]) location.replace(moved[location.hash]);
+
 // ---------- catalog ----------
 async function loadCatalog() {
   try {
     ({ products } = await api("/api/catalog"));
     catalogLoaded = true;
-    $("#notice").hidden = true;
+    if (onCatalog) $("#notice").hidden = true;
   } catch (e) {
-    $("#notice").textContent = t("shop.loadFailed") + e.message;
-    $("#notice").hidden = false;
+    if (onCatalog) { $("#notice").textContent = t("shop.loadFailed") + e.message; $("#notice").hidden = false; }
   }
   renderShop();
 }
 
 let query = "";
-$("#search").addEventListener("input", (e) => { query = norm(e.target.value); renderShop(); });
+if (onCatalog) $("#search").addEventListener("input", (e) => { query = norm(e.target.value); renderShop(); });
 
 function renderShop() {
+  if (!onCatalog) return;
   const names = [...new Map(products.map((p) => [p.sellerId, p.stallName])).entries()];
   const chips = $("#stallChips"); chips.replaceChildren();
   chips.hidden = names.length < 2;
@@ -93,10 +100,6 @@ function renderHero() {
   $("#joinedCount").textContent = t("hero.sellers", { n: stalls.length });
 }
 
-// Give the sticky header a bottom border once the page scrolls.
-const header = $(".top");
-const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
-window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
 
 // ---------- compare: every shop selling a product ----------
 // Sellers type product names themselves, so "Pecel Semanggi" and "pecel semanggi Suroboyo" count as the same dish:
@@ -194,6 +197,7 @@ async function loadShops() {
   renderCompare();
 }
 function renderShops() {
+  if (!onShops) return;
   const grid = $("#shopGrid"); grid.replaceChildren();
   $("#shopsEmpty").hidden = stalls.length > 0;
   for (const s of stalls) {

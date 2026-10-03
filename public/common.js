@@ -28,6 +28,7 @@ const ICONS = {
   sparkles: '<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/>',
   leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  "chevron-down": '<path d="m6 9 6 6 6-6"/>',
 };
 export function icon(name) {
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -38,6 +39,23 @@ export function icon(name) {
   return s;
 }
 document.querySelectorAll("[data-icon]").forEach((n) => n.replaceWith(icon(n.dataset.icon)));
+
+// ---------- site header ----------
+// A bottom border once the page scrolls.
+const siteHeader = document.querySelector(".top");
+if (siteHeader) {
+  const onScroll = () => siteHeader.classList.toggle("scrolled", window.scrollY > 8 || siteHeader.dataset.alwaysScrolled != null);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+// On phones the three main tabs sit in a dropdown; close it on a tap outside or Escape.
+const navMenu = document.querySelector(".navmenu");
+if (navMenu) {
+  document.addEventListener("click", (e) => { if (navMenu.open && !navMenu.contains(e.target)) navMenu.open = false; });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && navMenu.open) { navMenu.open = false; navMenu.querySelector("summary").focus(); }
+  });
+}
 
 export const rp =(n) => "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(n || 0));
 export const when = (time) =>

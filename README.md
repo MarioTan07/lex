@@ -6,9 +6,13 @@ The site is in Indonesian, with English as a second language. Every page has an 
 
 ## Pages
 
+The public site has three main tabs in the header. On phones (narrower than 900px) they fold into a dropdown showing the current page.
+
 | Page | Who uses it | What it does |
 | --- | --- | --- |
-| `/` | Everyone | About Kampoeng Semanggi, the product catalog with **Call** and **WhatsApp** buttons, and every shop's location on a Google Map with its contact number and a **Directions** button. Buyers don't need an account. |
+| `/` | Everyone | **Katalog** tab: welcome banner and the product catalog with **Call** and **WhatsApp** buttons. Buyers don't need an account. |
+| `/lokasi` | Everyone | **Lokasi lapak** tab: every shop's location on a Google Map with its contact number and a **Directions** button. |
+| `/cerita` | Everyone | **Cerita kami** tab: about Kampoeng Semanggi and its history, linking to the full history page `/sejarah`. |
 | `/sejarah` | Everyone | The history of Kampoeng Semanggi in six short sections, a photo carousel and a download of the original document (`public/sejarah-foto/`). Text is from the residents' document *Sejarah Kampoeng Semanggi Surabaya*. |
 | `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. |
 | `/admin` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |

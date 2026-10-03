@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-i18n="home.title">Kampoeng Semanggi · Rasanya Seperti Kembali ke Rumah</title>
+<title data-i18n="shops.pageTitle">Lokasi lapak · Kampoeng Semanggi</title>
 <meta name="description" data-i18n-attr="content:home.meta" content="Pecel semanggi dan olahan semanggi dari Kampoeng Semanggi, Sememi, Surabaya. Pesan langsung ke penjual lewat telepon atau WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,15 +33,15 @@
     </a>
     <nav data-i18n-attr="aria-label:nav.label" aria-label="Menu utama">
       <div class="tabs-main">
-        <a class="opt current" href="/" data-i18n="nav.catalog" aria-current="page">Katalog</a>
-        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lokasi lapak</a>
+        <a class="opt" href="/" data-i18n="nav.catalog">Katalog</a>
+        <a class="opt current" href="/lokasi" data-i18n="nav.shops" aria-current="page">Lokasi lapak</a>
         <a class="opt" href="/cerita" data-i18n="nav.story">Cerita kami</a>
       </div>
       <details class="navmenu">
-        <summary><span data-i18n="nav.catalog">Katalog</span><span data-icon="chevron-down"></span></summary>
+        <summary><span data-i18n="nav.shops">Lokasi lapak</span><span data-icon="chevron-down"></span></summary>
         <div class="navmenu-list">
-          <a class="navlink current" href="/" data-i18n="nav.catalog" aria-current="page">Katalog</a>
-          <a class="navlink" href="/lokasi" data-i18n="nav.shops">Lokasi lapak</a>
+          <a class="navlink" href="/" data-i18n="nav.catalog">Katalog</a>
+          <a class="navlink current" href="/lokasi" data-i18n="nav.shops" aria-current="page">Lokasi lapak</a>
           <a class="navlink" href="/cerita" data-i18n="nav.story">Cerita kami</a>
         </div>
       </details>
@@ -54,54 +54,20 @@
 </header>
 
 <main>
-  <section class="wrap hero" id="hero">
-    <div>
-      <span class="badge"><span data-icon="sparkles"></span><span data-i18n="hero.badge">Dari Kampoeng Semanggi, untuk Surabaya</span></span>
-      <h1 data-i18n-html="hero.title">Rasanya Seperti <em>Kembali ke Rumah.</em></h1>
-      <p class="lede" data-i18n="hero.lede">Temukan pecel semanggi, jajanan, dan olahan semanggi buatan rumah dari para penjual di Kampoeng Semanggi.</p>
-      <div class="cta">
-        <a class="btn raised" href="#catalog"><span data-i18n="hero.toCatalog">Lihat katalog</span><span data-icon="arrow-right"></span></a>
-        <a class="btn soft" href="/lokasi"><span data-i18n="hero.toShops">Cari penjual</span><span data-icon="map-pin"></span></a>
+  <section class="wrap section shops" id="shops">
+    <div class="shops-intro">
+      <div>
+        <p class="eyebrow" data-i18n="shops.eyebrow">Temui mereka langsung</p>
+        <h2 data-i18n-html="shops.title">Pasar kecil,<br><em>cerita besar.</em></h2>
       </div>
-      <div class="joined" id="joined" hidden>
-        <span class="faces" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span><strong id="joinedCount"></strong><br><span data-i18n="hero.joined">sudah bergabung</span></span>
-      </div>
+      <p data-i18n="shops.intro">Datang, kenalan, dan bawa pulang rasa khas Sememi. Semua penjual di sini adalah tetangga kami sendiri.</p>
     </div>
-    <div class="hero-photo">
-      <img src="/kampoeng-market.jpg" width="1002" height="768" data-i18n-attr="alt:hero.photo" alt="Pecel semanggi di atas daun pisang dan bakul bambu, dengan suasana pasar di belakangnya">
-      <button type="button" class="pick" id="pick" hidden>
-        <span><small data-i18n="hero.pick">Pilihan hari ini</small><b id="pickName"></b></span>
-        <span class="tag" id="pickPrice"></span>
-      </button>
+    <div class="grid" id="shopGrid"></div>
+    <div class="empty" id="shopsEmpty" hidden>
+      <h3 data-i18n="shops.empty">Belum ada lapak</h3>
+      <p data-i18n="shops.emptyText">Lokasi dan nomor kontak setiap lapak tampil di sini setelah admin menambahkannya.</p>
     </div>
   </section>
-
-  <div class="band" id="catalog">
-    <section class="wrap section">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-i18n="catalog.eyebrow">Katalog pilihan</p>
-          <h2 data-i18n="catalog.title">Dari dapur tetangga</h2>
-        </div>
-        <label class="search">
-          <span data-icon="search"></span>
-          <input type="search" id="search" data-i18n-attr="placeholder:catalog.search; aria-label:catalog.search" placeholder="Cari makanan atau penjual…" aria-label="Cari makanan atau penjual…" autocomplete="off">
-        </label>
-      </div>
-
-      <p class="howto"><span data-icon="info"></span><span data-i18n="market.howTo">Cara memesan: telepon atau WhatsApp penjualnya, lalu ambil pesanan Anda di lapak mereka. Bayar saat mengambil.</span></p>
-      <p class="banner bad" id="notice" hidden></p>
-
-      <div class="chips" id="stallChips"></div>
-      <div class="grid" id="productGrid"></div>
-      <div class="empty" id="shopEmpty">
-        <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#leaf4" fill="var(--leaf)"/></svg>
-        <h3 id="shopEmptyTitle" data-i18n="shop.loading">Memuat katalog…</h3>
-        <p id="shopEmptyText" data-i18n="shop.loadingText">Pecel semanggi, camilan, dan minuman dari lapak Kampoeng Semanggi akan tampil di sini beserta harganya.</p>
-      </div>
-    </section>
-  </div>
 
 </main>
 
