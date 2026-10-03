@@ -11,11 +11,11 @@ The public site has three main tabs in the header. On phones (narrower than 900p
 | Page | Who uses it | What it does |
 | --- | --- | --- |
 | `/` | Everyone | **Katalog** tab: welcome banner and the product catalog with **Call** and **WhatsApp** buttons. Buyers don't need an account. |
-| `/lokasi` | Everyone | **Lokasi lapak** tab: every shop's location on a Google Map with its contact number and a **Directions** button. |
-| `/cerita` | Everyone | **Cerita kami** tab: about Kampoeng Semanggi and its history, linking to the full history page `/sejarah`. |
+| `/lokasi` | Everyone | **Lokasi lapak** tab: every shop's location on a Google Map with its contact number and a **Directions** button, plus an **Instagram** button when the seller has one. Sellers who also (or only) sell from home are marked; their home address stays private and buyers are told the seller sends it on WhatsApp after they order. |
+| `/cerita` | Everyone | **Cerita kami** tab: about Kampoeng Semanggi and its history, linking to the full history page `/sejarah`, then a homestay "coming soon" box and a sponsor/partner box with the contacts set under **Situs** in `/pengelola`. |
 | `/sejarah` | Everyone | The history of Kampoeng Semanggi in six short sections, a photo carousel and a download of the original document (`public/sejarah-foto/`). Text is from the residents' document *Sejarah Kampoeng Semanggi Surabaya*. |
 | `/penjual` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. |
-| `/pengelola` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |
+| `/pengelola` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. Under **Situs**: Kampoeng Semanggi's Instagram (shown in every footer; starts as @kampoeng_semanggi), the sponsor contact name, number and email (starts as admin1semanggi@gmail.com) and the homestay number. Empty numbers show "coming soon" instead of buttons. |
 
 ### How ordering works
 
@@ -69,6 +69,10 @@ On Vercel the data lives online: accounts, shops and products in a **Turso** dat
 To remove the example shops from the live site: `npm run demo:remove:online` (uses the `.env` file).
 
 Any other Node.js host (Render, Railway, Fly.io) also works: run `npm start` and either set the Turso and Blob variables, or point `DATA_DIR` at a persistent disk.
+
+### Admin sign-in
+
+The two admins sign in at `/pengelola` with **admin1semanggi@gmail.com** and **admin2semanggi@gmail.com** (override with `ADMIN_EMAIL` / `ADMIN2_EMAIL`). The email is only the username: the website keeps its own password, separate from Gmail. Older databases whose admins used admin1@ / admin2@kampoengsemanggi.local are renamed on start, keeping their passwords.
 
 ## How it's built
 

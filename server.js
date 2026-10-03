@@ -42,14 +42,22 @@ async function setup() {
   // ADMIN2_EMAIL/ADMIN2_PASSWORD. On your own computer, a missing password is generated and
   // written to DATA_DIR/initial-admin.txt; on Vercel the passwords must be set.
   const slots = [
-    { email: process.env.ADMIN_EMAIL || "admin1@kampoengsemanggi.local", password: process.env.ADMIN_PASSWORD, name: "Admin 1" },
-    { email: process.env.ADMIN2_EMAIL || "admin2@kampoengsemanggi.local", password: process.env.ADMIN2_PASSWORD, name: "Admin 2" },
+    { email: process.env.ADMIN_EMAIL || "admin1semanggi@gmail.com", password: process.env.ADMIN_PASSWORD, name: "Admin 1", placeholder: "admin1@kampoengsemanggi.local" },
+    { email: process.env.ADMIN2_EMAIL || "admin2semanggi@gmail.com", password: process.env.ADMIN2_PASSWORD, name: "Admin 2", placeholder: "admin2@kampoengsemanggi.local" },
   ];
   // The first release created admin@kampungsemanggi.local; move it to the Kampoeng spelling.
   const old = await db.one("SELECT id FROM users WHERE email = 'admin@kampungsemanggi.local' AND role = 'admin'");
   if (old && !(await db.one("SELECT 1 AS x FROM users WHERE email = ?", slots[0].email))) {
     await db.run("UPDATE users SET email = ?, name = 'Admin 1' WHERE id = ?", slots[0].email, old.id);
     console.log(`Renamed the admin sign-in email admin@kampungsemanggi.local to ${slots[0].email}. The password is unchanged.`);
+  }
+  // Admins used to sign in with made-up addresses; move them to the real Gmail addresses (only the sign-in email changes).
+  for (const slot of slots) {
+    const was = await db.one("SELECT id FROM users WHERE email = ? AND role = 'admin'", slot.placeholder);
+    if (was && slot.email !== slot.placeholder && !(await db.one("SELECT 1 AS x FROM users WHERE email = ?", slot.email))) {
+      await db.run("UPDATE users SET email = ? WHERE id = ?", slot.email, was.id);
+      console.log(`Renamed the admin sign-in email ${slot.placeholder} to ${slot.email}. The password is unchanged.`);
+    }
   }
   const existing = (await db.one("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'")).n;
   const notes = [];
@@ -114,6 +122,12 @@ const MESSAGES = {
     "label.contactNumber": "Nomor kontak",
     "label.product": "Nama produk",
     "label.pauseNote": "Catatan untuk pembeli",
+    "label.instagram": "Instagram",
+    "label.sponsorName": "Nama kontak sponsor",
+    "label.sponsorPhone": "Nomor sponsor",
+    "label.homestayPhone": "Nomor homestay",
+    "label.sponsorEmail": "Email sponsor",
+    instagramInvalid: "Isi nama akun Instagram, misalnya @kampoengsemanggi, atau tautan profilnya.",
     "label.shopAddress": "Alamat lapak",
     "label.homeAddress": "Alamat rumah",
     "place.shop": "lapak",
@@ -158,6 +172,12 @@ const MESSAGES = {
     "label.contactNumber": "Contact number",
     "label.product": "Product name",
     "label.pauseNote": "Note for buyers",
+    "label.instagram": "Instagram",
+    "label.sponsorName": "Sponsor contact name",
+    "label.sponsorPhone": "Sponsor number",
+    "label.homestayPhone": "Homestay number",
+    "label.sponsorEmail": "Sponsor email",
+    instagramInvalid: "Enter an Instagram username, like @kampoengsemanggi, or a link to the profile.",
     "label.shopAddress": "Shop address",
     "label.homeAddress": "Home address",
     "place.shop": "shop",
@@ -263,9 +283,19 @@ function publicUser(u) {
     id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
-    paused: !!u.paused, pauseNote: u.pause_note || "",
+    paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home,
   };
 }
+// Accepts "@name", "name" or an instagram.com profile link, and keeps just the username.
+function instagram(v) {
+  let s = text(v, 120, { label: "label.instagram" });
+  if (!s) return "";
+  s = s.replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, "").replace(/^@/, "").replace(/[/?#].*$/, "");
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(s)) throw bad("instagramInvalid");
+  return s;
+}
+// A shop without a name goes by the seller's name.
+const shopName = (u) => u.stall_name || u.name;
 // A location is an address plus an optional map pin. `kind` is "shop" or "home".
 function location(v, kind) {
   const o = v && typeof v === "object" ? v : {};
@@ -280,11 +310,15 @@ function location(v, kind) {
   }
   return { address, lat, lng };
 }
+// The shop name, shop location and Instagram are optional. Sellers who also (or only) sell from home tick
+// "from home": buyers are told the seller sends the home address on WhatsApp, and the address itself stays private.
 function sellerFields(body) {
   return {
     name: text(body.name, 60, { required: true, label: "label.sellerName" }),
-    stall_name: text(body.stallName, 60, { required: true, label: "label.shopName" }),
+    stall_name: text(body.stallName, 60, { label: "label.shopName" }),
     phone: text(body.phone, 24, { required: true, label: "label.contactNumber" }),
+    instagram: instagram(body.instagram),
+    from_home: body.fromHome ? 1 : 0,
     ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
     ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
   };
@@ -373,20 +407,41 @@ app.post("/api/auth/password", requireRole("seller", "admin"), async (req, res) 
 // Buyers order by calling or messaging the seller, so the public API only lists products and shops.
 app.get("/api/catalog", async (_req, res) => {
   const rows = await db.all(`
-    SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id
+    SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM products p JOIN users u ON u.id = p.seller_id
     WHERE u.role = 'seller' AND u.status = 'approved' AND p.hidden = 0
-    ORDER BY u.stall_name COLLATE NOCASE, p.created_at`);
+    ORDER BY 2 COLLATE NOCASE, p.created_at`);
   res.json({ products: rows.map(productOut) });
 });
 
 // Shop name, shop location, contact number and open/paused state of every approved seller. Home addresses stay private.
 app.get("/api/stalls", async (_req, res) => {
-  const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY stall_name COLLATE NOCASE");
+  const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
-    return { id: u.id, stallName: u.stall_name, phone: u.phone, shop: p.shop, paused: p.paused, pauseNote: p.pauseNote };
+    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, paused: p.paused, pauseNote: p.pauseNote };
   }) });
 });
+
+// ----- site settings -----
+// Contact details shown on the site. Numbers stay empty until an admin fills them in under Admin → Situs.
+const SETTING_DEFAULTS = { instagram: "kampoeng_semanggi", sponsorEmail: "admin1semanggi@gmail.com" };
+const SETTINGS = {
+  instagram: (v) => instagram(v),
+  sponsorName: (v) => text(v, 60, { label: "label.sponsorName" }),
+  sponsorPhone: (v) => text(v, 24, { label: "label.sponsorPhone" }),
+  sponsorEmail: (v) => {
+    const e = text(v, 120, { label: "label.sponsorEmail" });
+    if (e && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw bad("emailInvalid");
+    return e;
+  },
+  homestayPhone: (v) => text(v, 24, { label: "label.homestayPhone" }),
+};
+async function readSettings() {
+  const rows = await db.all("SELECT key, value FROM settings");
+  const saved = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  return Object.fromEntries(Object.keys(SETTINGS).map((k) => [k, k in saved ? saved[k] : SETTING_DEFAULTS[k] || ""]));
+}
+app.get("/api/site", async (_req, res) => res.json({ site: await readSettings() }));
 
 // Buyers writing in English can add a note to their WhatsApp order; it's translated to Indonesian for the seller,
 // and back to English so the buyer can check the meaning survived.
@@ -498,6 +553,12 @@ admin.get("/overview", async (_req, res) => {
   });
 });
 
+admin.put("/site", async (req, res) => {
+  const values = Object.entries(SETTINGS).map(([k, check]) => [k, check(req.body[k])]);
+  await db.batch(values.map(([k, v]) => ["INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", k, v]));
+  res.json({ site: await readSettings() });
+});
+
 admin.get("/sellers", async (_req, res) => {
   const rows = await db.all(`SELECT u.*, (SELECT COUNT(*) FROM products p WHERE p.seller_id = u.id) AS products
     FROM users u WHERE u.role = 'seller' ORDER BY u.status = 'suspended', u.created_at DESC`);
@@ -560,7 +621,7 @@ admin.delete("/sellers/:id", async (req, res) => {
 });
 
 admin.get("/products", async (_req, res) => {
-  const rows = await db.all("SELECT p.*, u.stall_name FROM products p JOIN users u ON u.id = p.seller_id ORDER BY p.created_at DESC");
+  const rows = await db.all("SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM products p JOIN users u ON u.id = p.seller_id ORDER BY p.created_at DESC");
   res.json({ products: rows.map(productOut) });
 });
 

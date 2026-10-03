@@ -65,6 +65,7 @@
     <div class="tabs" role="tablist" data-i18n-attr="aria-label:admin.sections" aria-label="Bagian admin" style="justify-self:start">
       <button role="tab" aria-selected="true" data-tab="sellers" data-i18n="admin.tabSellers">Penjual</button>
       <button role="tab" aria-selected="false" data-tab="products" data-i18n="admin.tabProducts">Produk</button>
+      <button role="tab" aria-selected="false" data-tab="site" data-i18n="admin.tabSite">Situs</button>
       <button role="tab" aria-selected="false" data-tab="account" data-i18n="admin.tabAccount">Akun</button>
     </div>
 
@@ -84,9 +85,12 @@
           </div>
           <div class="row2">
             <div class="field"><label for="n-name" data-i18n="sellerForm.sellerName">Nama penjual</label><input type="text" id="n-name" required maxlength="60"></div>
-            <div class="field"><label for="n-stall" data-i18n="common.shopName">Nama lapak</label><input type="text" id="n-stall" required maxlength="60" placeholder="Semanggi Bu Sri"></div>
+            <div class="field"><label for="n-stall" data-i18n="common.shopNameOptional">Nama lapak (opsional)</label><input type="text" id="n-stall" maxlength="60" placeholder="Semanggi Bu Sri"></div>
           </div>
           <div class="field"><label for="n-phone" data-i18n="common.contactNumber">Nomor kontak</label><input type="tel" id="n-phone" required maxlength="24" placeholder="0812 3456 7890"></div>
+          <div class="field"><label for="n-ig" data-i18n="common.instagram">Instagram (opsional)</label><input type="text" id="n-ig" maxlength="120" autocomplete="off" placeholder="@semanggibusri"><span class="hint" data-i18n="common.instagramHint">Nama akun atau tautan profil. Pembeli melihat tombol Instagram di lapak Anda.</span></div>
+          <label class="check"><input type="checkbox" id="n-fromhome"> <span data-i18n="common.fromHome">Juga jualan dari rumah</span></label>
+          <p class="hint muted small" data-i18n="common.fromHomeHint">Alamat rumah tidak pernah ditampilkan di website. Pembeli diberi tahu bahwa penjual akan mengirim alamat rumah lewat WhatsApp setelah mereka memesan, jadi kirimkan alamat ke pembeli saat mereka menghubungi.</p>
           <div id="n-shop"></div>
           <div id="n-home"></div>
           <p class="formerr" id="sellerErr" hidden></p>
@@ -107,6 +111,22 @@
         <thead><tr><th></th><th data-i18n="col.product">Produk</th><th data-i18n="col.shop">Lapak</th><th class="num" data-i18n="col.price">Harga</th><th data-i18n="col.state">Keadaan</th><th></th></tr></thead>
         <tbody id="productRows"></tbody>
       </table></div>
+    </div>
+
+    <div id="view-site" role="tabpanel" hidden>
+      <form class="panel" id="siteForm" style="max-width:560px">
+        <h3 data-i18n="site.title">Pengaturan situs</h3>
+        <p class="muted small" data-i18n="site.intro">Kontak yang tampil di halaman utama. Boleh dikosongkan dulu: tombolnya baru muncul setelah nomornya diisi.</p>
+        <div class="field"><label for="site-ig" data-i18n="site.instagram">Instagram Kampoeng Semanggi</label><input type="text" id="site-ig" maxlength="120" autocomplete="off" placeholder="@kampoengsemanggi"><span class="hint" data-i18n="site.instagramHint">Tampil di bagian bawah setiap halaman.</span></div>
+        <div class="row2">
+          <div class="field"><label for="site-sponsor-name" data-i18n="site.sponsorName">Kontak sponsor (nama atau jabatan)</label><input type="text" id="site-sponsor-name" maxlength="60" data-i18n-attr="placeholder:site.sponsorNamePlaceholder" placeholder="mis. Ketua RW 03"></div>
+          <div class="field"><label for="site-sponsor-phone" data-i18n="site.sponsorPhone">Nomor sponsor</label><input type="tel" id="site-sponsor-phone" maxlength="24" placeholder="0812 3456 7890"></div>
+        </div>
+        <div class="field"><label for="site-sponsor-email" data-i18n="site.sponsorEmail">Email sponsor</label><input type="email" id="site-sponsor-email" maxlength="120" autocomplete="off" placeholder="nama@gmail.com"></div>
+        <div class="field"><label for="site-homestay-phone" data-i18n="site.homestayPhone">Nomor homestay</label><input type="tel" id="site-homestay-phone" maxlength="24" placeholder="0812 3456 7890"><span class="hint" data-i18n="site.phoneHint">Dipakai untuk tombol Telepon dan WhatsApp. Gunakan nomor yang ada WhatsApp-nya.</span></div>
+        <p class="formerr" id="siteErr" hidden></p>
+        <div><button class="btn" type="submit" data-i18n="site.save">Simpan pengaturan</button></div>
+      </form>
     </div>
 
     <div id="view-account" role="tabpanel" hidden>

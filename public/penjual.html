@@ -107,8 +107,11 @@
         <form class="panel" id="profileForm">
           <h3 data-i18n="profile.title">Data lapak</h3>
           <div class="field"><label for="s-name" data-i18n="common.yourName">Nama Anda</label><input type="text" id="s-name" required maxlength="60"></div>
-          <div class="field"><label for="s-stall" data-i18n="common.shopName">Nama lapak</label><input type="text" id="s-stall" required maxlength="60"></div>
+          <div class="field"><label for="s-stall" data-i18n="common.shopNameOptional">Nama lapak (opsional)</label><input type="text" id="s-stall" maxlength="60"><span class="hint" data-i18n="common.shopNameHint">Kosongkan kalau tidak punya. Nama Anda yang tampil.</span></div>
           <div class="field"><label for="s-phone" data-i18n="common.contactNumber">Nomor kontak</label><input type="tel" id="s-phone" required maxlength="24"><span class="hint" data-i18n="seller.contactHint">Ditampilkan ke pembeli bersama peta lapak Anda dan di pesanan mereka.</span></div>
+          <div class="field"><label for="s-ig" data-i18n="common.instagram">Instagram (opsional)</label><input type="text" id="s-ig" maxlength="120" autocomplete="off" placeholder="@semanggibusri"><span class="hint" data-i18n="common.instagramHint">Nama akun atau tautan profil. Pembeli melihat tombol Instagram di lapak Anda.</span></div>
+          <label class="check"><input type="checkbox" id="s-fromhome"> <span data-i18n="common.fromHome">Juga jualan dari rumah</span></label>
+          <p class="hint muted small" data-i18n="common.fromHomeHint">Alamat rumah tidak pernah ditampilkan di website. Pembeli diberi tahu bahwa penjual akan mengirim alamat rumah lewat WhatsApp setelah mereka memesan, jadi kirimkan alamat ke pembeli saat mereka menghubungi.</p>
           <div id="s-shop"></div>
           <div id="s-home"></div>
           <p class="formerr" id="profileErr" hidden></p>
