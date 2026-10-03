@@ -109,6 +109,16 @@ const SCHEMA = `
   );
   CREATE INDEX IF NOT EXISTS idx_orders_seller ON orders(seller_id);
   CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
+  -- Codes sent to a seller's WhatsApp to reset a forgotten password. Only a hash of the code is kept.
+  CREATE TABLE IF NOT EXISTS password_resets (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_resets_user ON password_resets(user_id);
 `;
 
 // Columns added after the first release; added to older databases.

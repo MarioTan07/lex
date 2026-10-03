@@ -45,6 +45,26 @@
       <div class="field"><label for="l-pass" data-i18n="common.password">Kata sandi</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
       <p class="formerr" id="loginErr" hidden></p>
       <button class="btn" type="submit" data-i18n="common.signIn">Masuk</button>
+      <button class="linkish" type="button" id="forgotBtn" data-i18n="reset.link">Lupa kata sandi?</button>
+    </form>
+    <form class="panel" id="resetForm" hidden>
+      <p class="eyebrow" data-i18n="reset.eyebrow">Lupa kata sandi</p>
+      <h2 data-i18n="reset.title">Atur ulang lewat WhatsApp</h2>
+      <div class="stack" id="resetStep1" style="gap:14px">
+        <p class="muted" data-i18n="reset.step1">Masukkan nomor HP yang Anda pakai untuk masuk. Kami kirim kode 6 angka ke WhatsApp nomor itu.</p>
+        <div class="field"><label for="r-phone" data-i18n="reset.phone">Nomor HP</label><input type="tel" id="r-phone" autocomplete="username" maxlength="24" placeholder="0812 3456 7890"></div>
+        <button class="btn" type="button" id="resetSend" data-i18n="reset.send">Kirim kode</button>
+      </div>
+      <div class="stack" id="resetStep2" style="gap:14px" hidden>
+        <p class="muted" id="resetSent"></p>
+        <div class="field"><label for="r-code" data-i18n="reset.code">Kode dari WhatsApp</label><input type="text" id="r-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></div>
+        <div class="field"><label for="r-new" data-i18n="common.newPassword">Kata sandi baru</label><input type="password" id="r-new" autocomplete="new-password" minlength="8"></div>
+        <div class="field"><label for="r-confirm" data-i18n="common.confirmPassword">Konfirmasi kata sandi baru</label><input type="password" id="r-confirm" autocomplete="new-password" minlength="8"></div>
+        <button class="btn" type="submit" data-i18n="reset.save">Simpan kata sandi baru</button>
+        <button class="linkish" type="button" id="resetResend" data-i18n="reset.resend">Kirim ulang kode</button>
+      </div>
+      <p class="formerr" id="resetErr" hidden></p>
+      <button class="linkish" type="button" id="resetBack" data-i18n="reset.back">Kembali ke halaman masuk</button>
     </form>
     <div class="panel">
       <p class="eyebrow" data-i18n="seller.newEyebrow">Penjual baru?</p>

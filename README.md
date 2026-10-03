@@ -120,3 +120,9 @@ To try the site with some shops and products, run `npm run demo:add`. It adds si
 ## Seller accounts
 
 Admins create a seller with just a **phone number** and a starting password (Pengelola → Penjual → Buat akun penjual). The seller signs in at `/penjual` with that phone number; any way of writing it works (`0812 3456 7890`, `+62 812-3456-7890`, `62812…`). The first time they sign in they must fill in their details (name, contact number, shop address unless they only sell from home, and home address) before they can do anything else; their shop only appears on the website after that. Sellers created earlier with an email keep signing in with their email.
+
+## Forgotten passwords (WhatsApp code)
+
+On `/penjual`, **Lupa kata sandi?** lets a seller reset their password with a 6-digit code sent to their WhatsApp: the number they sign in with, or for older email sign-ins their contact number. Codes last 10 minutes and allow 5 tries; a number gets at most one code a minute and three an hour; the form never reveals whether a number is registered. After a reset the seller is signed in and signed out everywhere else.
+
+Codes are sent through [Fonnte](https://fonnte.com), an Indonesian WhatsApp gateway. Sign up, connect the WhatsApp number that should send the codes, copy the device's token, and set it as `FONNTE_TOKEN` in Vercel (Settings → Environment Variables), then redeploy. Without it, the form tells sellers to contact the admin, who can still use **Reset kata sandi** on `/pengelola`.

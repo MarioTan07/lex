@@ -173,6 +173,12 @@ const MESSAGES = {
     phoneTaken: "Sudah ada akun dengan nomor HP ini.",
     profileIncomplete: "Lengkapi data lapak Anda dulu.",
     "label.loginPhone": "Nomor HP",
+    resetUnavailable: "Reset lewat WhatsApp belum aktif. Hubungi admin Kampoeng Semanggi untuk mengatur ulang kata sandi.",
+    resetSendFailed: "Kode tidak bisa dikirim ke WhatsApp sekarang. Coba lagi sebentar lagi, atau hubungi admin.",
+    resetTooSoon: "Kode baru saja dikirim. Tunggu satu menit sebelum meminta lagi.",
+    resetTooMany: "Terlalu banyak permintaan kode. Coba lagi dalam satu jam, atau hubungi admin.",
+    resetCodeWrong: "Kode salah atau sudah kedaluwarsa. Periksa lagi, atau minta kode baru.",
+    resetMessage: "Kode reset kata sandi Kampoeng Semanggi Anda: {code}\nBerlaku 10 menit. Jangan berikan kode ini kepada siapa pun, termasuk yang mengaku admin.",
     suspended: "Akun ini ditangguhkan. Hubungi admin Kampoeng Semanggi.",
     adminAccount: "Ini akun admin. Masuk di /pengelola.",
     sellerAccount: "Ini akun penjual. Masuk di /penjual.",
@@ -249,6 +255,12 @@ const MESSAGES = {
     phoneTaken: "An account with this phone number already exists.",
     profileIncomplete: "Complete your shop details first.",
     "label.loginPhone": "Phone number",
+    resetUnavailable: "Resetting by WhatsApp isn't switched on yet. Contact the Kampoeng Semanggi admin to reset your password.",
+    resetSendFailed: "The code couldn't be sent to WhatsApp right now. Try again in a little while, or contact the admin.",
+    resetTooSoon: "A code was just sent. Wait a minute before asking again.",
+    resetTooMany: "Too many code requests. Try again in an hour, or contact the admin.",
+    resetCodeWrong: "That code is wrong or has expired. Check it, or ask for a new one.",
+    resetMessage: "Your Kampoeng Semanggi password reset code: {code}\nValid for 10 minutes. Never share this code with anyone, even someone who says they're the admin.",
     suspended: "This account is suspended. Contact the Kampoeng Semanggi admin.",
     adminAccount: "This is an admin account. Sign in at /pengelola.",
     sellerAccount: "This is a seller account. Sign in at /penjual.",
@@ -502,6 +514,73 @@ app.post("/api/auth/login", async (req, res) => {
   attempts.delete(req.ip);
   await createSession(res, u.id);
   res.json({ user: publicUser(u) });
+});
+
+// ----- forgotten password: a code on WhatsApp -----
+// A seller enters their phone number and gets a 6-digit code on WhatsApp, sent through Fonnte
+// (an Indonesian WhatsApp gateway; set FONNTE_TOKEN). The code lasts 10 minutes and allows 5 tries;
+// a number gets at most one code a minute and three an hour. Whether a number is registered is never revealed.
+const RESET_MINUTES = 10, RESET_TRIES = 5;
+async function sendWhatsApp(target, message) {
+  const r = await fetch(process.env.FONNTE_URL || "https://api.fonnte.com/send", { // FONNTE_URL: only for testing
+    method: "POST",
+    headers: { Authorization: process.env.FONNTE_TOKEN },
+    body: new URLSearchParams({ target, message, countryCode: "62" }),
+    signal: AbortSignal.timeout(10000),
+  }).catch((e) => ({ ok: false, error: e }));
+  const data = r.json ? await r.json().catch(() => ({})) : {};
+  if (!r.ok || data.status === false) {
+    console.error("WhatsApp code not sent (Fonnte):", r.status || "", data.reason || data.detail || r.error?.message || "");
+    throw new HttpError(502, "resetSendFailed");
+  }
+}
+// The seller an entered number belongs to: their sign-in number, or for older email sign-ins their contact number.
+async function sellerByPhone(typed) {
+  const key = phoneKey(typed);
+  if (!key) return null;
+  const byLogin = await db.one("SELECT * FROM users WHERE role = 'seller' AND email = ?", key);
+  if (byLogin) return { u: byLogin, key };
+  const sellers = await db.all("SELECT * FROM users WHERE role = 'seller' AND email LIKE '%@%' AND phone != ''");
+  const u = sellers.find((s) => phoneKey(s.phone) === key);
+  return u ? { u, key } : null;
+}
+const resetHash = (id, code) => sha256(`${id}:${code}`);
+
+app.post("/api/auth/reset/start", async (req, res) => {
+  if (!process.env.FONNTE_TOKEN) throw new HttpError(503, "resetUnavailable");
+  const typed = text(req.body.phone, 24, { required: true, label: "label.loginPhone" });
+  if (!phoneKey(typed)) throw bad("phoneInvalid");
+  const found = await sellerByPhone(typed);
+  if (found && found.u.status !== "suspended") {
+    const now = Date.now();
+    const recent = await db.all("SELECT created_at FROM password_resets WHERE user_id = ? AND created_at > ?", found.u.id, now - 36e5);
+    if (recent.some((r) => r.created_at > now - 6e4)) throw new HttpError(429, "resetTooSoon");
+    if (recent.length >= 3) throw new HttpError(429, "resetTooMany");
+    const code = String(crypto.randomInt(0, 1e6)).padStart(6, "0");
+    await sendWhatsApp(found.key, translate("id", "resetMessage", { code }));
+    await db.run("DELETE FROM password_resets WHERE user_id = ? AND created_at <= ?", found.u.id, now - 36e5);
+    await db.run("INSERT INTO password_resets (user_id, code_hash, expires_at, created_at) VALUES (?, ?, ?, ?)",
+      found.u.id, resetHash(found.u.id, code), now + RESET_MINUTES * 6e4, now);
+  }
+  res.json({ ok: true });
+});
+
+app.post("/api/auth/reset/finish", async (req, res) => {
+  const found = await sellerByPhone(text(req.body.phone, 24));
+  const code = String(req.body.code || "").replace(/\D/g, "");
+  const password = newPassword(req.body.password);
+  const row = found && await db.one("SELECT * FROM password_resets WHERE user_id = ? AND expires_at > ? ORDER BY created_at DESC LIMIT 1", found.u.id, Date.now());
+  if (!row || row.attempts >= RESET_TRIES) throw bad("resetCodeWrong");
+  if (code.length !== 6 || resetHash(found.u.id, code) !== row.code_hash) {
+    await db.run("UPDATE password_resets SET attempts = attempts + 1 WHERE id = ?", row.id);
+    throw bad("resetCodeWrong");
+  }
+  if (found.u.status === "suspended") throw new HttpError(403, "suspended");
+  await db.run("UPDATE users SET password_hash = ? WHERE id = ?", hashPassword(password), found.u.id);
+  await db.run("DELETE FROM sessions WHERE user_id = ?", found.u.id);
+  await db.run("DELETE FROM password_resets WHERE user_id = ?", found.u.id);
+  await createSession(res, found.u.id);
+  res.json({ user: publicUser(await userById(found.u.id)) });
 });
 
 app.post("/api/auth/logout", async (req, res) => {

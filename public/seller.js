@@ -52,6 +52,47 @@ $("#loginForm").addEventListener("submit", async (e) => {
   try { await api("/api/auth/login", { method: "POST", body: { email: $("#l-email").value, password: $("#l-pass").value, role: "seller" } }); start(); }
   catch (err) { showErr("#loginErr", err.message); }
 });
+// ---------- forgotten password: a code on WhatsApp ----------
+function showReset(on) {
+  $("#loginForm").hidden = on;
+  $("#resetForm").hidden = !on;
+  showErr("#resetErr", "");
+  if (!on) return;
+  $("#resetStep1").hidden = false; $("#resetStep2").hidden = true;
+  const typed = $("#l-email").value.trim();
+  $("#r-phone").value = typed.includes("@") ? "" : typed;
+  $("#r-phone").focus();
+}
+$("#forgotBtn").addEventListener("click", () => showReset(true));
+$("#resetBack").addEventListener("click", () => showReset(false));
+async function sendCode() {
+  showErr("#resetErr", "");
+  const btns = [$("#resetSend"), $("#resetResend")];
+  btns.forEach((b) => (b.disabled = true));
+  try {
+    await api("/api/auth/reset/start", { method: "POST", body: { phone: $("#r-phone").value } });
+    $("#resetSent").textContent = t("reset.sent", { phone: $("#r-phone").value.trim() });
+    $("#resetStep1").hidden = true; $("#resetStep2").hidden = false;
+    $("#r-code").focus();
+  } catch (err) { showErr("#resetErr", err.message); }
+  btns.forEach((b) => (b.disabled = false));
+}
+$("#resetSend").addEventListener("click", sendCode);
+$("#resetResend").addEventListener("click", sendCode);
+$("#resetForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if ($("#resetStep2").hidden) return sendCode(); // Enter in the phone field sends the code
+  showErr("#resetErr", "");
+  if ($("#r-new").value !== $("#r-confirm").value) { showErr("#resetErr", t("common.passwordMismatch")); return; }
+  try {
+    await api("/api/auth/reset/finish", { method: "POST", body: { phone: $("#r-phone").value, code: $("#r-code").value, password: $("#r-new").value } });
+    e.target.reset();
+    showReset(false);
+    toast(t("reset.done"));
+    start();
+  } catch (err) { showErr("#resetErr", err.message); }
+});
+
 $("#logoutBtn").addEventListener("click", async () => { await api("/api/auth/logout", { method: "POST" }).catch(() => {}); me = null; start(); });
 
 // Suspended sellers can't sign in, so a signed-in seller's shop is either live or paused by the seller.
