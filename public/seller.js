@@ -116,7 +116,7 @@ function editProduct(p) {
   editingId = p.id; editingName = p.name;
   labelProductForm();
   $("#cancelEditBtn").hidden = false;
-  $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-desc").value = p.description;
+  $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-pieces").value = p.pieces ?? ""; $("#p-desc").value = p.description;
   pendingPhoto = null; $("#p-photo").value = "";
   $("#p-preview").src = p.photo || ""; $("#p-preview").hidden = !p.photo;
   $("#productForm").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -141,7 +141,7 @@ $("#productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = $("#saveProductBtn");
   btn.disabled = true; btn.textContent = t("product.saving");
-  const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, description: $("#p-desc").value };
+  const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, description: $("#p-desc").value };
   if (pendingPhoto) body.photo = pendingPhoto;
   try {
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });

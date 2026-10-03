@@ -77,6 +77,7 @@ function renderShop() {
             el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
             el("p", { class: "stall" }, icon("store"), p.stallName)),
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
+        perPieceLine(p),
         sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: open, text: t("compare.count", { n: sellers }) }) : null,
         el("p", { class: "desc", text: p.description || "" }),
         p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
@@ -113,7 +114,14 @@ const norm = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
 const sameProduct = (a, b) => { const x = norm(a.name), y = norm(b.name); return x.includes(y) || y.includes(x); };
 
 let comparing = null;          // the product whose panel is open
-let sortBy = "cheapest";       // "cheapest" | "closest"
+let sortBy = "cheapest";       // "cheapest" | "perPiece" | "closest"
+
+// Pieces in one listed price: the seller's number, or a "Dijual per" that is just a count
+// ("65", "isi 12", "10 buah"); otherwise one. "250 g" isn't a count, so it stays one.
+const piecesOf = (p) => p.pieces || Number((/^\s*(?:isi\s*)?(\d+)\s*(?:buah|biji|pcs?|potong|butir)?\s*$/i.exec(p.unit || "") || [])[1]) || 1;
+const perPiece = (p) => p.price / piecesOf(p);
+// "≈ Rp 2.462 / buah" under a price that covers several pieces.
+const perPieceLine = (p) => piecesOf(p) > 1 ? el("p", { class: "perpiece small", text: t("compare.perPieceValue", { price: rp(perPiece(p)) }) }) : null;
 let hideUnavailable = false;
 let here = null;               // buyer's position, once they allow it: { lat, lng }
 
@@ -166,9 +174,10 @@ function renderCompare() {
   });
   const total = rows.length;
   if (hideUnavailable) rows = rows.filter((r) => r.usable);
-  // Shops you can order from first; then by price, or by distance with unknown distances last.
+  // Shops you can order from first; then by price, price per piece, or distance (unknown distances last).
   rows.sort((a, b) => (b.usable - a.usable)
     || (sortBy === "closest" ? (a.dist ?? Infinity) - (b.dist ?? Infinity) : 0)
+    || (sortBy === "perPiece" ? perPiece(a.q) - perPiece(b.q) : 0)
     || a.q.price - b.q.price
     || a.q.stallName.localeCompare(b.q.stallName));
 
@@ -184,6 +193,7 @@ function renderCompare() {
         el("div", { class: "offer-head" },
           el("h3", { text: q.stallName }),
           el("span", { class: "price" }, rp(q.price), q.unit ? el("small", { text: " / " + q.unit }) : null)),
+        perPieceLine(q),
         norm(q.name) !== norm(comparing.name) ? el("p", { class: "small", text: q.name }) : null,
         stall && stall.shop.address ? el("p", { class: "muted small", text: stall.shop.address }) : null,
         stall ? homeNote(stall) : null,

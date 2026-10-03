@@ -411,3 +411,6 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
   html { scroll-behavior: auto; }
   .card, .card:hover, .photo img, .card:hover .photo img { transition: none; transform: none; }
 }
+
+/* price per piece, under a price that covers several pieces */
+.perpiece { color: var(--muted); margin-top: -4px; font-variant-numeric: tabular-nums; }

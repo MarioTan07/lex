@@ -90,6 +90,7 @@
             <div class="field"><label for="p-price" data-i18n="product.price">Harga (Rp)</label><input type="number" id="p-price" required min="0" step="500" placeholder="15000"></div>
             <div class="field"><label for="p-unit" data-i18n="product.unit">Dijual per</label><input type="text" id="p-unit" maxlength="30" placeholder="bungkus"></div>
           </div>
+          <div class="field"><label for="p-pieces" data-i18n="product.pieces">Isi (jumlah buah, opsional)</label><input type="number" id="p-pieces" min="1" max="100000" step="1" inputmode="numeric" placeholder="1"><span class="hint" data-i18n="product.piecesHint">Berapa buah untuk harga ini? Misalnya 65 untuk Rp 160.000 per 65 buah. Dipakai pembeli untuk membandingkan harga per buah.</span></div>
           <div class="field"><label for="p-desc" data-i18n="product.description">Deskripsi</label><textarea id="p-desc" maxlength="240" data-i18n-attr="placeholder:product.descriptionPlaceholder" placeholder="Dengan krupuk puli dan bumbu ekstra."></textarea></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn" type="submit" id="saveProductBtn">Tambahkan ke lapak</button>

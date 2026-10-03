@@ -136,6 +136,7 @@ const MESSAGES = {
     pinPair: "Isi lintang dan bujur untuk titik {place}, atau kosongkan keduanya.",
     pinInvalid: "Titik peta {place} bukan lokasi yang valid.",
     price: "Masukkan harga dalam Rupiah, misalnya 15000.",
+    pieces: "Isi harus berupa angka bulat dari 1 sampai 100000, atau dikosongkan.",
     photoType: "Foto harus berupa gambar JPG, PNG, atau WebP.",
     photoSize: "Foto terlalu besar. Gunakan foto di bawah 1,5 MB.",
     signIn: "Silakan masuk terlebih dahulu.",
@@ -186,6 +187,7 @@ const MESSAGES = {
     pinPair: "Give both latitude and longitude for the {place} pin, or neither.",
     pinInvalid: "The {place} map pin isn't a valid location.",
     price: "Enter a price in Rupiah, for example 15000.",
+    pieces: "Pieces must be a whole number from 1 to 100000, or left empty.",
     photoType: "The photo must be a JPG, PNG or WebP image.",
     photoSize: "The photo is too large. Use one under 1.5 MB.",
     signIn: "Please sign in.",
@@ -351,7 +353,7 @@ function updateUser(id, f) {
 const userById = (id) => db.one("SELECT * FROM users WHERE id = ?", id);
 function productOut(p) {
   return {
-    id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit,
+    id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit, pieces: p.pieces ?? null,
     description: p.description, photo: p.photo, available: !!p.available, hidden: !!p.hidden, createdAt: p.created_at,
   };
 }
@@ -517,11 +519,19 @@ seller.get("/products", async (req, res) => {
   res.json({ products: rows.map(productOut) });
 });
 
+// Optional number of pieces in one listed price: a whole number from 1 to 100000, or empty.
+function pieces(v) {
+  if (v === undefined || v === null || String(v).trim() === "") return null;
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 1 || n > 100000) throw bad("pieces");
+  return n;
+}
 function productFields(body, partial) {
   const f = {};
   if (!partial || body.name !== undefined) f.name = text(body.name, 60, { required: true, label: "label.product" });
   if (!partial || body.price !== undefined) f.price = money(body.price);
   if (!partial || body.unit !== undefined) f.unit = text(body.unit, 30);
+  if (!partial || body.pieces !== undefined) f.pieces = pieces(body.pieces);
   if (!partial || body.description !== undefined) f.description = text(body.description, 240);
   if (body.available !== undefined) f.available = body.available ? 1 : 0;
   return f;
@@ -536,8 +546,8 @@ seller.post("/products", async (req, res) => {
   const f = productFields(req.body, false);
   if ((await db.one("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?", req.user.id)).n >= 200) throw bad("maxProducts");
   const photo = req.body.photo ? await savePhoto(req.body.photo, req) : "";
-  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
-    req.user.id, f.name, f.price, f.unit, f.description, photo, Date.now());
+  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, pieces, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)",
+    req.user.id, f.name, f.price, f.unit, f.pieces, f.description, photo, Date.now());
   res.status(201).json({ id: r.id });
 });
 

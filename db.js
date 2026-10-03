@@ -78,6 +78,8 @@ const ADDED_USER_COLUMNS = {
   paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
   instagram: "TEXT NOT NULL DEFAULT ''", from_home: "INTEGER NOT NULL DEFAULT 0",
 };
+// Pieces in one listed price (e.g. Rp 160.000 for 65 pieces), for comparing prices per piece. Empty means not given.
+const ADDED_PRODUCT_COLUMNS = { pieces: "INTEGER" };
 
 const isNetworkError = (e) => /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network/i.test(`${e?.message} ${e?.cause?.message ?? ""} ${e?.cause?.code ?? ""}`);
 const arg = (v) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);
@@ -127,5 +129,9 @@ export async function setupSchema(db) {
   const have = new Set((await db.all("PRAGMA table_info(users)")).map((c) => c.name));
   for (const [col, type] of Object.entries(ADDED_USER_COLUMNS)) {
     if (!have.has(col)) await db.run(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
+  }
+  const haveP = new Set((await db.all("PRAGMA table_info(products)")).map((c) => c.name));
+  for (const [col, type] of Object.entries(ADDED_PRODUCT_COLUMNS)) {
+    if (!haveP.has(col)) await db.run(`ALTER TABLE products ADD COLUMN ${col} ${type}`);
   }
 }
