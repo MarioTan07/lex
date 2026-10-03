@@ -146,6 +146,7 @@ const MESSAGES = {
     badRequest: "Permintaan tidak bisa dibaca. Coba lagi.",
     server: "Terjadi kesalahan di server. Coba lagi.",
     photoStorage: "Penyimpanan foto belum disiapkan. Hubungi admin.",
+    photoUpload: "Foto tidak bisa diunggah sekarang. Coba lagi, atau simpan tanpa foto dulu.",
   },
   en: {
     required: "{label} is required.",
@@ -189,6 +190,7 @@ const MESSAGES = {
     badRequest: "The request couldn't be read. Try again.",
     server: "Something went wrong on the server. Try again.",
     photoStorage: "Photo storage isn't set up yet. Contact the admin.",
+    photoUpload: "The photo couldn't be uploaded right now. Try again, or save without a photo for now.",
   },
 };
 function requestLang(req) {
@@ -221,25 +223,37 @@ function money(v) {
   if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("price");
   return Math.round(n);
 }
-async function savePhoto(dataUrl) {
+// Credentials for Vercel Blob. With a store connected by BLOB_STORE_ID, Vercel signs each request
+// with a short-lived token in the x-vercel-oidc-token header; pass it along explicitly.
+function blobAuth(req) {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return {};
+  const oidcToken = req?.get("x-vercel-oidc-token") || process.env.VERCEL_OIDC_TOKEN;
+  return oidcToken ? { oidcToken, storeId: process.env.BLOB_STORE_ID } : {};
+}
+async function savePhoto(dataUrl, req) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || "");
   if (!m) throw bad("photoType");
   const buf = Buffer.from(m[2], "base64");
   if (buf.length > 1.5 * 1024 * 1024) throw bad("photoSize");
   const name = crypto.randomBytes(12).toString("hex") + "." + (m[1] === "jpeg" ? "jpg" : m[1]);
   if (USE_BLOB) {
-    const blob = await put("products/" + name, buf, { access: "public", contentType: "image/" + m[1], addRandomSuffix: false });
-    return blob.url;
+    try {
+      const blob = await put("products/" + name, buf, { access: "public", contentType: "image/" + m[1], addRandomSuffix: false, ...blobAuth(req) });
+      return blob.url;
+    } catch (e) {
+      console.error("Photo upload to Vercel Blob failed:", e.message);
+      throw new HttpError(503, "photoUpload");
+    }
   }
   if (ON_VERCEL) throw new HttpError(503, "photoStorage");
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
   return "/uploads/" + name;
 }
-function removePhoto(p) {
+function removePhoto(p, req) {
   if (!p) return;
   if (/^https:\/\/[^/]+\.blob\.vercel-storage\.com\//.test(p)) {
-    if (USE_BLOB) del(p).catch((e) => console.error("Couldn't delete photo", p, e.message));
+    if (USE_BLOB) del(p, blobAuth(req)).catch((e) => console.error("Couldn't delete photo", p, e.message));
     return;
   }
   if (p.startsWith("/uploads/") && !ON_VERCEL) fs.rm(path.join(UPLOAD_DIR, path.basename(p)), () => {});
@@ -445,7 +459,7 @@ async function ownProduct(req) {
 seller.post("/products", async (req, res) => {
   const f = productFields(req.body, false);
   if ((await db.one("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?", req.user.id)).n >= 200) throw bad("maxProducts");
-  const photo = req.body.photo ? await savePhoto(req.body.photo) : "";
+  const photo = req.body.photo ? await savePhoto(req.body.photo, req) : "";
   const r = await db.run("INSERT INTO products (seller_id, name, price, unit, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
     req.user.id, f.name, f.price, f.unit, f.description, photo, Date.now());
   res.status(201).json({ id: r.id });
@@ -454,7 +468,7 @@ seller.post("/products", async (req, res) => {
 seller.patch("/products/:id", async (req, res) => {
   const p = await ownProduct(req);
   const f = productFields(req.body, true);
-  if (req.body.photo) { f.photo = await savePhoto(req.body.photo); removePhoto(p.photo); }
+  if (req.body.photo) { f.photo = await savePhoto(req.body.photo, req); removePhoto(p.photo, req); }
   const keys = Object.keys(f);
   if (keys.length) await db.run(`UPDATE products SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), p.id);
   res.json({ ok: true });
@@ -463,7 +477,7 @@ seller.patch("/products/:id", async (req, res) => {
 seller.delete("/products/:id", async (req, res) => {
   const p = await ownProduct(req);
   await db.run("DELETE FROM products WHERE id = ?", p.id);
-  removePhoto(p.photo);
+  removePhoto(p.photo, req);
   res.json({ ok: true });
 });
 
@@ -541,7 +555,7 @@ admin.delete("/sellers/:id", async (req, res) => {
     ["DELETE FROM products WHERE seller_id = ?", u.id],
     ["DELETE FROM users WHERE id = ?", u.id],
   ]);
-  photos.forEach(removePhoto);
+  photos.forEach((p) => removePhoto(p, req));
   res.json({ ok: true });
 });
 
@@ -560,7 +574,7 @@ admin.delete("/products/:id", async (req, res) => {
   const p = await db.one("SELECT * FROM products WHERE id = ?", Number(req.params.id));
   if (!p) throw new HttpError(404, "noProduct");
   await db.run("DELETE FROM products WHERE id = ?", p.id);
-  removePhoto(p.photo);
+  removePhoto(p.photo, req);
   res.json({ ok: true });
 });
 
