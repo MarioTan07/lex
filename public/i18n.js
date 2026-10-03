@@ -364,6 +364,7 @@ const TEXT = {
     "msg.name": "Name: {name}",
     "msg.thanks": "Thank you!",
     "footer.sellerSignIn": "Seller sign-in",
+    "footer.admin": "Admin",
 
     "seller.title": "Seller desk · Kampoeng Semanggi",
     "seller.role": "Seller desk",
@@ -589,7 +590,13 @@ function orig(n) {
   }
   return o;
 }
-const pick = (source, key) => (lang === "id" && source && source.trim() ? source : t(key));
+// A key with no translation would show as its name (like "footer.admin"); show the Indonesian original instead.
+const pick = (source, key) => {
+  const hasSource = source && source.trim();
+  if (lang === "id" && hasSource) return source;
+  const out = t(key);
+  return out === key && hasSource ? source : out;
+};
 
 export function applyI18n(root = document) {
   document.documentElement.lang = lang;
