@@ -116,3 +116,7 @@ The two admins sign in at `/pengelola` with **admin1semanggi@gmail.com** and **a
 ## Example sellers
 
 To try the site with some shops and products, run `npm run demo:add`. It adds six example shops with 20 products, all with `@contoh.test` sign-in emails; their passwords are saved in `data/demo-sellers.txt`. Run `npm run demo:remove` to delete them again before real sellers use the site.
+
+## Seller accounts
+
+Admins create a seller with just a **phone number** and a starting password (Pengelola → Penjual → Buat akun penjual). The seller signs in at `/penjual` with that phone number; any way of writing it works (`0812 3456 7890`, `+62 812-3456-7890`, `62812…`). The first time they sign in they must fill in their details (name, contact number, shop address unless they only sell from home, and home address) before they can do anything else; their shop only appears on the website after that. Sellers created earlier with an email keep signing in with their email.

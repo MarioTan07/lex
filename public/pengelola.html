@@ -79,11 +79,13 @@
         </div>
         <div id="sellerFormBody" class="stack" style="gap:14px">
           <div class="row2" id="accountFields">
-            <div class="field"><label for="n-email" data-i18n="sellerForm.email">Email (untuk masuk)</label><input type="email" id="n-email" maxlength="120" autocomplete="off"></div>
+            <div class="field"><label for="n-login" data-i18n="sellerForm.loginPhone">Nomor HP (untuk masuk)</label><input type="tel" id="n-login" maxlength="24" autocomplete="off" placeholder="0812 3456 7890"></div>
             <div class="field"><label for="n-pass" data-i18n="sellerForm.password">Kata sandi awal</label>
               <div style="display:flex;gap:8px"><input type="text" id="n-pass" minlength="8" autocomplete="off"><button class="btn small ghost" type="button" id="genPass" data-i18n="sellerForm.generate">Buat otomatis</button></div>
               <span class="hint" data-i18n="sellerForm.passwordHint">Berikan ini ke penjual. Mereka bisa menggantinya setelah masuk.</span></div>
           </div>
+          <p class="hint muted small" id="createHint" data-i18n="sellerForm.createHint">Penjual mengisi nama, lapak, dan alamatnya sendiri saat pertama kali masuk.</p>
+          <fieldset class="plain stack" id="profileFields" style="gap:14px">
           <div class="row2">
             <div class="field"><label for="n-name" data-i18n="sellerForm.sellerName">Nama penjual</label><input type="text" id="n-name" required maxlength="60"></div>
             <div class="field"><label for="n-stall" data-i18n="common.shopNameOptional">Nama lapak (opsional)</label><input type="text" id="n-stall" maxlength="60" placeholder="Semanggi Bu Sri"></div>
@@ -94,6 +96,7 @@
           <p class="hint muted small" data-i18n="common.fromHomeHint">Alamat rumah tidak pernah ditampilkan di website. Pembeli diberi tahu bahwa penjual akan mengirim alamat rumah lewat WhatsApp setelah mereka memesan, jadi kirimkan alamat ke pembeli saat mereka menghubungi.</p>
           <div id="n-shop"></div>
           <div id="n-home"></div>
+          </fieldset>
           <p class="formerr" id="sellerErr" hidden></p>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn" type="submit" id="sellerSubmit">Buat akun penjual</button>
@@ -201,7 +204,7 @@
 
     <div id="view-account" role="tabpanel" hidden>
       <form class="panel" id="passwordForm" style="max-width:420px">
-        <input type="email" id="pw-user" name="username" autocomplete="username" hidden>
+        <input type="text" id="pw-user" name="username" autocomplete="username" hidden>
         <h3 data-i18n="admin.changePassword">Ganti kata sandi admin</h3>
         <div class="field"><label for="pw-cur" data-i18n="common.currentPassword">Kata sandi saat ini</label><input type="password" id="pw-cur" autocomplete="current-password" required></div>
         <div class="field"><label for="pw-new" data-i18n="common.newPassword">Kata sandi baru</label><input type="password" id="pw-new" autocomplete="new-password" required minlength="8"></div>

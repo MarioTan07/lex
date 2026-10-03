@@ -73,19 +73,27 @@ function labelSellerForm() {
   $("#sellerFormToggle").textContent = t($("#sellerFormBody").hidden ? "sellerForm.show" : "sellerForm.hide");
 }
 
+// Creating a seller needs only a phone number and password; the shop details show when editing.
+// The details are disabled (not just hidden) while creating, so their required fields don't block the form.
+function showProfileFields(on) {
+  $("#profileFields").hidden = !on; $("#profileFields").disabled = !on;
+  $("#createHint").hidden = on;
+  $("#accountFields").hidden = on;
+}
 function resetSellerForm() {
   editingSeller = null;
   $("#sellerForm").reset(); shopLoc.set(null); homeLoc.set(null);
-  $("#accountFields").hidden = false;
+  showProfileFields(false);
   labelSellerForm();
   $("#sellerCancel").hidden = true; $("#sellerErr").hidden = true;
 }
 $("#sellerCancel").addEventListener("click", resetSellerForm);
+showProfileFields(false); // the form starts in create mode
 
 function editSeller(s) {
   editingSeller = s;
   $("#sellerFormBody").hidden = false;
-  $("#accountFields").hidden = true;
+  showProfileFields(true);
   $("#n-name").value = s.name; $("#n-stall").value = s.stallName; $("#n-phone").value = s.phone;
   $("#n-ig").value = s.instagram ? "@" + s.instagram : ""; $("#n-fromhome").checked = s.fromHome;
   shopLoc.set(s.shop); homeLoc.set(s.home);
@@ -99,15 +107,15 @@ $("#sellerForm").addEventListener("submit", async (e) => {
   const errBox = $("#sellerErr"); errBox.hidden = true;
   const btn = $("#sellerSubmit"); btn.disabled = true;
   try {
-    const body = { name: $("#n-name").value, stallName: $("#n-stall").value, phone: $("#n-phone").value, instagram: $("#n-ig").value, fromHome: $("#n-fromhome").checked, shop: shopLoc.get(), home: homeLoc.get() };
     if (editingSeller) {
+      const body = { name: $("#n-name").value, stallName: $("#n-stall").value, phone: $("#n-phone").value, instagram: $("#n-ig").value, fromHome: $("#n-fromhome").checked, shop: shopLoc.get(), home: homeLoc.get() };
       await api("/api/admin/sellers/" + editingSeller.id, { method: "PUT", body });
       toast(t("sellerForm.saved", { name: body.stallName || body.name }));
     } else {
-      body.email = $("#n-email").value; body.password = $("#n-pass").value;
-      if (!body.email) throw new Error(t("sellerForm.needEmail"));
+      const body = { phone: $("#n-login").value.trim(), password: $("#n-pass").value };
+      if (!body.phone) throw new Error(t("sellerForm.needPhone"));
       await api("/api/admin/sellers", { method: "POST", body });
-      showPassword(body.stallName || body.name, body.email, body.password);
+      showPassword(t("admin.newSeller"), body.phone, body.password);
       toast(t("sellerForm.created"));
     }
     resetSellerForm(); loadSellers(); loadOverview();
@@ -134,7 +142,7 @@ async function resetPassword(s) {
   const password = randomPassword();
   try {
     await api(`/api/admin/sellers/${s.id}/password`, { method: "POST", body: { password } });
-    showPassword(shopName(s), s.email, password);
+    showPassword(shopName(s) || s.loginPhone, s.loginPhone || s.email, password);
   } catch (e) { handle(e); }
 }
 
@@ -157,7 +165,9 @@ function renderSellers() {
     body.append(el("tr", {},
       el("td", {}, el("strong", { text: shopName(s) }), el("div", { class: "muted small", text: t("admin.joined", { date: when(s.createdAt) }) }),
         s.instagram ? el("a", { class: "small", href: "https://instagram.com/" + s.instagram, target: "_blank", rel: "noopener", text: "@" + s.instagram }) : null),
-      el("td", {}, el("div", { text: s.name }), el("div", { class: "num", text: s.phone }), el("div", { class: "muted small", text: s.email })),
+      el("td", {}, el("div", { text: s.name || "—" }), el("div", { class: "num", text: s.phone }),
+        el("div", { class: "muted small", text: s.loginPhone ? t("admin.loginPhone", { phone: s.loginPhone }) : s.email }),
+        s.profileDone ? null : el("span", { class: "pill paused", text: t("admin.incomplete") })),
       locCell(s.shop, s.fromHome),
       locCell(s.home),
       el("td", { class: "num", text: String(s.products) }),

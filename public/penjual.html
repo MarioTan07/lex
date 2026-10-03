@@ -41,7 +41,7 @@
     <form class="panel" id="loginForm">
       <p class="eyebrow" data-i18n="seller.eyebrow">Penjual</p>
       <h2 data-i18n="seller.signInTitle">Masuk ke lapak Anda</h2>
-      <div class="field"><label for="l-email" data-i18n="common.email">Email</label><input type="email" id="l-email" autocomplete="username" required></div>
+      <div class="field"><label for="l-email" data-i18n="seller.loginLabel">Nomor HP atau email</label><input type="text" id="l-email" autocomplete="username" inputmode="email" placeholder="0812 3456 7890" required></div>
       <div class="field"><label for="l-pass" data-i18n="common.password">Kata sandi</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
       <p class="formerr" id="loginErr" hidden></p>
       <button class="btn" type="submit" data-i18n="common.signIn">Masuk</button>
@@ -49,8 +49,18 @@
     <div class="panel">
       <p class="eyebrow" data-i18n="seller.newEyebrow">Penjual baru?</p>
       <h2 data-i18n="seller.askTitle">Minta akun ke admin</h2>
-      <p class="muted" data-i18n="seller.askText">Akun penjual dibuat oleh admin Kampoeng Semanggi. Admin akan memberi Anda email dan kata sandi awal. Ganti kata sandi setelah pertama kali masuk.</p>
+      <p class="muted" data-i18n="seller.askText">Akun penjual dibuat oleh admin Kampoeng Semanggi. Admin akan memberi Anda nomor HP untuk masuk dan kata sandi awal. Saat pertama kali masuk, Anda mengisi data lapak, lalu bisa mengganti kata sandi.</p>
     </div>
+  </section>
+
+  <!-- first sign-in: the seller fills in their details before anything else -->
+  <section class="desk setup" id="setupView" hidden>
+    <div class="setup-head">
+      <p class="eyebrow" data-i18n="setup.eyebrow">Langkah terakhir</p>
+      <h1 data-i18n="setup.title">Lengkapi data lapak Anda</h1>
+      <p class="lede" data-i18n="setup.lede">Isi data ini sekali saja. Setelah disimpan, lapak Anda tampil di website dan Anda bisa mulai menambahkan produk.</p>
+    </div>
+    <div id="setupSlot"></div>
   </section>
 
   <!-- signed in -->
@@ -171,7 +181,7 @@
         </form>
 
         <form class="panel" id="passwordForm">
-          <input type="email" id="pw-user" name="username" autocomplete="username" hidden>
+          <input type="text" id="pw-user" name="username" autocomplete="username" hidden>
           <h3 data-i18n="common.changePassword">Ganti kata sandi</h3>
           <div class="field"><label for="pw-cur" data-i18n="common.currentPassword">Kata sandi saat ini</label><input type="password" id="pw-cur" autocomplete="current-password" required></div>
           <div class="field"><label for="pw-new" data-i18n="common.newPassword">Kata sandi baru</label><input type="password" id="pw-new" autocomplete="new-password" required minlength="8"></div>

@@ -118,6 +118,9 @@ const ADDED_USER_COLUMNS = {
   paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
   instagram: "TEXT NOT NULL DEFAULT ''", from_home: "INTEGER NOT NULL DEFAULT 0",
   hours: "TEXT NOT NULL DEFAULT ''",
+  // 0 until a seller created with only a phone number fills in their details at first sign-in.
+  // Sellers who existed before this was added already have their details, so they start at 1.
+  profile_done: "INTEGER NOT NULL DEFAULT 1",
   big_order_days: "INTEGER NOT NULL DEFAULT 0", big_order_note: "TEXT NOT NULL DEFAULT ''",
 };
 // Product columns added later. pieces: how many pieces one listed price covers (e.g. Rp 160.000 for 65),

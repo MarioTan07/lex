@@ -25,11 +25,24 @@ async function start() {
   if (user && user.role === "admin") { location.href = "/pengelola"; return; }
   me = user;
   // Tells password managers which account the change-password form is for (kept when the form resets).
-  $("#pw-user").setAttribute("value", me?.email || "");
+  $("#pw-user").setAttribute("value", me?.loginPhone || me?.email || "");
+  const setup = !!me && !me.profileDone;
   $("#authView").hidden = !!me;
-  $("#deskView").hidden = !me;
+  $("#setupView").hidden = !setup;
+  $("#deskView").hidden = !me || setup;
   $("#logoutBtn").hidden = !me;
+  placeProfileForm(setup);
+  if (setup) { fillProfile(); return; }
   if (me) { renderHead(); fillProfile(); loadProducts(); loadStats(); }
+}
+
+// On the first sign-in the shop-details form is shown on its own; afterwards it sits in the desk as usual.
+const profileHome = document.createComment("profile form");
+$("#profileForm").before(profileHome);
+function placeProfileForm(setup) {
+  const form = $("#profileForm");
+  if (setup) $("#setupSlot").append(form); else profileHome.after(form);
+  form.querySelector('button[type="submit"]').textContent = t(setup ? "setup.save" : "profile.save");
 }
 
 function showErr(id, msg) { const p = $(id); p.textContent = msg; p.hidden = !msg; }
@@ -218,11 +231,14 @@ $("#profileForm").addEventListener("submit", async (e) => {
   try {
     const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(),
       bigOrders: $("#s-big").checked ? { days: Number($("#s-big-days").value), note: $("#s-big-note").value } : null, shop: shopLoc.get(), home: homeLoc.get() };
+    const firstTime = !me.profileDone;
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
+    if (firstTime) { toast(t("setup.done")); start(); window.scrollTo(0, 0); return; }
     renderHead(); fillProfile(); toast(t("profile.saved"));
   } catch (err) {
-    if (err.status) return handle(err);
+    if (err.status === 401 || err.status === 403) return handle(err);
     errBox.textContent = err.message; errBox.hidden = false;
+    errBox.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 });
 $("#passwordForm").addEventListener("submit", async (e) => {

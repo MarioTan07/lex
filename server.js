@@ -168,7 +168,11 @@ const MESSAGES = {
     emailInvalid: "Masukkan alamat email yang valid.",
     passwordShort: "Gunakan kata sandi minimal 8 karakter.",
     emailTaken: "Sudah ada akun dengan email ini.",
-    loginWrong: "Email dan kata sandi tidak cocok.",
+    loginWrong: "Nomor HP/email dan kata sandi tidak cocok.",
+    phoneInvalid: "Masukkan nomor HP yang valid, misalnya 0812 3456 7890.",
+    phoneTaken: "Sudah ada akun dengan nomor HP ini.",
+    profileIncomplete: "Lengkapi data lapak Anda dulu.",
+    "label.loginPhone": "Nomor HP",
     suspended: "Akun ini ditangguhkan. Hubungi admin Kampoeng Semanggi.",
     adminAccount: "Ini akun admin. Masuk di /pengelola.",
     sellerAccount: "Ini akun penjual. Masuk di /penjual.",
@@ -240,7 +244,11 @@ const MESSAGES = {
     emailInvalid: "Enter a valid email address.",
     passwordShort: "Use a password of at least 8 characters.",
     emailTaken: "An account with this email already exists.",
-    loginWrong: "That email and password don't match.",
+    loginWrong: "That phone number or email and password don't match.",
+    phoneInvalid: "Enter a valid phone number, for example 0812 3456 7890.",
+    phoneTaken: "An account with this phone number already exists.",
+    profileIncomplete: "Complete your shop details first.",
+    "label.loginPhone": "Phone number",
     suspended: "This account is suspended. Contact the Kampoeng Semanggi admin.",
     adminAccount: "This is an admin account. Sign in at /pengelola.",
     sellerAccount: "This is a seller account. Sign in at /penjual.",
@@ -343,8 +351,22 @@ function removePhoto(p, req) {
   }
   if (p.startsWith("/uploads/") && !ON_VERCEL) fs.rm(path.join(UPLOAD_DIR, path.basename(p)), () => {});
 }
+// Sellers sign in with a phone number; admins (and sellers made before phone sign-in) with an email.
+// A phone number is kept in one form, digits starting with 62, so "0812-3456-7890", "+62 812 3456 7890"
+// and "6281234567890" are the same account. It's stored in the email column, which holds the sign-in name.
+function phoneKey(v) {
+  const d = String(v || "").replace(/\D/g, "");
+  const k = d.startsWith("62") ? d : d.startsWith("0") ? "62" + d.slice(1) : d.startsWith("8") ? "62" + d : d;
+  return /^62\d{8,13}$/.test(k) ? k : null;
+}
+const loginKey = (v) => { const s = String(v || "").trim(); return s.includes("@") ? s.toLowerCase() : phoneKey(s); };
+const isPhoneKey = (k) => /^62\d{8,13}$/.test(k || "");
+
 function publicUser(u) {
   return u && {
+    // loginPhone: the phone number a seller signs in with, written the local way (0812…); null for email sign-ins.
+    loginPhone: isPhoneKey(u.email) ? "0" + u.email.slice(2) : null,
+    profileDone: u.role !== "seller" || !!u.profile_done,
     id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
@@ -470,9 +492,10 @@ function newPassword(v) {
 
 app.post("/api/auth/login", async (req, res) => {
   throttle(req);
-  const email = text(req.body.email, 120).toLowerCase();
+  // The form field is still called "email" but takes a phone number or an email.
+  const key = loginKey(text(req.body.email, 120));
   const password = typeof req.body.password === "string" ? req.body.password : "";
-  const u = await db.one("SELECT * FROM users WHERE email = ?", email);
+  const u = key ? await db.one("SELECT * FROM users WHERE email = ?", key) : null;
   if (!u || !checkPassword(password, u.password_hash)) throw new HttpError(401, "loginWrong");
   if (u.status === "suspended") throw new HttpError(403, "suspended");
   if (req.body.role && req.body.role !== u.role) throw new HttpError(403, u.role === "admin" ? "adminAccount" : "sellerAccount");
@@ -502,7 +525,7 @@ app.post("/api/auth/password", requireRole("seller", "admin"), async (req, res) 
 app.get("/api/catalog", async (_req, res) => {
   const rows = await db.all(`
     SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM products p JOIN users u ON u.id = p.seller_id
-    WHERE u.role = 'seller' AND u.status = 'approved' AND p.hidden = 0
+    WHERE u.role = 'seller' AND u.status = 'approved' AND u.profile_done = 1 AND p.hidden = 0
     ORDER BY 2 COLLATE NOCASE, p.created_at`);
   res.json({ products: rows.map(productOut), hot: await hotProducts() });
 });
@@ -539,14 +562,14 @@ async function hotProducts() {
   const since = wibDay(Date.now() - 6 * 864e5);
   const rows = await db.all(`SELECT t.product_id AS id, SUM(t.n) AS n FROM product_taps t
     JOIN products p ON p.id = t.product_id JOIN users u ON u.id = p.seller_id
-    WHERE t.day >= ? AND p.hidden = 0 AND p.available = 1 AND u.status = 'approved'
+    WHERE t.day >= ? AND p.hidden = 0 AND p.available = 1 AND u.status = 'approved' AND u.profile_done = 1
     GROUP BY t.product_id HAVING SUM(t.n) >= 3 ORDER BY n DESC LIMIT 4`, since);
   return rows.map((r) => r.id);
 }
 
 // Shop name, shop location, contact number and open/paused state of every approved seller. Home addresses stay private.
 app.get("/api/stalls", async (_req, res) => {
-  const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
+  const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' AND profile_done = 1 ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
     return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, bigOrders: p.bigOrders, paused: p.paused, pauseNote: p.pauseNote };
@@ -700,9 +723,18 @@ app.get("/api/listings", async (_req, res) => {
 // ----- seller -----
 const seller = express.Router();
 seller.use(requireRole("seller"));
+// Until a new seller has filled in their details, the profile is the only thing they can change.
+seller.use((req, _res, next) => next(req.user.profile_done || req.path === "/profile" ? undefined : new HttpError(403, "profileIncomplete")));
 
 seller.patch("/profile", async (req, res) => {
-  await updateUser(req.user.id, sellerFields(req.body));
+  const f = sellerFields(req.body);
+  if (!req.user.profile_done) {
+    // First sign-in: the home address is needed, and a shop address unless they only sell from home.
+    if (!f.home_address) throw bad("required", { label: "label.homeAddress" });
+    if (!f.shop_address && !f.from_home) throw bad("required", { label: "label.shopAddress" });
+    f.profile_done = 1;
+  }
+  await updateUser(req.user.id, f);
   res.json({ user: publicUser(await userById(req.user.id)) });
 });
 
@@ -843,15 +875,16 @@ admin.get("/sellers", async (_req, res) => {
   res.json({ sellers: rows.map((u) => ({ ...publicUser(u), products: u.products, createdAt: u.created_at })) });
 });
 
+// Admins create a seller with just a phone number and a starting password. The seller fills in the rest
+// (name, shop, addresses) the first time they sign in.
 admin.post("/sellers", async (req, res) => {
-  const email = text(req.body.email, 120, { required: true, label: "label.email" }).toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad("emailInvalid");
+  const typed = text(req.body.phone, 24, { required: true, label: "label.loginPhone" });
+  const key = phoneKey(typed);
+  if (!key) throw bad("phoneInvalid");
   const password = newPassword(req.body.password);
-  const f = sellerFields(req.body);
-  if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", email)) throw bad("emailTaken");
-  const r = await db.run("INSERT INTO users (email, password_hash, role, status, created_at) VALUES (?, ?, 'seller', 'approved', ?)",
-    email, hashPassword(password), Date.now());
-  await updateUser(r.id, f);
+  if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", key)) throw bad("phoneTaken");
+  const r = await db.run("INSERT INTO users (email, password_hash, role, status, phone, profile_done, created_at) VALUES (?, ?, 'seller', 'approved', ?, 0, ?)",
+    key, hashPassword(password), typed, Date.now());
   res.status(201).json({ id: r.id });
 });
 
