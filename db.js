@@ -70,6 +70,15 @@ const SCHEMA = `
     n INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (product_id, day)
   );
+  -- What buyers did with a product each day, for the seller's statistics: kind is view, call, whatsapp,
+  -- order or share. Each visitor counts once per product, kind and day; only the totals are kept.
+  CREATE TABLE IF NOT EXISTS product_events (
+    product_id INTEGER NOT NULL,
+    day TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (product_id, day, kind)
+  );
   -- Site-wide settings the admins edit, such as the sponsor contact number. One row per setting.
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -86,10 +95,11 @@ const ADDED_USER_COLUMNS = {
   paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
   instagram: "TEXT NOT NULL DEFAULT ''", from_home: "INTEGER NOT NULL DEFAULT 0",
   hours: "TEXT NOT NULL DEFAULT ''",
+  big_order_days: "INTEGER NOT NULL DEFAULT 0", big_order_note: "TEXT NOT NULL DEFAULT ''",
 };
 // Product columns added later. pieces: how many pieces one listed price covers (e.g. Rp 160.000 for 65),
 // for comparing prices per piece; empty means not given. category: one of the catalog filter categories.
-const ADDED_PRODUCT_COLUMNS = { category: "TEXT NOT NULL DEFAULT ''", pieces: "INTEGER" };
+const ADDED_PRODUCT_COLUMNS = { category: "TEXT NOT NULL DEFAULT ''", pieces: "INTEGER", extra_photos: "TEXT NOT NULL DEFAULT ''" };
 
 const isNetworkError = (e) => /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network/i.test(`${e?.message} ${e?.cause?.message ?? ""} ${e?.cause?.code ?? ""}`);
 const arg = (v) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);

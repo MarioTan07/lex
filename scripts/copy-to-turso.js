@@ -54,12 +54,32 @@ for (const p of products) {
   });
   newPhoto.set(p.id, blob.url);
 }
+// Extra photos (a JSON list per product) are uploaded the same way.
+const withExtras = await local.all("SELECT id, extra_photos FROM products WHERE extra_photos LIKE '%/uploads/%'").catch(() => []);
+const newExtras = new Map();
+for (const p of withExtras) {
+  const list = [];
+  for (const url of JSON.parse(p.extra_photos)) {
+    if (!url.startsWith("/uploads/")) { list.push(url); continue; }
+    const file = path.join(DATA_DIR, "uploads", path.basename(url));
+    if (!BLOB_OK || !fs.existsSync(file)) continue;
+    const ext = path.extname(file).slice(1).toLowerCase();
+    const blob = await put("products/" + path.basename(file), fs.readFileSync(file), {
+      access: "public", contentType: "image/" + (ext === "jpg" ? "jpeg" : ext), addRandomSuffix: false, allowOverwrite: true,
+    });
+    list.push(blob.url);
+  }
+  newExtras.set(p.id, JSON.stringify(list));
+}
 if (BLOB_OK && newPhoto.size) console.log(`Uploaded ${[...newPhoto.values()].filter(Boolean).length} photo(s) to Vercel Blob.`);
 
 for (const table of TABLES) {
   const cols = (await local.all(`PRAGMA table_info(${table})`)).map((c) => c.name);
   const rows = await local.all(`SELECT ${cols.join(", ")} FROM ${table}`);
-  if (table === "products") for (const r of rows) if (newPhoto.has(r.id)) r.photo = newPhoto.get(r.id);
+  if (table === "products") for (const r of rows) {
+    if (newPhoto.has(r.id)) r.photo = newPhoto.get(r.id);
+    if (newExtras.has(r.id)) r.extra_photos = newExtras.get(r.id);
+  }
   const sql = `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
   for (let i = 0; i < rows.length; i += 100) {
     await remote.batch(rows.slice(i, i + 100).map((r) => [sql, ...cols.map((c) => r[c])]));

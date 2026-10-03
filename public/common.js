@@ -30,6 +30,9 @@ const ICONS = {
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   "chevron-down": '<path d="m6 9 6 6 6-6"/>',
   instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+  calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+  "chevron-left": '<path d="m15 18-6-6 6-6"/>',
+  "chevron-right": '<path d="m9 18 6-6-6-6"/>',
   heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
   share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
@@ -168,11 +171,18 @@ export const instagramLink = (handle) => "https://instagram.com/" + encodeURICom
 
 // Call / WhatsApp / Directions / Instagram buttons for a seller (Directions only when they have a shop, Instagram only when set). `message` pre-fills the WhatsApp chat;
 // with `order`, English-speaking buyers get the step-by-step order helper instead; Indonesian buyers just message the seller.
-// `onTap` runs when the buyer calls, messages or orders (used to count interest in a product).
+// `onTap(kind)` runs when the buyer calls ("call"), messages ("whatsapp") or orders ("order"), to count interest in a product.
 export function contactButtons(stall, message, { directions = true, order = null, onTap = null } = {}) {
   const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
   const name = stall.stallName;
-  return el("div", { class: "reach", onclick: onTap ? (e) => { if (e.target.closest("a, button") && !e.target.closest("[href*='google'], [href*='instagram']")) onTap(); } : null },
+  return el("div", { class: "reach", onclick: onTap ? (e) => {
+    const b = e.target.closest("a, button");
+    if (!b) return;
+    const href = b.getAttribute("href") || "";
+    if (href.startsWith("tel:")) onTap("call");
+    else if (href.includes("wa.me")) onTap("whatsapp");
+    else if (b.tagName === "BUTTON") onTap("order");
+  } : null },
     tel ? el("a", { class: "btn ghost", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, icon("phone"), t("contact.call")) : null,
     wa && order && lang === "en" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
     : wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
@@ -282,8 +292,15 @@ export function favButton(kind, id, name, onChange) {
   return b;
 }
 // Count a visitor's interest in a product (at most once a day per visitor; only the count is stored).
-export function tap(productId) {
-  fetch("/api/tap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId }), keepalive: true }).catch(() => {});
+// `kind` is view, call, whatsapp, order or share; it goes into the seller's statistics.
+export function tap(productId, kind = "view") {
+  fetch("/api/tap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId, kind }), keepalive: true }).catch(() => {});
+}
+// "Takes large orders · order 2 days ahead · min. 50 portions" for sellers who take them.
+export function bigOrderLine(stall) {
+  const b = stall && stall.bigOrders;
+  if (!b) return null;
+  return el("p", { class: "big-order" }, icon("calendar"), t(b.days === 1 ? "big.label1" : "big.labelN", { days: b.days }) + (b.note ? " · " + b.note : ""));
 }
 // Share a link with the phone's share sheet, or on WhatsApp where that isn't available.
 export function shareButton({ title, text, url, onShare }) {

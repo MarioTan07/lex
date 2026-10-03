@@ -1,4 +1,4 @@
-import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap } from "/common.js";
+import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, bigOrderLine } from "/common.js";
 import { lang } from "/i18n.js";
 import { openOrder } from "/order.js";
 
@@ -62,12 +62,14 @@ function renderShop() {
   const kinds = $("#kindChips"); kinds.replaceChildren();
   const cats = CATEGORIES.filter((c) => products.some((p) => p.category === c));
   const hasFav = products.some((p) => favs.has("p", p.id));
-  if (filterKind === "hot" && !hot.length || filterKind === "fav" && !hasFav) filterKind = "all";
+  const takesBig = (p) => !!stallById(p.sellerId)?.bigOrders;
+  const hasBig = products.some(takesBig);
+  if (filterKind === "hot" && !hot.length || filterKind === "fav" && !hasFav || filterKind === "big" && !hasBig) filterKind = "all";
   const kindChip = (k, label, ico) => el("button", { "aria-pressed": String(filterKind === k), onclick: () => { filterKind = k; renderShop(); } }, ico ? icon(ico) : null, label);
-  const kindList = [hot.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
+  const kindList = [hot.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, hasBig ? kindChip("big", t("big.chip"), "calendar") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
   kinds.hidden = !kindList.length;
   if (kindList.length) kinds.append(kindChip("all", t("cat.all")), ...kindList);
-  const kindOk = (p) => filterKind === "all" || (filterKind === "hot" ? hot.includes(p.id) : filterKind === "fav" ? favs.has("p", p.id) : p.category === filterKind);
+  const kindOk = (p) => filterKind === "all" || (filterKind === "hot" ? hot.includes(p.id) : filterKind === "fav" ? favs.has("p", p.id) : filterKind === "big" ? takesBig(p) : p.category === filterKind);
   const shown = products.filter((p) => kindOk(p) && (filterStall === "all" || p.sellerId === filterStall)
     && (!query || norm(p.name + " " + p.stallName + " " + (p.description || "")).includes(query)));
   const grid = $("#productGrid"); grid.replaceChildren();
@@ -84,18 +86,18 @@ function renderShop() {
     const open = () => openCompare(p);
     const sellers = new Set(products.filter((q) => sameProduct(p, q)).map((q) => q.sellerId)).size;
     grid.append(el("article", { class: "card", id: "produk-" + p.id },
-      el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("compare.view", { name: p.name }) },
-        p.photo ? el("img", { src: p.photo, alt: "", loading: "lazy" }) : leafSvg()),
+      photoBox(p, open),
       hot.includes(p.id) ? el("span", { class: "hot-badge" }, icon("flame"), t("hot.label")) : null,
       el("div", { class: "tools" },
         favButton("p", p.id, p.name, renderShop),
-        shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id) })),
+        shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id, "share") })),
       el("div", { class: "body" },
         el("div", { class: "card-head" },
           el("div", {},
             el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
             el("p", { class: "stall" }, icon("store"), p.stallName),
-            stall && !stall.paused ? hoursLine(stall.hours) : null),
+            stall && !stall.paused ? hoursLine(stall.hours) : null,
+            bigOrderLine(stall)),
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
         perPieceLine(p),
         sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: open, text: t("compare.count", { n: sellers }) }) : null,
@@ -103,10 +105,32 @@ function renderShop() {
         p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id), onTap: () => tap(p.id) }) : null)));
+          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) }) : null)));
   }
   renderHero();
   openLinkedProduct();
+}
+
+// A product's photo, or a swipeable strip with dots and arrows when it has several. Tapping a photo opens the shop list.
+function photoBox(p, open) {
+  const pics = p.photos && p.photos.length ? p.photos : p.photo ? [p.photo] : [];
+  if (pics.length < 2) {
+    return el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("compare.view", { name: p.name }) },
+      pics[0] ? el("img", { src: pics[0], alt: "", loading: "lazy" }) : leafSvg());
+  }
+  const track = el("div", { class: "pics" }, ...pics.map((src, i) =>
+    el("button", { type: "button", onclick: open, "aria-label": t("photos.open", { name: p.name, n: i + 1, total: pics.length }) },
+      el("img", { src, alt: "", loading: "lazy" }))));
+  const dots = el("div", { class: "pic-dots", "aria-hidden": "true" }, ...pics.map((_, i) => el("span", { class: i ? "" : "on" })));
+  let at = 0;
+  const go = (i) => { at = Math.max(0, Math.min(pics.length - 1, i)); track.scrollTo({ left: at * track.clientWidth, behavior: "smooth" }); };
+  track.addEventListener("scroll", () => {
+    at = Math.round(track.scrollLeft / track.clientWidth);
+    [...dots.children].forEach((d, i) => (d.className = i === at ? "on" : ""));
+  }, { passive: true });
+  return el("div", { class: "photo multi" }, track, dots,
+    el("button", { type: "button", class: "pic-nav prev", "aria-label": t("photos.prev"), onclick: (e) => { e.stopPropagation(); go(at - 1); } }, icon("chevron-left")),
+    el("button", { type: "button", class: "pic-nav next", "aria-label": t("photos.next"), onclick: (e) => { e.stopPropagation(); go(at + 1); } }, icon("chevron-right")));
 }
 
 // ---------- hero: today's pick & seller count ----------
@@ -220,11 +244,12 @@ function renderCompare() {
         stall && stall.shop.address ? el("p", { class: "muted small", text: stall.shop.address }) : null,
         stall ? homeNote(stall) : null,
         stall && !stall.paused ? hoursLine(stall.hours) : null,
+        bigOrderLine(stall),
         sortBy === "closest" ? el("p", { class: "small dist", text: dist != null ? distText(dist) : t("compare.noDistance") }) : null,
         !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id), onTap: () => tap(q.id) }) : null)));
+          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id), onTap: (kind) => tap(q.id, kind) }) : null)));
   }
 }
 
@@ -251,6 +276,7 @@ function renderShops() {
       el("div", { class: "body" },
         el("h3", { text: s.stallName }),
         s.paused ? null : hoursLine(s.hours),
+        bigOrderLine(s),
         hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
         homeNote(s),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),

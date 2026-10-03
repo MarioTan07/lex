@@ -5,6 +5,8 @@ let products = [];
 let editingId = null;
 let editingName = "";
 let pendingPhoto = null;
+let extraSaved = [];    // extra photos already on the product being edited (URLs)
+let extraPending = [];  // extra photos picked but not uploaded yet (data URLs)
 
 const shopLoc = locationEditor("s-shop", "shop", "seller.shopHint");
 const homeLoc = locationEditor("s-home", "home", "seller.homeHint");
@@ -12,6 +14,10 @@ $("#s-shop").replaceWith(shopLoc.node);
 $("#s-home").replaceWith(homeLoc.node);
 const hoursEd = hoursEditor("s-hours");
 $("#s-hours").replaceWith(hoursEd.node);
+
+// Large orders: the notice and note only matter when the box is ticked.
+const syncBig = () => { $("#s-big-fields").hidden = !$("#s-big").checked; };
+$("#s-big").addEventListener("change", syncBig);
 
 // ---------- session ----------
 async function start() {
@@ -23,7 +29,7 @@ async function start() {
   $("#authView").hidden = !!me;
   $("#deskView").hidden = !me;
   $("#logoutBtn").hidden = !me;
-  if (me) { renderHead(); fillProfile(); loadProducts(); }
+  if (me) { renderHead(); fillProfile(); loadProducts(); loadStats(); }
 }
 
 function showErr(id, msg) { const p = $(id); p.textContent = msg; p.hidden = !msg; }
@@ -72,6 +78,8 @@ function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
   $("#s-ig").value = me.instagram ? "@" + me.instagram : ""; $("#s-fromhome").checked = me.fromHome;
   shopLoc.set(me.shop); homeLoc.set(me.home); hoursEd.set(me.hours);
+  $("#s-big").checked = !!me.bigOrders; $("#s-big-days").value = String(me.bigOrders?.days || 2); $("#s-big-note").value = me.bigOrders?.note || "";
+  syncBig();
 }
 
 // Session expired or account suspended mid-visit.
@@ -121,10 +129,11 @@ function editProduct(p) {
   $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-pieces").value = p.pieces ?? ""; $("#p-desc").value = p.description; $("#p-category").value = p.category || "";
   pendingPhoto = null; $("#p-photo").value = "";
   $("#p-preview").src = p.photo || ""; $("#p-preview").hidden = !p.photo;
+  extraSaved = [...(p.extraPhotos || [])]; extraPending = []; renderExtras();
   $("#productForm").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function resetProductForm() {
-  editingId = null; pendingPhoto = null;
+  editingId = null; pendingPhoto = null; extraSaved = []; extraPending = []; renderExtras();
   $("#productForm").reset();
   $("#p-preview").hidden = true;
   labelProductForm();
@@ -139,6 +148,30 @@ $("#p-photo").addEventListener("change", async (e) => {
   catch { toast(t("product.badPhoto")); e.target.value = ""; }
 });
 
+// ---------- extra photos ----------
+function renderExtras() {
+  const box = $("#p-extras"); box.replaceChildren();
+  const thumb = (src, remove) => el("div", { class: "thumb" }, el("img", { src, alt: "" }),
+    el("button", { type: "button", "aria-label": t("product.removePhoto"), onclick: remove, text: "×" }));
+  extraSaved.forEach((src) => box.append(thumb(src, () => removeSavedExtra(src))));
+  extraPending.forEach((src, i) => box.append(thumb(src, () => { extraPending.splice(i, 1); renderExtras(); })));
+  $("#p-extra").disabled = extraSaved.length + extraPending.length >= 4;
+}
+async function removeSavedExtra(src) {
+  try {
+    await api(`/api/seller/products/${editingId}/photos`, { method: "DELETE", body: { photo: src } });
+    extraSaved = extraSaved.filter((x) => x !== src); renderExtras(); loadProducts(); toast(t("product.photoRemoved"));
+  } catch (e) { handle(e); }
+}
+$("#p-extra").addEventListener("change", async (e) => {
+  for (const f of [...e.target.files]) {
+    if (extraSaved.length + extraPending.length >= 4) { toast(t("product.maxPhotos")); break; }
+    try { extraPending.push(await shrinkPhoto(f)); } catch { toast(t("product.badPhoto")); }
+  }
+  e.target.value = "";
+  renderExtras();
+});
+
 $("#productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = $("#saveProductBtn");
@@ -146,20 +179,45 @@ $("#productForm").addEventListener("submit", async (e) => {
   const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, description: $("#p-desc").value, category: $("#p-category").value };
   if (pendingPhoto) body.photo = pendingPhoto;
   try {
+    let id = editingId;
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });
-    else await api("/api/seller/products", { method: "POST", body });
+    else ({ id } = await api("/api/seller/products", { method: "POST", body }));
+    // Extra photos go up one at a time after the product is saved.
+    for (const photo of extraPending) await api(`/api/seller/products/${id}/photos`, { method: "POST", body: { photo } });
     toast(t(editingId ? "product.saved" : "product.addedLive"));
     resetProductForm(); loadProducts();
   } catch (err) { handle(err); }
   btn.disabled = false; labelProductForm();
 });
 
+// ---------- statistics ----------
+let stats = null, statsRange = "week";
+async function loadStats() {
+  try { stats = await api("/api/seller/stats"); } catch (e) { return; }
+  renderStats();
+}
+function renderStats() {
+  if (!stats) return;
+  document.querySelectorAll("#statsRange button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.range === statsRange)));
+  const tot = stats.total[statsRange];
+  $("#statTiles").replaceChildren(...[["view", "sstats.views"], ["contact", "sstats.contacts"], ["share", "sstats.shares"]].map(([k, key]) =>
+    el("div", {}, el("dt", { text: t(key) }), el("dd", { text: String(tot[k]) }))));
+  const rows = [...stats.products].sort((a, b) => (b[statsRange].view + b[statsRange].contact) - (a[statsRange].view + a[statsRange].contact));
+  $("#statRows").replaceChildren(...(rows.length ? rows.map((p) => el("tr", {},
+    el("td", { text: p.name }), el("td", { class: "num", text: String(p[statsRange].view) }),
+    el("td", { class: "num", text: String(p[statsRange].contact) }), el("td", { class: "num", text: String(p[statsRange].share) })))
+    : [el("tr", {}, el("td", { colspan: "4", class: "muted", text: t("sstats.empty") }))]));
+}
+document.querySelectorAll("#statsRange button").forEach((b) => b.addEventListener("click", () => { statsRange = b.dataset.range; renderStats(); }));
+window.addEventListener("langchange", renderStats);
+
 // ---------- profile & password ----------
 $("#profileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
-    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(), shop: shopLoc.get(), home: homeLoc.get() };
+    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(),
+      bigOrders: $("#s-big").checked ? { days: Number($("#s-big-days").value), note: $("#s-big-note").value } : null, shop: shopLoc.get(), home: homeLoc.get() };
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     renderHead(); fillProfile(); toast(t("profile.saved"));
   } catch (err) {

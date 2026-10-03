@@ -355,6 +355,30 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .flash { animation: flash 2.4s ease; }
 @keyframes flash { 0%, 30% { box-shadow: 0 0 0 4px var(--leaf); } 100% { box-shadow: 0 0 0 0 transparent; } }
 
+/* several photos per product, big orders, seller statistics */
+.photo.multi { display: block; }
+.pics { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.pics::-webkit-scrollbar { display: none; }
+.pics button { flex: 0 0 100%; height: 100%; scroll-snap-align: start; border: 0; padding: 0; background: none; cursor: pointer; }
+.pics img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pic-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+.pic-dots span { width: 7px; height: 7px; border-radius: 50%; background: rgb(255 255 255 / .6); box-shadow: 0 1px 3px rgb(0 0 0 / .3); }
+.pic-dots span.on { background: #fff; width: 18px; border-radius: 999px; }
+.pic-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; border: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--ink); cursor: pointer; opacity: 0; transition: opacity .15s; box-shadow: 0 2px 6px rgb(0 0 0 / .2); }
+.pic-nav .icon { width: 16px; height: 16px; }
+.pic-nav.prev { left: 8px; } .pic-nav.next { right: 8px; }
+.card:hover .pic-nav, .pic-nav:focus-visible { opacity: 1; }
+@media (hover: none) { .pic-nav { display: none; } }
+.thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+.thumb { position: relative; }
+.thumb img { width: 72px; height: 54px; object-fit: cover; border-radius: 8px; display: block; }
+.thumb button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--ink); color: var(--paper); font-weight: 700; line-height: 1; cursor: pointer; }
+.big-order { display: flex; align-items: flex-start; gap: 6px; font-size: .8125rem; font-weight: 600; color: var(--leaf-ink); margin-top: 2px; }
+.big-order .icon { width: 14px; height: 14px; flex: none; margin-top: 3px; }
+.big-edit { display: grid; gap: 10px; }
+#statsPanel { display: grid; gap: 12px; }
+#statsPanel .desk-head { flex-wrap: wrap; gap: 10px; }
+
 /* homestay (coming soon) and sponsors */
 .extras { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: stretch; }
 .extra { display: grid; gap: 12px; align-content: start; padding: clamp(24px, 4vw, 36px); border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }

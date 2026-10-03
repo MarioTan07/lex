@@ -128,6 +128,9 @@ const MESSAGES = {
     "label.sponsorPhone": "Nomor sponsor",
     "label.homestayPhone": "Nomor homestay",
     "label.sponsorEmail": "Email sponsor",
+    tooManyPhotos: "Satu produk bisa punya maksimal 5 foto.",
+    noPhoto: "Foto itu tidak ada di produk ini.",
+    bigOrderDays: "Pilih berapa hari sebelumnya pesanan besar harus dipesan.",
     hoursInvalid: "Jam buka tidak valid. Isi jam buka dan tutup untuk setiap hari yang buka.",
     categoryInvalid: "Kategori tidak dikenal.",
     instagramInvalid: "Isi nama akun Instagram, misalnya @kampoengsemanggi, atau tautan profilnya.",
@@ -181,6 +184,9 @@ const MESSAGES = {
     "label.sponsorPhone": "Sponsor number",
     "label.homestayPhone": "Homestay number",
     "label.sponsorEmail": "Sponsor email",
+    tooManyPhotos: "A product can have at most 5 photos.",
+    noPhoto: "That photo isn't on this product.",
+    bigOrderDays: "Choose how many days ahead large orders must be placed.",
     hoursInvalid: "The opening hours aren't valid. Give an opening and closing time for each day the shop is open.",
     categoryInvalid: "Unknown category.",
     instagramInvalid: "Enter an Instagram username, like @kampoengsemanggi, or a link to the profile.",
@@ -311,6 +317,7 @@ function publicUser(u) {
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
     paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home, hours: hoursOut(u),
+    bigOrders: u.big_order_days ? { days: u.big_order_days, note: u.big_order_note || "" } : null,
   };
 }
 // Accepts "@name", "name" or an instagram.com profile link, and keeps just the username.
@@ -335,6 +342,13 @@ function hours(v) {
     out[d] = [day[0], day[1]];
   }
   return DAYS.some((d) => out[d]) ? JSON.stringify(out) : "";
+}
+// Large orders (events, arisan, hajatan): days of notice needed (0 = doesn't take them) and an optional note.
+function bigOrders(v) {
+  if (!v) return { big_order_days: 0, big_order_note: "" };
+  const days = Number(v.days);
+  if (!Number.isInteger(days) || days < 1 || days > 30) throw bad("bigOrderDays");
+  return { big_order_days: days, big_order_note: text(v.note, 80) };
 }
 const hoursOut = (u) => { try { return u.hours ? JSON.parse(u.hours) : null; } catch { return null; } };
 // A shop without a name goes by the seller's name.
@@ -362,8 +376,9 @@ function sellerFields(body) {
     phone: text(body.phone, 24, { required: true, label: "label.contactNumber" }),
     instagram: instagram(body.instagram),
     from_home: body.fromHome ? 1 : 0,
-    // The admin form doesn't edit hours, so they only change when sent.
+    // The admin form doesn't edit hours or big orders, so they only change when sent.
     ...(body.hours !== undefined ? { hours: hours(body.hours) } : {}),
+    ...(body.bigOrders !== undefined ? bigOrders(body.bigOrders) : {}),
     ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
     ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
   };
@@ -373,8 +388,10 @@ function updateUser(id, f) {
   return db.run(`UPDATE users SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), id);
 }
 const userById = (id) => db.one("SELECT * FROM users WHERE id = ?", id);
+const extraPhotos = (p) => { try { return p.extra_photos ? JSON.parse(p.extra_photos) : []; } catch { return []; } };
 function productOut(p) {
   return {
+    photos: [p.photo, ...extraPhotos(p)].filter(Boolean), extraPhotos: extraPhotos(p),
     id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit, pieces: p.pieces ?? null, category: p.category || "",
     description: p.description, photo: p.photo, available: !!p.available, hidden: !!p.hidden, createdAt: p.created_at,
   };
@@ -464,18 +481,24 @@ app.get("/api/catalog", async (_req, res) => {
 const wibDay = (t = Date.now()) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 const seenTaps = new Map(); // "ip|product|day" → 1, so refreshing or tapping twice counts once
 const tapUse = new Map();   // at most 120 counted taps per IP per hour
+// `kind` (view, call, whatsapp, order, share) also goes into the seller's statistics, once per visitor, product, kind and day.
+const TAP_KINDS = ["view", "call", "whatsapp", "order", "share"];
 app.post("/api/tap", async (req, res) => {
   const id = Number(req.body.productId);
+  const kind = TAP_KINDS.includes(req.body.kind) ? req.body.kind : "view";
   if (!Number.isInteger(id) || id <= 0) return res.json({ ok: true });
-  const day = wibDay(), key = `${req.ip}|${id}|${day}`;
-  if (seenTaps.has(key)) return res.json({ ok: true });
+  const day = wibDay(), key = `${req.ip}|${id}|${day}`, kindKey = key + "|" + kind;
+  const newVisitor = !seenTaps.has(key), newKind = !seenTaps.has(kindKey);
+  if (!newVisitor && !newKind) return res.json({ ok: true });
   const now = Date.now(), use = tapUse.get(req.ip);
   if (!use || use.reset < now) tapUse.set(req.ip, { n: 1, reset: now + 36e5 });
   else if (++use.n > 120) return res.json({ ok: true });
   if (seenTaps.size > 50_000) seenTaps.clear();
-  seenTaps.set(key, 1);
+  seenTaps.set(key, 1); seenTaps.set(kindKey, 1);
   if (await db.one("SELECT 1 AS x FROM products WHERE id = ? AND hidden = 0", id)) {
-    await db.run("INSERT INTO product_taps (product_id, day, n) VALUES (?, ?, 1) ON CONFLICT(product_id, day) DO UPDATE SET n = n + 1", id, day);
+    const writes = [["INSERT INTO product_events (product_id, day, kind, n) VALUES (?, ?, ?, 1) ON CONFLICT(product_id, day, kind) DO UPDATE SET n = n + 1", id, day, kind]];
+    if (newVisitor) writes.push(["INSERT INTO product_taps (product_id, day, n) VALUES (?, ?, 1) ON CONFLICT(product_id, day) DO UPDATE SET n = n + 1", id, day]);
+    await db.batch(writes);
   }
   res.json({ ok: true });
 });
@@ -494,7 +517,7 @@ app.get("/api/stalls", async (_req, res) => {
   const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
-    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, paused: p.paused, pauseNote: p.pauseNote };
+    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, bigOrders: p.bigOrders, paused: p.paused, pauseNote: p.pauseNote };
   }) });
 });
 
@@ -581,6 +604,26 @@ function pieces(v) {
 }
 // Fixed list so the catalog filter stays tidy; "" = not chosen.
 const CATEGORIES = ["", "pecel", "camilan", "minuman", "oleh-oleh", "lainnya"];
+// What buyers did with this seller's products over the last 7 and 30 days.
+seller.get("/stats", async (req, res) => {
+  const since30 = wibDay(Date.now() - 29 * 864e5), since7 = wibDay(Date.now() - 6 * 864e5);
+  const rows = await db.all(`SELECT p.id, p.name, e.kind, e.day, e.n FROM products p
+    LEFT JOIN product_events e ON e.product_id = p.id AND e.day >= ?
+    WHERE p.seller_id = ? ORDER BY p.created_at`, since30, req.user.id);
+  const blank = () => ({ view: 0, contact: 0, share: 0 });
+  const total = { week: blank(), month: blank() };
+  const byId = new Map();
+  for (const r of rows) {
+    if (!byId.has(r.id)) byId.set(r.id, { id: r.id, name: r.name, week: blank(), month: blank() });
+    if (!r.kind) continue;
+    const bucket = r.kind === "view" ? "view" : r.kind === "share" ? "share" : "contact";
+    const item = byId.get(r.id);
+    item.month[bucket] += r.n; total.month[bucket] += r.n;
+    if (r.day >= since7) { item.week[bucket] += r.n; total.week[bucket] += r.n; }
+  }
+  res.json({ total, products: [...byId.values()] });
+});
+
 function productFields(body, partial) {
   const f = {};
   if (!partial || body.name !== undefined) f.name = text(body.name, 60, { required: true, label: "label.product" });
@@ -619,10 +662,31 @@ seller.patch("/products/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
+// Up to 4 photos besides the main one, added and removed one at a time (each upload can be up to 1.5 MB).
+seller.post("/products/:id/photos", async (req, res) => {
+  const p = await ownProduct(req);
+  const extra = extraPhotos(p);
+  if (extra.length >= 4) throw bad("tooManyPhotos");
+  extra.push(await savePhoto(req.body.photo, req));
+  await db.run("UPDATE products SET extra_photos = ? WHERE id = ?", JSON.stringify(extra), p.id);
+  res.status(201).json({ photos: [p.photo, ...extra].filter(Boolean) });
+});
+seller.delete("/products/:id/photos", async (req, res) => {
+  const p = await ownProduct(req);
+  const extra = extraPhotos(p);
+  const i = extra.indexOf(req.body.photo);
+  if (i < 0) throw new HttpError(404, "noPhoto");
+  const [gone] = extra.splice(i, 1);
+  await db.run("UPDATE products SET extra_photos = ? WHERE id = ?", JSON.stringify(extra), p.id);
+  removePhoto(gone, req);
+  res.json({ photos: [p.photo, ...extra].filter(Boolean) });
+});
+
+const productEventsDelete = (sql, id) => [["DELETE FROM product_events WHERE product_id " + sql, id], ["DELETE FROM product_taps WHERE product_id " + sql, id]];
 seller.delete("/products/:id", async (req, res) => {
   const p = await ownProduct(req);
-  await db.batch([["DELETE FROM product_taps WHERE product_id = ?", p.id], ["DELETE FROM products WHERE id = ?", p.id]]);
-  removePhoto(p.photo, req);
+  await db.batch([...productEventsDelete("= ?", p.id), ["DELETE FROM products WHERE id = ?", p.id]]);
+  removePhoto(p.photo, req); extraPhotos(p).forEach((x) => removePhoto(x, req));
   res.json({ ok: true });
 });
 
@@ -698,12 +762,12 @@ admin.patch("/sellers/:id", async (req, res) => {
 // Permanently delete a shop: the seller's account, sign-ins, products, photos and any old orders.
 admin.delete("/sellers/:id", async (req, res) => {
   const u = await sellerById(req.params.id);
-  const photos = (await db.all("SELECT photo FROM products WHERE seller_id = ? AND photo != ''", u.id)).map((p) => p.photo);
+  const photos = (await db.all("SELECT photo, extra_photos FROM products WHERE seller_id = ?", u.id)).flatMap((p) => [p.photo, ...extraPhotos(p)]).filter(Boolean);
   await db.batch([
     ["DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE seller_id = ?)", u.id],
     ["DELETE FROM orders WHERE seller_id = ?", u.id],
     ["DELETE FROM sessions WHERE user_id = ?", u.id],
-    ["DELETE FROM product_taps WHERE product_id IN (SELECT id FROM products WHERE seller_id = ?)", u.id],
+    ...productEventsDelete("IN (SELECT id FROM products WHERE seller_id = ?)", u.id),
     ["DELETE FROM products WHERE seller_id = ?", u.id],
     ["DELETE FROM users WHERE id = ?", u.id],
   ]);
@@ -725,8 +789,8 @@ admin.patch("/products/:id", async (req, res) => {
 admin.delete("/products/:id", async (req, res) => {
   const p = await db.one("SELECT * FROM products WHERE id = ?", Number(req.params.id));
   if (!p) throw new HttpError(404, "noProduct");
-  await db.batch([["DELETE FROM product_taps WHERE product_id = ?", p.id], ["DELETE FROM products WHERE id = ?", p.id]]);
-  removePhoto(p.photo, req);
+  await db.batch([...productEventsDelete("= ?", p.id), ["DELETE FROM products WHERE id = ?", p.id]]);
+  removePhoto(p.photo, req); extraPhotos(p).forEach((x) => removePhoto(x, req));
   res.json({ ok: true });
 });
 
