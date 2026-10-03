@@ -1,4 +1,4 @@
-import { $, el, rp, t, api, toast, shrinkPhoto, confirmTap, locationEditor } from "/common.js";
+import { $, el, rp, t, api, toast, shrinkPhoto, confirmTap, locationEditor, hoursEditor } from "/common.js";
 
 let me = null;
 let products = [];
@@ -10,6 +10,8 @@ const shopLoc = locationEditor("s-shop", "shop", "seller.shopHint");
 const homeLoc = locationEditor("s-home", "home", "seller.homeHint");
 $("#s-shop").replaceWith(shopLoc.node);
 $("#s-home").replaceWith(homeLoc.node);
+const hoursEd = hoursEditor("s-hours");
+$("#s-hours").replaceWith(hoursEd.node);
 
 // ---------- session ----------
 async function start() {
@@ -69,7 +71,7 @@ $("#pauseForm").addEventListener("submit", async (e) => {
 function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
   $("#s-ig").value = me.instagram ? "@" + me.instagram : ""; $("#s-fromhome").checked = me.fromHome;
-  shopLoc.set(me.shop); homeLoc.set(me.home);
+  shopLoc.set(me.shop); homeLoc.set(me.home); hoursEd.set(me.hours);
 }
 
 // Session expired or account suspended mid-visit.
@@ -116,7 +118,7 @@ function editProduct(p) {
   editingId = p.id; editingName = p.name;
   labelProductForm();
   $("#cancelEditBtn").hidden = false;
-  $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-pieces").value = p.pieces ?? ""; $("#p-desc").value = p.description;
+  $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-pieces").value = p.pieces ?? ""; $("#p-desc").value = p.description; $("#p-category").value = p.category || "";
   pendingPhoto = null; $("#p-photo").value = "";
   $("#p-preview").src = p.photo || ""; $("#p-preview").hidden = !p.photo;
   $("#productForm").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -141,7 +143,7 @@ $("#productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = $("#saveProductBtn");
   btn.disabled = true; btn.textContent = t("product.saving");
-  const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, description: $("#p-desc").value };
+  const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, description: $("#p-desc").value, category: $("#p-category").value };
   if (pendingPhoto) body.photo = pendingPhoto;
   try {
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });
@@ -157,7 +159,7 @@ $("#profileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
-    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, shop: shopLoc.get(), home: homeLoc.get() };
+    const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(), shop: shopLoc.get(), home: homeLoc.get() };
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     renderHead(); fillProfile(); toast(t("profile.saved"));
   } catch (err) {

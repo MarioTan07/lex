@@ -62,6 +62,14 @@ const SCHEMA = `
     price INTEGER NOT NULL,
     qty INTEGER NOT NULL
   );
+  -- How many different visitors showed interest in a product each day (opened it, called, messaged or shared).
+  -- Only counts are kept, nothing about the visitor. Used for the "lagi hits" (trending) label.
+  CREATE TABLE IF NOT EXISTS product_taps (
+    product_id INTEGER NOT NULL,
+    day TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (product_id, day)
+  );
   -- Site-wide settings the admins edit, such as the sponsor contact number. One row per setting.
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -77,9 +85,11 @@ const ADDED_USER_COLUMNS = {
   home_address: "TEXT NOT NULL DEFAULT ''", home_lat: "REAL", home_lng: "REAL",
   paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
   instagram: "TEXT NOT NULL DEFAULT ''", from_home: "INTEGER NOT NULL DEFAULT 0",
+  hours: "TEXT NOT NULL DEFAULT ''",
 };
-// Pieces in one listed price (e.g. Rp 160.000 for 65 pieces), for comparing prices per piece. Empty means not given.
-const ADDED_PRODUCT_COLUMNS = { pieces: "INTEGER" };
+// Product columns added later. pieces: how many pieces one listed price covers (e.g. Rp 160.000 for 65),
+// for comparing prices per piece; empty means not given. category: one of the catalog filter categories.
+const ADDED_PRODUCT_COLUMNS = { category: "TEXT NOT NULL DEFAULT ''", pieces: "INTEGER" };
 
 const isNetworkError = (e) => /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network/i.test(`${e?.message} ${e?.cause?.message ?? ""} ${e?.cause?.code ?? ""}`);
 const arg = (v) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);

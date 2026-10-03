@@ -91,6 +91,16 @@
             <div class="field"><label for="p-unit" data-i18n="product.unit">Dijual per</label><input type="text" id="p-unit" maxlength="30" placeholder="bungkus"></div>
           </div>
           <div class="field"><label for="p-pieces" data-i18n="product.pieces">Isi (jumlah buah, opsional)</label><input type="number" id="p-pieces" min="1" max="100000" step="1" inputmode="numeric" placeholder="1"><span class="hint" data-i18n="product.piecesHint">Berapa buah untuk harga ini? Misalnya 65 untuk Rp 160.000 per 65 buah. Dipakai pembeli untuk membandingkan harga per buah.</span></div>
+          <div class="field"><label for="p-category" data-i18n="product.category">Kategori</label>
+            <select id="p-category">
+              <option value="" data-i18n="cat.none">Pilih kategori (opsional)</option>
+              <option value="pecel" data-i18n="cat.pecel">Pecel</option>
+              <option value="camilan" data-i18n="cat.camilan">Camilan</option>
+              <option value="minuman" data-i18n="cat.minuman">Minuman</option>
+              <option value="oleh-oleh" data-i18n="cat.oleh-oleh">Oleh-oleh</option>
+              <option value="lainnya" data-i18n="cat.lainnya">Lainnya</option>
+            </select>
+            <span class="hint" data-i18n="product.categoryHint">Pembeli bisa menyaring katalog berdasarkan kategori.</span></div>
           <div class="field"><label for="p-desc" data-i18n="product.description">Deskripsi</label><textarea id="p-desc" maxlength="240" data-i18n-attr="placeholder:product.descriptionPlaceholder" placeholder="Dengan krupuk puli dan bumbu ekstra."></textarea></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn" type="submit" id="saveProductBtn">Tambahkan ke lapak</button>
@@ -113,6 +123,7 @@
           <div class="field"><label for="s-ig" data-i18n="common.instagram">Instagram (opsional)</label><input type="text" id="s-ig" maxlength="120" autocomplete="off" placeholder="@semanggibusri"><span class="hint" data-i18n="common.instagramHint">Nama akun atau tautan profil. Pembeli melihat tombol Instagram di lapak Anda.</span></div>
           <label class="check"><input type="checkbox" id="s-fromhome"> <span data-i18n="common.fromHome">Juga jualan dari rumah</span></label>
           <p class="hint muted small" data-i18n="common.fromHomeHint">Alamat rumah tidak pernah ditampilkan di website. Pembeli diberi tahu bahwa penjual akan mengirim alamat rumah lewat WhatsApp setelah mereka memesan, jadi kirimkan alamat ke pembeli saat mereka menghubungi.</p>
+          <div id="s-hours"></div>
           <div id="s-shop"></div>
           <div id="s-home"></div>
           <p class="formerr" id="profileErr" hidden></p>
