@@ -5,8 +5,6 @@ let products = [];
 let editingId = null;
 let editingName = "";
 let pendingPhoto = null;
-let extraSaved = [];    // extra photos already on the product being edited (URLs)
-let extraPending = [];  // extra photos picked but not uploaded yet (data URLs)
 
 const shopLoc = locationEditor("s-shop", "shop", "seller.shopHint");
 const homeLoc = locationEditor("s-home", "home", "seller.homeHint");
@@ -183,11 +181,10 @@ function editProduct(p) {
   $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-pieces").value = p.pieces ?? ""; $("#p-desc").value = p.description; $("#p-category").value = p.category || "";
   pendingPhoto = null; $("#p-photo").value = "";
   $("#p-preview").src = p.photo || ""; $("#p-preview").hidden = !p.photo;
-  extraSaved = [...(p.extraPhotos || [])]; extraPending = []; renderExtras();
   $("#productForm").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function resetProductForm() {
-  editingId = null; pendingPhoto = null; extraSaved = []; extraPending = []; renderExtras();
+  editingId = null; pendingPhoto = null;
   $("#productForm").reset();
   $("#p-preview").hidden = true;
   labelProductForm();
@@ -202,30 +199,6 @@ $("#p-photo").addEventListener("change", async (e) => {
   catch { toast(t("product.badPhoto")); e.target.value = ""; }
 });
 
-// ---------- extra photos ----------
-function renderExtras() {
-  const box = $("#p-extras"); box.replaceChildren();
-  const thumb = (src, remove) => el("div", { class: "thumb" }, el("img", { src, alt: "" }),
-    el("button", { type: "button", "aria-label": t("product.removePhoto"), onclick: remove, text: "×" }));
-  extraSaved.forEach((src) => box.append(thumb(src, () => removeSavedExtra(src))));
-  extraPending.forEach((src, i) => box.append(thumb(src, () => { extraPending.splice(i, 1); renderExtras(); })));
-  $("#p-extra").disabled = extraSaved.length + extraPending.length >= 4;
-}
-async function removeSavedExtra(src) {
-  try {
-    await api(`/api/seller/products/${editingId}/photos`, { method: "DELETE", body: { photo: src } });
-    extraSaved = extraSaved.filter((x) => x !== src); renderExtras(); loadProducts(); toast(t("product.photoRemoved"));
-  } catch (e) { handle(e); }
-}
-$("#p-extra").addEventListener("change", async (e) => {
-  for (const f of [...e.target.files]) {
-    if (extraSaved.length + extraPending.length >= 4) { toast(t("product.maxPhotos")); break; }
-    try { extraPending.push(await shrinkPhoto(f)); } catch { toast(t("product.badPhoto")); }
-  }
-  e.target.value = "";
-  renderExtras();
-});
-
 $("#productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = $("#saveProductBtn");
@@ -233,11 +206,8 @@ $("#productForm").addEventListener("submit", async (e) => {
   const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, description: $("#p-desc").value, category: $("#p-category").value };
   if (pendingPhoto) body.photo = pendingPhoto;
   try {
-    let id = editingId;
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });
-    else ({ id } = await api("/api/seller/products", { method: "POST", body }));
-    // Extra photos go up one at a time after the product is saved.
-    for (const photo of extraPending) await api(`/api/seller/products/${id}/photos`, { method: "POST", body: { photo } });
+    else await api("/api/seller/products", { method: "POST", body });
     toast(t(editingId ? "product.saved" : "product.addedLive"));
     resetProductForm(); loadProducts();
   } catch (err) { handle(err); }

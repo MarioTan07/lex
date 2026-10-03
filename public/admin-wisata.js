@@ -124,11 +124,11 @@ function renderThumbs() {
     catch (e) { handle(e); }
   })));
   pendingPhotos.forEach((src, i) => box.append(thumb(src, () => { pendingPhotos.splice(i, 1); renderThumbs(); })));
-  $("#l-photos").disabled = savedPhotos.length + pendingPhotos.length >= 5;
+  $("#l-photos").disabled = savedPhotos.length + pendingPhotos.length >= 10;
 }
 $("#l-photos").addEventListener("change", async (e) => {
   for (const f of [...e.target.files]) {
-    if (savedPhotos.length + pendingPhotos.length >= 5) { toast(t("lst.maxPhotos")); break; }
+    if (savedPhotos.length + pendingPhotos.length >= 10) { toast(t("lst.maxPhotos")); break; }
     try { pendingPhotos.push(await shrinkPhoto(f)); } catch { toast(t("product.badPhoto")); }
   }
   e.target.value = ""; renderThumbs();

@@ -144,8 +144,8 @@ const MESSAGES = {
     "label.groupMax": "Jumlah orang maksimal",
     "label.noticeDays": "Pesan paling lambat",
     "label.sponsorEmail": "Email sponsor",
-    tooManyPhotos: "Satu produk bisa punya maksimal 5 foto.",
-    noPhoto: "Foto itu tidak ada di produk ini.",
+    tooManyPhotos: "Satu tur, pengalaman, atau homestay bisa punya maksimal 10 foto.",
+    noPhoto: "Foto itu tidak ditemukan.",
     bigOrderDays: "Pilih berapa hari sebelumnya pesanan besar harus dipesan.",
     hoursInvalid: "Jam buka tidak valid. Isi jam buka dan tutup untuk setiap hari yang buka.",
     categoryInvalid: "Kategori tidak dikenal.",
@@ -226,8 +226,8 @@ const MESSAGES = {
     "label.groupMax": "Maximum group size",
     "label.noticeDays": "Book at least",
     "label.sponsorEmail": "Sponsor email",
-    tooManyPhotos: "A product can have at most 5 photos.",
-    noPhoto: "That photo isn't on this product.",
+    tooManyPhotos: "A tour, experience or homestay can have at most 10 photos.",
+    noPhoto: "That photo wasn't found.",
     bigOrderDays: "Choose how many days ahead large orders must be placed.",
     hoursInvalid: "The opening hours aren't valid. Give an opening and closing time for each day the shop is open.",
     categoryInvalid: "Unknown category.",
@@ -454,10 +454,12 @@ function updateUser(id, f) {
   return db.run(`UPDATE users SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), id);
 }
 const userById = (id) => db.one("SELECT * FROM users WHERE id = ?", id);
+// Products have one photo. Extra photos from before that change are no longer shown, but are still
+// deleted from storage together with their product.
 const extraPhotos = (p) => { try { return p.extra_photos ? JSON.parse(p.extra_photos) : []; } catch { return []; } };
 function productOut(p) {
   return {
-    photos: [p.photo, ...extraPhotos(p)].filter(Boolean), extraPhotos: extraPhotos(p),
+    photos: [p.photo].filter(Boolean),
     id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit, pieces: p.pieces ?? null, category: p.category || "",
     description: p.description, photo: p.photo, available: !!p.available, hidden: !!p.hidden, createdAt: p.created_at,
   };
@@ -923,26 +925,6 @@ seller.patch("/products/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-// Up to 4 photos besides the main one, added and removed one at a time (each upload can be up to 1.5 MB).
-seller.post("/products/:id/photos", async (req, res) => {
-  const p = await ownProduct(req);
-  const extra = extraPhotos(p);
-  if (extra.length >= 4) throw bad("tooManyPhotos");
-  extra.push(await savePhoto(req.body.photo, req));
-  await db.run("UPDATE products SET extra_photos = ? WHERE id = ?", JSON.stringify(extra), p.id);
-  res.status(201).json({ photos: [p.photo, ...extra].filter(Boolean) });
-});
-seller.delete("/products/:id/photos", async (req, res) => {
-  const p = await ownProduct(req);
-  const extra = extraPhotos(p);
-  const i = extra.indexOf(req.body.photo);
-  if (i < 0) throw new HttpError(404, "noPhoto");
-  const [gone] = extra.splice(i, 1);
-  await db.run("UPDATE products SET extra_photos = ? WHERE id = ?", JSON.stringify(extra), p.id);
-  removePhoto(gone, req);
-  res.json({ photos: [p.photo, ...extra].filter(Boolean) });
-});
-
 const productEventsDelete = (sql, id) => [["DELETE FROM product_events WHERE product_id " + sql, id], ["DELETE FROM product_taps WHERE product_id " + sql, id]];
 seller.delete("/products/:id", async (req, res) => {
   const p = await ownProduct(req);
@@ -1086,11 +1068,11 @@ admin.delete("/listings/:id", async (req, res) => {
   listingPhotos(l).forEach((p) => removePhoto(p, req));
   res.json({ ok: true });
 });
-// Up to 5 photos, added and removed one at a time.
+// Up to 10 photos, added and removed one at a time.
 admin.post("/listings/:id/photos", async (req, res) => {
   const l = await listingById(req.params.id);
   const photos = listingPhotos(l);
-  if (photos.length >= 5) throw bad("tooManyPhotos");
+  if (photos.length >= 10) throw bad("tooManyPhotos");
   photos.push(await savePhoto(req.body.photo, req));
   await db.run("UPDATE listings SET photos = ? WHERE id = ?", JSON.stringify(photos), l.id);
   res.status(201).json({ photos });
