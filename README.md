@@ -53,19 +53,22 @@ Each seller has a **shop location** and a **home address**, each an address plus
 
 Maps use Google Maps' standard embed, so no API key is needed.
 
-## Deploy it
+## Deploy it on Vercel
 
-Any host that runs Node.js works, such as Render, Railway or Fly.io.
+On Vercel the data lives online: accounts, shops and products in a **Turso** database, and product photos in **Vercel Blob**. On your own computer the same code uses `data/semanggi.db` and `data/uploads` instead.
 
-- Start command: `npm start`
-- Environment variables: see `.env.example`. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN2_EMAIL` and `ADMIN2_PASSWORD` for the first start, and `NODE_ENV=production`.
-- **Persistent disk:** all data (the SQLite database and uploaded photos) lives in `DATA_DIR`. Point it at a persistent disk or volume, or everything is lost when the host restarts.
+1. In the Vercel project, open **Storage** and connect a **Turso** database and a **Blob** store to the project. This adds `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN` for older Blob stores) to the project's environment variables.
+2. Either copy your local data up (step 3), or set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN2_EMAIL` and `ADMIN2_PASSWORD` under **Settings → Environment Variables** so the two admins are created on first start.
+3. To copy your local admins, sellers, products and photos: create a `.env` file in the project folder with `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` (copy them from Vercel's environment variables page; see `.env.example`), then run `npm run copy-to-turso`. Product photos are only copied if Blob credentials are in `.env` too; otherwise re-add them on the live site. The `.env` file is never uploaded to GitHub.
+4. Push to GitHub, or press **Redeploy** in Vercel. `vercel.json` makes `/seller` and `/admin` work without `.html`.
 
-GitHub Pages can't run this, because it only serves static files and this site needs its server.
+To remove the example shops from the live site: `npm run demo:remove:online` (uses the `.env` file).
+
+Any other Node.js host (Render, Railway, Fly.io) also works: run `npm start` and either set the Turso and Blob variables, or point `DATA_DIR` at a persistent disk.
 
 ## How it's built
 
-- `server.js` is an Express server using Node's built-in SQLite (`node:sqlite`), so the only dependency is Express.
+- `server.js` is an Express server. `db.js` connects it to Turso (online) or a local SQLite file, and photos go to Vercel Blob or `data/uploads`.
 - `public/` holds the pages: `index.html` + `shop.js` (+ `order.js` for the order helper), `sejarah.html` + `sejarah.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
 - Passwords are hashed with scrypt. Sign-in uses an HTTP-only session cookie. Sign-in attempts are limited to 10 per 15 minutes per IP address.
 - The public pages show each seller's shop name, shop location and contact number. Home addresses are visible only to that seller and the admins.
@@ -73,8 +76,8 @@ GitHub Pages can't run this, because it only serves static files and this site n
 
 ### Languages
 
-- `public/i18n.js` holds all page text in Indonesian and English. HTML elements point at it with `data-i18n="key"` (text), `data-i18n-html="key"` (text with markup) or `data-i18n-attr="placeholder:key"` (attributes). Scripts call `t("key")`.
-- A visitor's choice is remembered in their browser. On a first visit the site uses the browser's language if it's Indonesian or English, and Indonesian otherwise.
+- The Indonesian text lives in the HTML pages: to change wording, edit the HTML. `public/i18n.js` holds the English translation of each piece of text, plus Indonesian only for text the scripts build. HTML elements are linked to their translation with `data-i18n="key"` (text), `data-i18n-html="key"` (text with markup) or `data-i18n-attr="placeholder:key"` (attributes). Scripts call `t("key")`. If you change Indonesian text in the HTML, update its English line in `i18n.js` too.
+- The site always opens in Indonesian. English only shows after a visitor taps **EN**, and that choice is remembered in their browser.
 - Server error messages are in `MESSAGES` at the top of `server.js`. The pages send the chosen language in an `X-Lang` header.
 - To add a language, add its code to `LANGS` in `i18n.js` and a column to `TEXT` there and to `MESSAGES` in `server.js`.
 - Text that sellers type (shop names, product names and descriptions, addresses) isn't translated.
@@ -87,3 +90,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 | `POST /api/auth/login`, `/logout`, `/password`, `GET /api/me` | sellers and admins |
 | `/api/seller/profile`, `/api/seller/products[/:id]` | signed-in sellers |
 | `/api/admin/overview`, `/api/admin/sellers[/:id]` (create, edit, status), `/api/admin/sellers/:id/password`, `/api/admin/products[/:id]` | admins |
+
+## Example sellers
+
+To try the site with some shops and products, run `npm run demo:add`. It adds six example shops with 20 products, all with `@contoh.test` sign-in emails; their passwords are saved in `data/demo-sellers.txt`. Run `npm run demo:remove` to delete them again before real sellers use the site.

@@ -1,15 +1,13 @@
-// Interface text in Indonesian (default) and English. To add a language, add it to LANGS and give it a column in TEXT.
-// In the HTML, data-i18n="key" sets an element's text, data-i18n-html="key" its markup,
+// The site is written in Indonesian. Text in the HTML pages is the Indonesian original: edit it there.
+// TEXT.en holds the English translation of every key. TEXT.id only holds Indonesian for text that
+// scripts build (messages, buttons drawn in JavaScript), which has no HTML to come from.
+// In the HTML, data-i18n="key" marks an element's text, data-i18n-html="key" its markup,
 // and data-i18n-attr="placeholder:key; aria-label:key" its attributes.
 const LANGS = ["id", "en"];
 
 const TEXT = {
   id: {
     "lang.label": "Bahasa",
-
-    "nav.shops": "Lokasi lapak",
-    "nav.catalog": "Katalog",
-    "nav.signOut": "Keluar",
 
     "sellerStatus.approved": "Aktif",
     "sellerStatus.suspended": "Ditangguhkan",
@@ -18,20 +16,11 @@ const TEXT = {
     "err.generic": "Terjadi kesalahan. Coba lagi.",
     "signedOut": "Sesi Anda berakhir. Silakan masuk lagi.",
 
-    "common.email": "Email",
-    "common.password": "Kata sandi",
-    "common.signIn": "Masuk",
-    "common.yourName": "Nama Anda",
-    "common.shopName": "Nama lapak",
-    "common.contactNumber": "Nomor kontak",
     "common.edit": "Ubah",
     "common.editTitle": "Ubah {name}",
     "common.saveChanges": "Simpan perubahan",
-    "common.cancelEdit": "Batal ubah",
-    "common.changePassword": "Ganti kata sandi",
-    "common.currentPassword": "Kata sandi saat ini",
-    "common.newPassword": "Kata sandi baru",
     "common.passwordChanged": "Kata sandi diganti",
+    "common.passwordMismatch": "Kata sandi baru dan konfirmasinya tidak sama. Ketik ulang keduanya.",
 
     // map & address editor
     "loc.map": "Peta",
@@ -52,68 +41,17 @@ const TEXT = {
     "loc.badPin": "Tempel tautan Google Maps lengkap atau koordinat seperti -7.2431, 112.6345.",
 
     // home page
-    "home.title": "Kampoeng Semanggi · Rasa yang pulang",
-    "home.meta": "Pecel semanggi dan olahan semanggi dari Kampoeng Semanggi, Sememi, Surabaya. Pesan langsung ke penjual lewat telepon atau WhatsApp.",
-    "hero.title": "Rasa yang <em>pulang.</em>",
-    "hero.lede": "Temukan pecel semanggi, jajanan, dan olahan semanggi buatan rumah dari para penjual di Kampoeng Semanggi.",
-    "notes.since": "Berjualan pecel semanggi sejak",
-    "notes.sinceValue": "tahun 1960-an",
-    "notes.makers": "Perajin yang melestarikannya",
-    "notes.opened": "Dinamai Kampoeng Semanggi",
-    "notes.heritage": "Warisan budaya nasional (WBTb)",
-    "about.title": "Asal semanggi Surabaya",
-    "about.p1": "Semanggi (<i>Marsilea crenata</i>) adalah paku air kecil dengan empat anak daun yang mirip daun clover. Tanaman ini tumbuh di sawah yang tergenang, dan sejak turun-temurun keluarga di Kendung, Kelurahan Sememi, mengolahnya menjadi <b>pecel semanggi Suroboyo</b>.",
-    "about.p2": "Usaha ini dirintis ibu-ibu Kendung pada tahun 1960-an. Awalnya mereka membuat pecel dari daun krokot, tetapi krokot cepat layu, jadi mereka beralih ke semanggi: tanaman liar yang tumbuh di sela padi di sawah para petani.",
-    "about.p3": "Dulu, para penjual menggendong bakul berisi pecel semanggi dan berkeliling ke penjuru Surabaya. Kini giliran Anda yang datang: pilih menunya di sini, pesan lewat telepon atau WhatsApp, lalu ambil pesanan Anda langsung di lapak, masih segar dari dapurnya.",
-    "about.products": "Olahan semanggi buatan Kampoeng Semanggi",
-    "product.cookies": "Kue kering semanggi",
-    "product.nastar": "Nastar",
-    "product.peyek": "Peyek",
-    "product.sticks": "Stik semanggi",
-    "product.juice": "Jus",
-    "product.nuggets": "Nugget",
-    "product.instant": "Semanggi instan",
-    "pincuk.eyebrow": "Isi satu pincuk",
-    "pincuk.title": "Satu porsi pecel semanggi",
-    "pincuk.leaves": "Daun",
-    "pincuk.leavesText": "Semanggi yang dikukus hingga lembut, dengan segenggam tauge.",
-    "pincuk.sauce": "Bumbu",
-    "pincuk.sauceText": "Kental dan manis, dari ubi jalar dan kacang tanah yang dihaluskan.",
-    "pincuk.cracker": "Kerupuk",
-    "pincuk.crackerText": "Krupuk puli, kerupuk nasi renyah untuk menyendok.",
-    "pincuk.plate": "Wadah",
-    "pincuk.plateText": "Pincuk: daun pisang yang dilipat berbentuk kerucut lalu disemat lidi.",
-    "pincuk.visit": "Alamat: Jalan Kendung, Kelurahan Sememi, Kecamatan Benowo, Surabaya.",
-    "history.eyebrow": "Sejarah",
-    "history.title": "Dari bakul keliling menjadi warisan budaya",
-    "history.1950s": "1960-an",
-    "history.1950": "Ibu-ibu Kendung mulai berjualan pecel semanggi keliling Surabaya. Sebelumnya mereka memakai daun krokot.",
-    "history.2017": "Pada Oktober 2017, Camat Benowo memberi nama Kendung sebagai Kampoeng Semanggi Surabaya.",
-    "history.2021": "Mulai 3 September menjadi Kampung Berseri Astra, bersama Universitas Wijaya Putra.",
-    "history.2022": "Pecel Semanggi Suroboyo menjadi Warisan Budaya Takbenda nasional, dan Kendung disiapkan sebagai kampung wisata edukasi dan kuliner.",
-    "market.howTo": "Cara memesan: telepon atau WhatsApp penjualnya, lalu ambil pesanan Anda di lapak mereka. Bayar saat mengambil.",
-    "shop.loading": "Memuat katalog…",
-    "shop.loadingText": "Pecel semanggi, camilan, dan minuman dari lapak Kampoeng Semanggi akan tampil di sini beserta harganya.",
     "shop.loadFailed": "Katalog tidak bisa dimuat. ",
     "shop.allStalls": "Semua lapak",
     "shop.empty": "Belum ada produk",
     "shop.emptyText": "Saat penjual Kampoeng Semanggi memajang pecel semanggi, camilan, dan minuman, semuanya tampil di sini beserta harganya.",
     "shop.soldOut": "Habis",
-    "shops.eyebrow": "Temui mereka langsung",
-    "shops.title": "Pasar kecil,<br><em>cerita besar.</em>",
-    "shops.empty": "Belum ada lapak",
-    "shops.emptyText": "Lokasi dan nomor kontak setiap lapak tampil di sini setelah admin menambahkannya.",
     "shops.mapOf": "Peta {name}",
     "shops.noAddress": "Alamat belum ditambahkan",
     "shops.contact": "Nomor kontak",
     "compare.title": "Lapak yang menjual {name}",
     "compare.view": "Lihat semua lapak yang menjual {name}",
     "compare.count": "Dijual di {n} lapak · Bandingkan",
-    "compare.close": "Tutup",
-    "compare.sortLabel": "Urutkan",
-    "compare.cheapest": "Termurah",
-    "compare.closest": "Terdekat",
-    "compare.hideUnavailable": "Sembunyikan yang habis atau tutup",
     "compare.locating": "Mencari lokasi Anda…",
     "compare.geoFailed": "Lokasi Anda tidak bisa didapat, jadi daftar diurutkan dari yang termurah.",
     "compare.distanceNote": "Jarak garis lurus dari lokasi Anda.",
@@ -176,49 +114,26 @@ const TEXT = {
     "order.backHint": "Kalau artinya tidak sesuai, ketuk Kembali dan tulis dengan kata-kata yang lebih sederhana.",
     "msg.name": "Atas nama: {name}",
     "msg.thanks": "Terima kasih!",
-    "footer.sellerSignIn": "Masuk penjual",
-    "footer.admin": "Admin",
 
     // seller desk
-    "seller.title": "Area penjual · Kampoeng Semanggi",
-    "seller.role": "Area penjual",
-    "seller.eyebrow": "Penjual",
-    "seller.signInTitle": "Masuk ke lapak Anda",
-    "seller.newEyebrow": "Penjual baru?",
-    "seller.askTitle": "Minta akun ke admin",
-    "seller.askText": "Akun penjual dibuat oleh admin Kampoeng Semanggi. Admin akan memberi Anda email dan kata sandi awal. Ganti kata sandi setelah pertama kali masuk.",
-    "seller.yourShop": "Lapak Anda",
     "seller.live": "Tampil di katalog",
     "seller.paused": "Tutup sementara",
-    "pause.title": "Status lapak",
     "pause.openState": "Lapak Anda buka. Pembeli bisa menelepon atau mengirim WhatsApp untuk memesan.",
     "pause.closedState": "Lapak Anda tutup sementara. Pembeli melihat: \"{note}\". Produk tetap tampil, tetapi tanpa tombol telepon dan WhatsApp.",
-    "pause.noteLabel": "Catatan untuk pembeli",
-    "pause.notePlaceholder": "mis. Libur Lebaran, buka lagi 15 Okt",
-    "pause.noteHint": "Wajib diisi. Pembeli melihat catatan ini selama lapak Anda tutup.",
     "pause.needNote": "Tulis catatan untuk pembeli, misalnya kapan lapak buka lagi.",
     "pause.close": "Tutup sementara",
     "pause.reopen": "Buka lagi",
     "pause.closedToast": "Lapak ditutup sementara",
     "pause.reopenedToast": "Lapak buka lagi",
     "pause.badge": "Tutup sementara",
-    "seller.contactHint": "Pembeli menelepon atau mengirim WhatsApp ke nomor ini untuk memesan. Gunakan nomor yang terdaftar di WhatsApp.",
-    "seller.howBuyersOrder": "Pembeli menelepon atau mengirim WhatsApp ke nomor kontak Anda untuk memesan, lalu mengambil pesanan di lapak Anda.",
     "seller.shopHint": "Tempat pembeli bisa menemukan lapak Anda. Ditampilkan di halaman utama dengan Google Map.",
     "seller.homeHint": "Hanya Anda dan admin yang bisa melihat ini.",
     "product.addTitle": "Tambah produk",
-    "product.photo": "Foto",
-    "product.name": "Nama produk",
-    "product.price": "Harga (Rp)",
-    "product.unit": "Dijual per",
-    "product.description": "Deskripsi",
-    "product.descriptionPlaceholder": "Dengan krupuk puli dan bumbu ekstra.",
     "product.addButton": "Tambahkan ke lapak",
     "product.saving": "Menyimpan…",
     "product.saved": "Perubahan disimpan",
     "product.addedLive": "Ditambahkan. Pembeli sudah bisa memesannya.",
     "product.badPhoto": "File itu tidak bisa dibaca sebagai foto. Coba JPG atau PNG.",
-    "mine.title": "Produk Anda",
     "mine.empty": "Belum ada produk. Tambahkan produk pertama Anda lewat formulir di atas.",
     "mine.hiddenByAdmin": "Disembunyikan admin",
     "mine.soldOut": " · habis",
@@ -229,31 +144,12 @@ const TEXT = {
     "mine.backOnSaleToast": "{name} dijual lagi",
     "mine.soldOutToast": "{name} ditandai habis",
     "mine.removed": "{name} dihapus",
-    "profile.title": "Data lapak",
-    "profile.save": "Simpan data",
     "profile.saved": "Data lapak disimpan",
 
     // admin desk
-    "admin.title": "Admin · Kampoeng Semanggi",
-    "admin.role": "Admin",
-    "admin.signInTitle": "Masuk",
-    "admin.eyebrow": "Admin Kampoeng Semanggi",
-    "admin.heading": "Lapak dan produk",
-    "admin.refresh": "Muat ulang",
-    "stats.approved": "Lapak aktif",
-    "stats.products": "Produk terdaftar",
-    "admin.sections": "Bagian admin",
-    "admin.tabSellers": "Penjual",
-    "admin.tabProducts": "Produk",
-    "admin.tabAccount": "Akun",
     "sellerForm.createTitle": "Buat akun penjual",
     "sellerForm.hide": "Sembunyikan formulir",
     "sellerForm.show": "Tampilkan formulir",
-    "sellerForm.email": "Email (untuk masuk)",
-    "sellerForm.password": "Kata sandi awal",
-    "sellerForm.generate": "Buat otomatis",
-    "sellerForm.passwordHint": "Berikan ini ke penjual. Mereka bisa menggantinya setelah masuk.",
-    "sellerForm.sellerName": "Nama penjual",
     "sellerForm.shopHint": "Ditampilkan ke pembeli di halaman utama dengan Google Map.",
     "sellerForm.homeHint": "Pribadi: hanya penjual dan admin yang bisa melihat ini.",
     "sellerForm.needEmail": "Masukkan email yang akan dipakai penjual untuk masuk.",
@@ -263,16 +159,6 @@ const TEXT = {
     "pw.password": ", kata sandi ",
     "pw.note": ". Berikan ini ke penjual sekarang; kata sandi tidak akan ditampilkan lagi. ",
     "pw.dismiss": "Tutup",
-    "col.shop": "Lapak",
-    "col.sellerContact": "Penjual & kontak",
-    "col.shopLocation": "Lokasi lapak",
-    "col.homeAddress": "Alamat rumah",
-    "col.products": "Produk",
-    "col.status": "Status",
-    "col.product": "Produk",
-    "col.price": "Harga",
-    "col.state": "Keadaan",
-    "admin.changePassword": "Ganti kata sandi admin",
     "admin.notAdded": "Belum ditambahkan",
     "admin.viewMaps": "Lihat di Google Maps",
     "admin.noSellers": "Belum ada penjual. Buat akun pertama dengan formulir di atas.",
@@ -282,6 +168,9 @@ const TEXT = {
     "admin.reactivate": "Aktifkan lagi",
     "admin.suspend": "Tangguhkan",
     "admin.suspendConfirm": "Ketuk untuk menangguhkan",
+    "admin.deleteShop": "Hapus lapak",
+    "admin.deleteShopConfirm": "Ketuk lagi: hapus permanen",
+    "admin.shopDeleted": "{stall} dihapus beserta semua produk dan fotonya",
     "admin.sellerNow": "{stall} sekarang {status}",
     "admin.noProducts": "Belum ada produk.",
     "admin.stateHidden": "Disembunyikan",
@@ -295,73 +184,11 @@ const TEXT = {
     "admin.hidden": "{name} disembunyikan dari katalog",
     "admin.shown": "{name} tampil lagi di katalog",
     "admin.deleted": "{name} dihapus",
-    "strip.a": "JELAJAHI RASA LOKAL SURABAYA",
-    "strip.b": "Temukan penjual di sekitarmu",
-    "nav.story": "Cerita kami",
-    "nav.forSellers": "Untuk penjual",
-    "hero.badge": "Dari Kampoeng Semanggi, untuk Surabaya",
-    "hero.toCatalog": "Lihat katalog",
-    "hero.toShops": "Cari penjual",
     "hero.sellers": "{n} penjual lokal",
-    "hero.joined": "sudah bergabung",
-    "hero.pick": "Pilihan hari ini",
-    "hero.photo": "Pecel semanggi di atas daun pisang dan bakul bambu, dengan suasana pasar di belakangnya",
-    "catalog.eyebrow": "Katalog pilihan",
-    "catalog.title": "Dari dapur tetangga",
-    "catalog.search": "Cari makanan atau penjual…",
     "catalog.noMatch": "Tidak ada yang cocok dengan “{q}”",
     "catalog.noMatchText": "Coba kata lain, misalnya nama makanan atau nama lapak.",
-    "shops.intro": "Datang, kenalan, dan bawa pulang rasa khas Sememi. Semua penjual di sini adalah tetangga kami sendiri.",
-    "story.eyebrow": "Cerita kami",
-    "footer.tagline": "Menghubungkan rasa rumahan dengan tetangga di seluruh Surabaya.",
-    "history.1980s": "1980-an",
-    "history.1980": "Bumbu semanggi mulai memakai ubi jalar, setelah sebelumnya gembili lalu singkong.",
-    "history.more": "Baca sejarah lengkap",
-    "footer.history": "Sejarah",
-    "nav.home": "Beranda",
-    "sej.title": "Sejarah · Kampoeng Semanggi",
-    "sej.meta": "Sejarah Kampoeng Semanggi Surabaya di Kendung, Sememi, Benowo: dari pedagang pecel semanggi keliling tahun 1960-an hingga kampung wisata edukasi dan kuliner.",
-    "sej.eyebrow": "Sejarah",
-    "sej.heading": "Sejarah Kampoeng Semanggi Surabaya",
-    "sej.lede": "Dari ibu-ibu Kendung yang berjualan pecel semanggi keliling kota, menjadi kampung wisata edukasi dan kuliner di Jalan Kendung, Sememi, Benowo.",
-    "sej.readTime": "± 3 menit membaca",
-    "sej.contents": "Isi",
-    "sej.y1": "1960-an",
-    "sej.h1": "Awal mula",
-    "sej.b1": "<p>Menurut cerita para orang tua, pada tahun 1960-an beberapa ibu warga Kendung, Kelurahan Sememi, Kecamatan Benowo, mulai merintis usaha berjualan semanggi.</p><p>Awalnya mereka mengolah dan menjual pecel dari daun krokot. Karena krokot tidak tahan lama, mereka beralih ke daun semanggi, yang sebenarnya tanaman liar: sejenis gulma di sawah padi para petani.</p>",
-    "sej.y2": "Dulu & kini",
-    "sej.h2": "Berjualan ke kota",
-    "sej.b2": "<p>Jalan dan kendaraan saat itu belum memadai, jadi para pedagang tidak pulang-pergi setiap hari dari Kendung ke tengah kota. Seorang warga Petemon dengan baik hati meminjamkan rumahnya sebagai tempat singgah, sehingga mereka cukup pulang seminggu atau dua minggu sekali.</p><p>Seiring membaiknya jalan dan transportasi di Benowo, makin banyak ibu-ibu Kendung yang mengikuti jejak para perintis. Sejak dini hari mereka naik angkot ke Pasar Kupang, lalu menyebar ke wilayah jualan masing-masing: Surabaya Timur, Utara, dan Selatan, bahkan sampai Kabupaten Sidoarjo.</p>",
-    "sej.y3": "1980-an",
-    "sej.h3": "Bumbu yang berubah",
-    "sej.b3": "<p>Menurut para sesepuh, bahan dasar bumbu semanggi juga berubah dari masa ke masa. Mula-mula memakai gembili, lalu ketela pohon (singkong), dan sejak tahun 1980-an hingga sekarang memakai ketela rambat (ubi jalar).</p>",
-    "sej.y4": "2017",
-    "sej.h4": "Menjadi Kampoeng Semanggi",
-    "sej.b4": "<p>Karena banyak pedagang semanggi Surabaya berasal dari Kelurahan Sememi, khususnya Kendung, pada Oktober 2017 Camat Benowo memberi nama Kendung sebagai <b>Kampoeng Semanggi Surabaya</b>.</p><p>Pemberian nama dilakukan dalam acara Cangkrukan Tiga Pilar di RT 07 RW 03, yang dihadiri pemerintah (Camat Benowo dan Lurah Sememi), Polsek Benowo, Koramil Benowo, serta ketua RW 03 dan para ketua RT. Setelah itu, kecamatan mengadakan pelatihan bagi pedagang semanggi dari Kecamatan Benowo yang diikuti 180 peserta.</p>",
-    "sej.y5": "2021",
-    "sej.h5": "Kampung Berseri Astra",
-    "sej.b5": "<p>Mulai 3 September 2021, Kampoeng Semanggi menjadi kampung binaan Astra lewat program <b>Kampung Berseri Astra</b>, bekerja sama dengan Universitas Wijaya Putra Surabaya. Peresmiannya dihadiri Camat Benowo, Lurah Sememi, LPMK Sememi, Polsek, Koramil, dan pihak universitas, lalu dilanjutkan dengan pembagian 100 paket sembako untuk warga.</p><p>Program ini berjalan lewat empat pilar:</p><ul><li><b>Sehat:</b> posyandu dan makanan tambahan bergizi untuk balita.</li><li><b>Pendidikan:</b> belajar bahasa Inggris untuk anak SD.</li><li><b>Kreatif:</b> rencana koperasi simpan pinjam untuk pelaku UMKM, uji coba bumbu pecel semanggi instan serta teh herbal telang dan semanggi kemasan, bazar dan pameran UKM, pelatihan kewirausahaan untuk karang taruna, dan pengolahan limbah organik menjadi eco enzyme.</li><li><b>Lingkungan:</b> pembuatan taman.</li></ul>",
-    "sej.y6": "2022",
-    "sej.h6": "Kampung wisata edukasi dan kuliner",
-    "sej.b6": "<p>Mahasiswa KKN dari Universitas Trunojoyo Madura dan Universitas Wijaya Putra ikut membangun kampung. Mahasiswa UWP menyerahkan situs web kampung kepada pengurus RW, yang kemudian dikelola Karang Taruna RW 03 Kendung. Penutupan KKN pada Minggu, 31 Juli 2022, sekaligus meresmikan spot foto karya para mahasiswa.</p><p>Tahun itu Kendung juga mengikuti penilaian SSC 2022, merayakan HUT Kemerdekaan RI ke-77, dan menggelar rapat koordinasi bersama Camat Benowo, Lurah Sememi, LPMK Sememi, pengurus RW dan RT, tokoh masyarakat, tokoh agama, dan Kader Surabaya Hebat untuk menyiapkan Kendung sebagai <b>Kampoeng Wisata Edukasi dan Kuliner</b>. Pada kesempatan itu juga diserahkan piagam penghargaan dari Wali Kota Surabaya kepada Ketua RT Teladan.</p><p>Pada Rabu, 8 November 2022, ibu-ibu PKK Kabupaten Agam, Sumatera Barat, berkunjung ke Kampoeng Semanggi.</p>",
-    "sej.source": "Sumber: dokumen <i>Sejarah Kampoeng Semanggi Surabaya</i> dari Jalan Kendung Gang 9, RT 07 RW 03. Dokumen aslinya juga berisi foto-foto kegiatan.",
-    "sej.download": "Unduh dokumen asli (PDF, 11 MB)",
-    "sej.back": "Kembali ke beranda",
-    "sej.photos": "Foto kegiatan",
-    "sej.prev": "Foto sebelumnya",
-    "sej.next": "Foto berikutnya",
-    "sej.goTo": "Lihat foto {n}",
     "sej.count": "{n} dari {total}",
-    "sej.p1": "Cangkrukan Tiga Pilar, Oktober 2017: Kendung diberi nama Kampoeng Semanggi Surabaya.",
-    "sej.p2": "Warga dan relawan Kampung Berseri Astra di gerbang Jalan Kendung IX.",
-    "sej.p3": "Pembagian paket sembako untuk warga saat peresmian Kampung Berseri Astra, 2021.",
-    "sej.p4": "Uji coba teh herbal telang, salah satu produk baru dari pilar kreatif.",
-    "sej.p5": "Olahan semanggi dalam kemasan buatan warga.",
-    "sej.p6": "Ikut bazar dan pameran UKM.",
-    "sej.p7": "Taman hasil pilar lingkungan.",
-    "sej.p8": "Spot foto Kampoeng Semanggi.",
-    "sej.p9": "Gang-gang Kendung dihias untuk HUT Kemerdekaan RI ke-77.",
-    "sej.p10": "Tamu melihat produk olahan semanggi warga.",
+    "sej.goTo": "Lihat foto {n}",
   },
 
   en: {
@@ -392,6 +219,8 @@ const TEXT = {
     "common.currentPassword": "Current password",
     "common.newPassword": "New password",
     "common.passwordChanged": "Password changed",
+    "common.passwordMismatch": "The new password and its confirmation don't match. Type them both again.",
+    "common.confirmPassword": "Confirm new password",
 
     "loc.map": "Map",
     "loc.shop.legend": "Shop location",
@@ -410,9 +239,9 @@ const TEXT = {
     "loc.shortLink": "Short links can't be read. Open the link, then copy the full address from the browser's address bar, or right-click the place in Google Maps and copy its coordinates.",
     "loc.badPin": "Paste a full Google Maps link or coordinates like -7.2431, 112.6345.",
 
-    "home.title": "Kampoeng Semanggi · A taste of home",
+    "home.title": "Kampoeng Semanggi · Tastes Like Coming Home",
     "home.meta": "Pecel semanggi and semanggi treats from Kampoeng Semanggi, Sememi, Surabaya. Order straight from the sellers by phone or WhatsApp.",
-    "hero.title": "A taste of <em>home.</em>",
+    "hero.title": "Tastes Like <em>Coming Home.</em>",
     "hero.lede": "Discover pecel semanggi, snacks and home-made semanggi treats from the sellers of Kampoeng Semanggi.",
     "notes.since": "Selling pecel semanggi since",
     "notes.sinceValue": "the 1960s",
@@ -535,7 +364,6 @@ const TEXT = {
     "msg.name": "Name: {name}",
     "msg.thanks": "Thank you!",
     "footer.sellerSignIn": "Seller sign-in",
-    "footer.admin": "Admin",
 
     "seller.title": "Seller desk · Kampoeng Semanggi",
     "seller.role": "Seller desk",
@@ -638,6 +466,9 @@ const TEXT = {
     "admin.reactivate": "Reactivate",
     "admin.suspend": "Suspend",
     "admin.suspendConfirm": "Tap to suspend",
+    "admin.deleteShop": "Delete shop",
+    "admin.deleteShopConfirm": "Tap again: delete for good",
+    "admin.shopDeleted": "{stall} deleted, with all its products and photos",
     "admin.sellerNow": "{stall} is now {status}",
     "admin.noProducts": "No products yet.",
     "admin.stateHidden": "Hidden",
@@ -721,13 +552,10 @@ const TEXT = {
   },
 };
 
-// A saved choice wins; otherwise the first of the browser's languages we have; otherwise Indonesian.
+// The site is written in Indonesian and always opens in Indonesian. English is only shown after
+// the visitor picks EN, and that choice is remembered in this browser.
 function pickLang() {
-  try { const saved = localStorage.getItem("ks-lang"); if (LANGS.includes(saved)) return saved; } catch {}
-  for (const l of navigator.languages || [navigator.language]) {
-    const base = String(l).slice(0, 2).toLowerCase();
-    if (LANGS.includes(base)) return base;
-  }
+  try { const saved = localStorage.getItem("ks-lang-v2"); if (LANGS.includes(saved)) return saved; } catch {}
   return "id";
 }
 
@@ -741,14 +569,34 @@ export function tIn(l, key, vars = {}) {
   return s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
 }
 
+// The Indonesian written in the HTML is the source text: it's kept as found and shown for "id".
+// Other languages come from TEXT. Elements built without Indonesian text fall back to TEXT.id.
+const original = new WeakMap(); // element -> { text, html, attrs: { name: value } }
+function orig(n) {
+  let o = original.get(n);
+  if (!o) {
+    o = { attrs: {} };
+    if (n.dataset.i18n) o.text = n.textContent;
+    if (n.dataset.i18nHtml) o.html = n.innerHTML;
+    for (const pair of (n.dataset.i18nAttr || "").split(";")) {
+      const attr = pair.split(":")[0].trim();
+      if (attr && n.hasAttribute(attr)) o.attrs[attr] = n.getAttribute(attr);
+    }
+    original.set(n, o);
+  }
+  return o;
+}
+const pick = (source, key) => (lang === "id" && source && source.trim() ? source : t(key));
+
 export function applyI18n(root = document) {
   document.documentElement.lang = lang;
-  root.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = t(n.dataset.i18n); });
-  root.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = t(n.dataset.i18nHtml); });
+  root.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = pick(orig(n).text, n.dataset.i18n); });
+  root.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = pick(orig(n).html, n.dataset.i18nHtml); });
   root.querySelectorAll("[data-i18n-attr]").forEach((n) => {
+    const o = orig(n);
     for (const pair of n.dataset.i18nAttr.split(";")) {
       const [attr, key] = pair.split(":").map((s) => s.trim());
-      if (attr && key) n.setAttribute(attr, t(key));
+      if (attr && key) n.setAttribute(attr, pick(o.attrs[attr], key));
     }
   });
   document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
@@ -758,7 +606,7 @@ export function applyI18n(root = document) {
 export function setLang(next) {
   if (!LANGS.includes(next) || next === lang) return;
   lang = next;
-  try { localStorage.setItem("ks-lang", lang); } catch {}
+  try { localStorage.setItem("ks-lang-v2", lang); } catch {}
   applyI18n();
   window.dispatchEvent(new Event("langchange"));
 }

@@ -6,12 +6,18 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "demo:add": "node scripts/demo-sellers.js add",
+    "demo:remove": "node scripts/demo-sellers.js remove",
+    "demo:remove:online": "node --env-file=.env scripts/demo-sellers.js remove",
+    "copy-to-turso": "node --env-file=.env scripts/copy-to-turso.js"
   },
   "engines": {
     "node": ">=22.13"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "@vercel/blob": "^2.8.0",
     "express": "^5.1.0"
   }
 }
