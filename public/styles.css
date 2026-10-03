@@ -460,3 +460,15 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 
 /* price per piece, under a price that covers several pieces */
 .perpiece { color: var(--muted); margin-top: -4px; font-variant-numeric: tabular-nums; }
+
+/* product window: opened by tapping a product's photo or name */
+.product-body { display: grid; gap: 16px; padding: 16px 20px 20px; }
+.detail-photo .photo { aspect-ratio: 4 / 3; border-radius: 18px; }
+.detail-main { display: grid; gap: 8px; }
+.detail-price { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.detail-price .price { font-size: 1.5rem; }
+.detail-tools { display: flex; gap: 6px; }
+.detail-desc { white-space: pre-line; line-height: 1.65; }
+.detail-compare { justify-self: start; }
+.cat-tag { display: inline-block; background: var(--leaf-soft); color: var(--leaf); font-size: var(--step--1); font-weight: 600; padding: 3px 12px; border-radius: 999px; }
+.detail-seller .eyebrow { margin: 0; }

@@ -83,7 +83,8 @@ function renderShop() {
   if (filterKind === "all") shown.sort((a, b) => (hot.includes(b.id) - hot.includes(a.id)) || (hot.indexOf(a.id) - hot.indexOf(b.id)));
   for (const p of shown) {
     const stall = stallById(p.sellerId);
-    const open = () => openCompare(p);
+    const open = () => openProduct(p);
+    const compare = () => openCompare(p);
     const sellers = new Set(products.filter((q) => sameProduct(p, q)).map((q) => q.sellerId)).size;
     grid.append(el("article", { class: "card", id: "produk-" + p.id },
       photoBox(p, open),
@@ -100,7 +101,7 @@ function renderShop() {
             bigOrderLine(stall)),
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
         perPieceLine(p),
-        sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: open, text: t("compare.count", { n: sellers }) }) : null,
+        sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: compare, text: t("compare.count", { n: sellers }) }) : null,
         el("p", { class: "desc", text: p.description || "" }),
         p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
         !stall ? null
@@ -111,16 +112,19 @@ function renderShop() {
   openLinkedProduct();
 }
 
-// A product's photo, or a swipeable strip with dots and arrows when it has several. Tapping a photo opens the shop list.
+// A product's photo, or a swipeable strip with dots and arrows when it has several. On a card, tapping a photo
+// opens the product; in the product window (`open` is null) the photos are just shown.
 function photoBox(p, open) {
   const pics = p.photos && p.photos.length ? p.photos : p.photo ? [p.photo] : [];
+  const img = (src, i) => el("img", { src, alt: open ? "" : t("photos.alt", { name: p.name, n: i + 1, total: pics.length }), loading: "lazy" });
   if (pics.length < 2) {
-    return el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("compare.view", { name: p.name }) },
-      pics[0] ? el("img", { src: pics[0], alt: "", loading: "lazy" }) : leafSvg());
+    const inner = pics[0] ? img(pics[0], 0) : leafSvg();
+    return open ? el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("detail.view", { name: p.name }) }, inner)
+      : el("div", { class: "photo" }, inner);
   }
-  const track = el("div", { class: "pics" }, ...pics.map((src, i) =>
-    el("button", { type: "button", onclick: open, "aria-label": t("photos.open", { name: p.name, n: i + 1, total: pics.length }) },
-      el("img", { src, alt: "", loading: "lazy" }))));
+  const track = el("div", { class: "pics" }, ...pics.map((src, i) => open
+    ? el("button", { type: "button", onclick: open, "aria-label": t("photos.open", { name: p.name, n: i + 1, total: pics.length }) }, img(src, i))
+    : el("div", {}, img(src, i))));
   const dots = el("div", { class: "pic-dots", "aria-hidden": "true" }, ...pics.map((_, i) => el("span", { class: i ? "" : "on" })));
   let at = 0;
   const go = (i) => { at = Math.max(0, Math.min(pics.length - 1, i)); track.scrollTo({ left: at * track.clientWidth, behavior: "smooth" }); };
@@ -144,8 +148,8 @@ function renderHero() {
     const p = open[day % open.length];
     $("#pickName").textContent = p.name;
     $("#pickPrice").textContent = rp(p.price);
-    pick.onclick = () => openCompare(p);
-    pick.setAttribute("aria-label", t("compare.view", { name: p.name }));
+    pick.onclick = () => openProduct(p);
+    pick.setAttribute("aria-label", t("detail.view", { name: p.name }));
   }
   $("#joined").hidden = !stalls.length;
   $("#joinedCount").textContent = t("hero.sellers", { n: stalls.length });
@@ -179,8 +183,8 @@ function km(a, b) {
 }
 const pinOf = (stall) => (stall && stall.shop.lat != null && stall.shop.lng != null ? stall.shop : null);
 
-function openCompare(p) {
-  tap(p.id);
+function openCompare(p, { counted = false } = {}) {
+  if (!counted) tap(p.id);
   comparing = p;
   renderCompare();
   const d = $("#compare");
@@ -259,6 +263,7 @@ async function loadShops() {
   renderShops();
   renderShop(); // product cards need each stall's phone for their buttons
   renderCompare();
+  renderProduct();
   showLinkedShop();
 }
 function renderShops() {
@@ -291,7 +296,7 @@ function openLinkedProduct() {
   if (!linkedProduct || !stalls.length) return;
   const p = products.find((x) => String(x.id) === linkedProduct);
   linkedProduct = null;
-  if (p) openCompare(p);
+  if (p) openProduct(p);
 }
 let linkedShop = /^#lapak-\d+$/.test(location.hash) ? location.hash : null;
 function showLinkedShop() {
@@ -302,10 +307,62 @@ function showLinkedShop() {
   card.classList.add("flash");
 }
 
+// ---------- product window: a product's photos, description, price and seller ----------
+let viewing = null;  // the product whose window is open
+function openProduct(p) {
+  const d = $("#product");
+  if (!d) return openCompare(p);
+  tap(p.id);
+  viewing = p;
+  renderProduct();
+  if (!d.open) d.showModal();
+  d.scrollTop = 0;
+}
+if ($("#product")) {
+  $("#productClose").addEventListener("click", () => $("#product").close());
+  $("#product").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); }); // tap outside the box
+  $("#product").addEventListener("close", () => { viewing = null; });
+}
+function renderProduct() {
+  if (!viewing) return;
+  const p = products.find((x) => x.id === viewing.id) || viewing;
+  viewing = p;
+  const stall = stallById(p.sellerId);
+  const sellers = new Set(products.filter((q) => sameProduct(p, q)).map((q) => q.sellerId)).size;
+  $("#productTitle").textContent = p.name;
+  $("#productBody").replaceChildren(
+    el("div", { class: "detail-photo" }, photoBox(p, null)),
+    el("div", { class: "detail-main" },
+      el("div", { class: "detail-price" },
+        el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
+        el("div", { class: "detail-tools" },
+          favButton("p", p.id, p.name, () => { renderShop(); renderProduct(); }),
+          shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id, "share") }))),
+      perPieceLine(p),
+      p.category ? el("p", {}, el("span", { class: "cat-tag", text: t("cat." + p.category) })) : null,
+      p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
+      el("p", { class: "detail-desc", text: p.description || t("detail.noDescription") }),
+      sellers > 1 ? el("button", { type: "button", class: "btn ghost small detail-compare", onclick: () => { $("#product").close(); openCompare(p, { counted: true }); } },
+        icon("store"), t("detail.compare", { n: sellers })) : null),
+    stall ? el("section", { class: "offer detail-seller" },
+      mapFrame(stall.shop, t("shops.mapOf", { name: stall.stallName })),
+      el("div", { class: "body" },
+        el("p", { class: "eyebrow", text: t("detail.seller") }),
+        el("h3", { text: stall.stallName }),
+        stall.shop.address ? el("p", { class: "addr" }, icon("map-pin"), stall.shop.address) : null,
+        homeNote(stall),
+        stall.paused ? null : hoursLine(stall.hours),
+        bigOrderLine(stall),
+        stall.paused ? closedNotice(stall)
+          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) })
+          : null)) : null);
+}
+
 window.addEventListener("langchange", () => {
   if (catalogLoaded) renderShop(); else loadCatalog();
   renderShops();
   renderCompare();
+  renderProduct();
 });
 
 loadCatalog();
