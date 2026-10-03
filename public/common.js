@@ -30,6 +30,10 @@ const ICONS = {
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   "chevron-down": '<path d="m6 9 6 6 6-6"/>',
   instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
   mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
   home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
 };
@@ -164,15 +168,131 @@ export const instagramLink = (handle) => "https://instagram.com/" + encodeURICom
 
 // Call / WhatsApp / Directions / Instagram buttons for a seller (Directions only when they have a shop, Instagram only when set). `message` pre-fills the WhatsApp chat;
 // with `order`, English-speaking buyers get the step-by-step order helper instead; Indonesian buyers just message the seller.
-export function contactButtons(stall, message, { directions = true, order = null } = {}) {
+// `onTap` runs when the buyer calls, messages or orders (used to count interest in a product).
+export function contactButtons(stall, message, { directions = true, order = null, onTap = null } = {}) {
   const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
   const name = stall.stallName;
-  return el("div", { class: "reach" },
+  return el("div", { class: "reach", onclick: onTap ? (e) => { if (e.target.closest("a, button") && !e.target.closest("[href*='google'], [href*='instagram']")) onTap(); } : null },
     tel ? el("a", { class: "btn ghost", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, icon("phone"), t("contact.call")) : null,
     wa && order && lang === "en" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
     : wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
     dir ? el("a", { class: "btn ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, icon("navigation"), t("contact.directions")) : null,
     stall.instagram ? el("a", { class: "btn ghost", href: instagramLink(stall.instagram), target: "_blank", rel: "noopener", "aria-label": t("contact.instagramLabel", { name }) }, icon("instagram"), "Instagram") : null);
+}
+
+// ---------- opening hours ----------
+// Hours are { mon: ["07:00", "15:00"], ..., sun: null } in Surabaya time (WIB), whatever the buyer's own time zone.
+export const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const toMin = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
+const clock = (s) => (lang === "id" ? s.replace(":", ".") : s);
+function wibNow() {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jakarta", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+  const get = (type) => parts.find((p) => p.type === type).value;
+  return { day: DAYS.indexOf(get("weekday").toLowerCase().slice(0, 3)), min: Number(get("hour")) * 60 + Number(get("minute")) };
+}
+// { open: true/false, text } for a shop right now, or null when it has no hours set.
+// A closing time earlier than the opening time means the shop is open past midnight.
+export function openStatus(hours) {
+  if (!hours || !DAYS.some((d) => hours[d])) return null;
+  const { day, min } = wibNow();
+  const on = (i) => hours[DAYS[((i % 7) + 7) % 7]];
+  const today = on(day), yesterday = on(day - 1);
+  if (today) {
+    const o = toMin(today[0]), c = toMin(today[1]);
+    if (c > o ? min >= o && min < c : min >= o) return { open: true, text: t("hours.openUntil", { time: clock(today[1]) }) };
+  }
+  if (yesterday && toMin(yesterday[1]) <= toMin(yesterday[0]) && min < toMin(yesterday[1])) return { open: true, text: t("hours.openUntil", { time: clock(yesterday[1]) }) };
+  if (today && min < toMin(today[0])) return { open: false, text: t("hours.opensToday", { time: clock(today[0]) }) };
+  for (let i = 1; i <= 7; i++) {
+    const next = on(day + i);
+    if (next) return { open: false, text: i === 1 ? t("hours.opensTomorrow", { time: clock(next[0]) }) : t("hours.opensDay", { day: t("day." + DAYS[(day + i) % 7]), time: clock(next[0]) }) };
+  }
+  return null;
+}
+export function hoursLine(hours) {
+  const st = openStatus(hours);
+  return st ? el("p", { class: "hours " + (st.open ? "is-open" : "is-closed") }, icon("clock"), st.text) : null;
+}
+// Weekly opening-hours editor: a row per day with an "open" tick and opening/closing times.
+export function hoursEditor(prefix) {
+  const rows = DAYS.map((d) => {
+    const on = el("input", { type: "checkbox", id: `${prefix}-${d}` });
+    const from = el("input", { type: "time", step: "900", "aria-label": "" });
+    const to = el("input", { type: "time", step: "900", "aria-label": "" });
+    const label = el("label", { for: on.id, class: "check" }, on, el("span"));
+    const sync = () => { from.disabled = to.disabled = !on.checked; if (on.checked && !from.value) { from.value = "07:00"; to.value = "15:00"; } };
+    on.addEventListener("change", sync);
+    return { d, on, from, to, label, sync, node: el("div", { class: "hours-row" }, label, from, el("span", { class: "muted", text: "–" }), to) };
+  });
+  const legend = el("legend"), hint = el("p", { class: "muted small" });
+  const copy = el("button", { type: "button", class: "btn small ghost", onclick: () => {
+    const m = rows[0];
+    for (const r of rows.slice(1)) { r.on.checked = m.on.checked; r.from.value = m.from.value; r.to.value = m.to.value; r.sync(); }
+  } });
+  const node = el("fieldset", { class: "loc hours-edit" }, legend, hint, ...rows.map((r) => r.node), el("div", {}, copy));
+  const label = () => {
+    legend.textContent = t("hours.legend"); hint.textContent = t("hours.hint"); copy.textContent = t("hours.copyMonday");
+    for (const r of rows) {
+      r.label.querySelector("span").textContent = t("day." + r.d);
+      r.from.setAttribute("aria-label", t("hours.opensAt", { day: t("day." + r.d) }));
+      r.to.setAttribute("aria-label", t("hours.closesAt", { day: t("day." + r.d) }));
+    }
+  };
+  window.addEventListener("langchange", label);
+  label();
+  return {
+    node,
+    get() {
+      const out = {};
+      for (const r of rows) {
+        if (!r.on.checked) { out[r.d] = null; continue; }
+        if (!r.from.value || !r.to.value || r.from.value === r.to.value) throw new Error(t("hours.needTimes", { day: t("day." + r.d) }));
+        out[r.d] = [r.from.value, r.to.value];
+      }
+      return DAYS.some((d) => out[d]) ? out : "";
+    },
+    set(h) {
+      for (const r of rows) { const v = h && h[r.d]; r.on.checked = !!v; r.from.value = v ? v[0] : ""; r.to.value = v ? v[1] : ""; r.sync(); }
+    },
+  };
+}
+
+// ---------- favourites, sharing, interest ----------
+// Favourite products and shops live in this browser only: { p: [ids], s: [ids] }.
+function readFavs() { try { const f = JSON.parse(localStorage.getItem("ks-fav")); return { p: f?.p || [], s: f?.s || [] }; } catch { return { p: [], s: [] }; } }
+export const favs = {
+  has: (kind, id) => readFavs()[kind].includes(id),
+  count: () => { const f = readFavs(); return f.p.length + f.s.length; },
+  toggle(kind, id) {
+    const f = readFavs();
+    f[kind] = f[kind].includes(id) ? f[kind].filter((x) => x !== id) : [...f[kind], id];
+    try { localStorage.setItem("ks-fav", JSON.stringify(f)); } catch {}
+    return f[kind].includes(id);
+  },
+};
+export function favButton(kind, id, name, onChange) {
+  const b = el("button", { type: "button", class: "tool fav" }, icon("heart"));
+  const draw = () => {
+    const on = favs.has(kind, id);
+    b.setAttribute("aria-pressed", String(on));
+    b.setAttribute("aria-label", t(on ? "fav.remove" : "fav.add", { name }));
+  };
+  b.addEventListener("click", (e) => { e.stopPropagation(); const on = favs.toggle(kind, id); draw(); toast(t(on ? "fav.added" : "fav.removed", { name })); onChange && onChange(); });
+  draw();
+  return b;
+}
+// Count a visitor's interest in a product (at most once a day per visitor; only the count is stored).
+export function tap(productId) {
+  fetch("/api/tap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId }), keepalive: true }).catch(() => {});
+}
+// Share a link with the phone's share sheet, or on WhatsApp where that isn't available.
+export function shareButton({ title, text, url, onShare }) {
+  return el("button", { type: "button", class: "tool share", "aria-label": t("share.label", { name: title }), onclick: async (e) => {
+    e.stopPropagation();
+    onShare && onShare();
+    if (navigator.share) { try { await navigator.share({ title, text, url }); } catch {} return; }
+    window.open("https://wa.me/?text=" + encodeURIComponent(text + " " + url), "_blank", "noopener");
+  } }, icon("share"));
 }
 
 // Read a pin from "lat, lng" or a full Google Maps link.

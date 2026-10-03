@@ -1,10 +1,13 @@
-import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons } from "/common.js";
+import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap } from "/common.js";
 import { lang } from "/i18n.js";
 import { openOrder } from "/order.js";
 
 let products = [];
 let stalls = [];
 let filterStall = "all";
+let filterKind = "all";  // "all" | "hot" | "fav" | a category
+let hot = [];            // ids of products that are "lagi hits"
+const CATEGORIES = ["pecel", "camilan", "minuman", "oleh-oleh", "lainnya"];
 let catalogLoaded = false;
 
 // The site used to keep a basket and order codes in the browser; buyers now call or WhatsApp instead.
@@ -34,7 +37,7 @@ if (moved[location.hash]) location.replace(moved[location.hash]);
 // ---------- catalog ----------
 async function loadCatalog() {
   try {
-    ({ products } = await api("/api/catalog"));
+    ({ products, hot = [] } = await api("/api/catalog"));
     catalogLoaded = true;
     if (onCatalog) $("#notice").hidden = true;
   } catch (e) {
@@ -55,7 +58,17 @@ function renderShop() {
     const mk = (id, label) => el("button", { "aria-pressed": String(filterStall === id), onclick: () => { filterStall = id; renderShop(); } }, label);
     chips.append(mk("all", t("shop.allStalls")), ...names.map(([id, name]) => mk(id, name)));
   }
-  const shown = products.filter((p) => (filterStall === "all" || p.sellerId === filterStall)
+  // Lagi hits, favourites and the categories that have products.
+  const kinds = $("#kindChips"); kinds.replaceChildren();
+  const cats = CATEGORIES.filter((c) => products.some((p) => p.category === c));
+  const hasFav = products.some((p) => favs.has("p", p.id));
+  if (filterKind === "hot" && !hot.length || filterKind === "fav" && !hasFav) filterKind = "all";
+  const kindChip = (k, label, ico) => el("button", { "aria-pressed": String(filterKind === k), onclick: () => { filterKind = k; renderShop(); } }, ico ? icon(ico) : null, label);
+  const kindList = [hot.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
+  kinds.hidden = !kindList.length;
+  if (kindList.length) kinds.append(kindChip("all", t("cat.all")), ...kindList);
+  const kindOk = (p) => filterKind === "all" || (filterKind === "hot" ? hot.includes(p.id) : filterKind === "fav" ? favs.has("p", p.id) : p.category === filterKind);
+  const shown = products.filter((p) => kindOk(p) && (filterStall === "all" || p.sellerId === filterStall)
     && (!query || norm(p.name + " " + p.stallName + " " + (p.description || "")).includes(query)));
   const grid = $("#productGrid"); grid.replaceChildren();
   $("#shopEmpty").hidden = shown.length > 0;
@@ -64,27 +77,35 @@ function renderShop() {
     $("#shopEmptyTitle").textContent = searching ? t("catalog.noMatch", { q: $("#search").value.trim() }) : t("shop.empty");
     $("#shopEmptyText").textContent = searching ? t("catalog.noMatchText") : t("shop.emptyText");
   }
+  // Lagi hits first when showing everything.
+  if (filterKind === "all") shown.sort((a, b) => (hot.includes(b.id) - hot.includes(a.id)) || (hot.indexOf(a.id) - hot.indexOf(b.id)));
   for (const p of shown) {
     const stall = stallById(p.sellerId);
     const open = () => openCompare(p);
     const sellers = new Set(products.filter((q) => sameProduct(p, q)).map((q) => q.sellerId)).size;
-    grid.append(el("article", { class: "card" },
+    grid.append(el("article", { class: "card", id: "produk-" + p.id },
       el("button", { type: "button", class: "photo", onclick: open, "aria-label": t("compare.view", { name: p.name }) },
         p.photo ? el("img", { src: p.photo, alt: "", loading: "lazy" }) : leafSvg()),
+      hot.includes(p.id) ? el("span", { class: "hot-badge" }, icon("flame"), t("hot.label")) : null,
+      el("div", { class: "tools" },
+        favButton("p", p.id, p.name, renderShop),
+        shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id) })),
       el("div", { class: "body" },
         el("div", { class: "card-head" },
           el("div", {},
             el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
-            el("p", { class: "stall" }, icon("store"), p.stallName)),
+            el("p", { class: "stall" }, icon("store"), p.stallName),
+            stall && !stall.paused ? hoursLine(stall.hours) : null),
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
         sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: open, text: t("compare.count", { n: sellers }) }) : null,
         el("p", { class: "desc", text: p.description || "" }),
         p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id) }) : null)));
+          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id), onTap: () => tap(p.id) }) : null)));
   }
   renderHero();
+  openLinkedProduct();
 }
 
 // ---------- hero: today's pick & seller count ----------
@@ -127,6 +148,7 @@ function km(a, b) {
 const pinOf = (stall) => (stall && stall.shop.lat != null && stall.shop.lng != null ? stall.shop : null);
 
 function openCompare(p) {
+  tap(p.id);
   comparing = p;
   renderCompare();
   const d = $("#compare");
@@ -187,11 +209,12 @@ function renderCompare() {
         norm(q.name) !== norm(comparing.name) ? el("p", { class: "small", text: q.name }) : null,
         stall && stall.shop.address ? el("p", { class: "muted small", text: stall.shop.address }) : null,
         stall ? homeNote(stall) : null,
+        stall && !stall.paused ? hoursLine(stall.hours) : null,
         sortBy === "closest" ? el("p", { class: "small dist", text: dist != null ? distText(dist) : t("compare.noDistance") }) : null,
         !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id) }) : null)));
+          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id), onTap: () => tap(q.id) }) : null)));
   }
 }
 
@@ -201,21 +224,46 @@ async function loadShops() {
   renderShops();
   renderShop(); // product cards need each stall's phone for their buttons
   renderCompare();
+  showLinkedShop();
 }
 function renderShops() {
   if (!onShops) return;
   const grid = $("#shopGrid"); grid.replaceChildren();
   $("#shopsEmpty").hidden = stalls.length > 0;
-  for (const s of stalls) {
-    grid.append(el("article", { class: "shop" },
+  // Favourite shops first.
+  const list = [...stalls].sort((a, b) => favs.has("s", b.id) - favs.has("s", a.id));
+  for (const s of list) {
+    grid.append(el("article", { class: "shop", id: "lapak-" + s.id },
       mapFrame(s.shop, t("shops.mapOf", { name: s.stallName })) || el("div", { class: "photo" }, leafSvg()),
+      el("div", { class: "tools" },
+        favButton("s", s.id, s.stallName, renderShops),
+        shareButton({ title: s.stallName, text: t("share.shopText", { stall: s.stallName }), url: location.origin + "/lokasi#lapak-" + s.id })),
       el("div", { class: "body" },
         el("h3", { text: s.stallName }),
+        s.paused ? null : hoursLine(s.hours),
         hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
         homeNote(s),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
         s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null }))));
   }
+}
+
+// Links shared from a product (/?p=12) open it; links to a shop (/lokasi#lapak-3) scroll to it.
+const shareText = (p) => t("share.productText", { name: p.name, stall: p.stallName, price: rp(p.price) });
+let linkedProduct = new URLSearchParams(location.search).get("p");
+function openLinkedProduct() {
+  if (!linkedProduct || !stalls.length) return;
+  const p = products.find((x) => String(x.id) === linkedProduct);
+  linkedProduct = null;
+  if (p) openCompare(p);
+}
+let linkedShop = /^#lapak-\d+$/.test(location.hash) ? location.hash : null;
+function showLinkedShop() {
+  const card = linkedShop && document.querySelector(linkedShop);
+  if (!card) return;
+  linkedShop = null;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("flash");
 }
 
 window.addEventListener("langchange", () => {

@@ -128,6 +128,8 @@ const MESSAGES = {
     "label.sponsorPhone": "Nomor sponsor",
     "label.homestayPhone": "Nomor homestay",
     "label.sponsorEmail": "Email sponsor",
+    hoursInvalid: "Jam buka tidak valid. Isi jam buka dan tutup untuk setiap hari yang buka.",
+    categoryInvalid: "Kategori tidak dikenal.",
     instagramInvalid: "Isi nama akun Instagram, misalnya @kampoengsemanggi, atau tautan profilnya.",
     "label.shopAddress": "Alamat lapak",
     "label.homeAddress": "Alamat rumah",
@@ -178,6 +180,8 @@ const MESSAGES = {
     "label.sponsorPhone": "Sponsor number",
     "label.homestayPhone": "Homestay number",
     "label.sponsorEmail": "Sponsor email",
+    hoursInvalid: "The opening hours aren't valid. Give an opening and closing time for each day the shop is open.",
+    categoryInvalid: "Unknown category.",
     instagramInvalid: "Enter an Instagram username, like @kampoengsemanggi, or a link to the profile.",
     "label.shopAddress": "Shop address",
     "label.homeAddress": "Home address",
@@ -304,7 +308,7 @@ function publicUser(u) {
     id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
-    paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home,
+    paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home, hours: hoursOut(u),
   };
 }
 // Accepts "@name", "name" or an instagram.com profile link, and keeps just the username.
@@ -315,6 +319,22 @@ function instagram(v) {
   if (!/^[A-Za-z0-9._]{1,30}$/.test(s)) throw bad("instagramInvalid");
   return s;
 }
+// Opening hours per weekday, e.g. { mon: ["07:00", "15:00"], sun: null }. null = closed that day; no hours at all = not set.
+const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+function hours(v) {
+  if (v == null || v === "") return "";
+  if (typeof v !== "object") throw bad("hoursInvalid");
+  const out = {};
+  for (const d of DAYS) {
+    const day = v[d];
+    if (!day) { out[d] = null; continue; }
+    const ok = Array.isArray(day) && day.length === 2 && day.every((x) => /^([01]\d|2[0-3]):[0-5]\d$/.test(x)) && day[0] !== day[1];
+    if (!ok) throw bad("hoursInvalid");
+    out[d] = [day[0], day[1]];
+  }
+  return DAYS.some((d) => out[d]) ? JSON.stringify(out) : "";
+}
+const hoursOut = (u) => { try { return u.hours ? JSON.parse(u.hours) : null; } catch { return null; } };
 // A shop without a name goes by the seller's name.
 const shopName = (u) => u.stall_name || u.name;
 // A location is an address plus an optional map pin. `kind` is "shop" or "home".
@@ -340,6 +360,8 @@ function sellerFields(body) {
     phone: text(body.phone, 24, { required: true, label: "label.contactNumber" }),
     instagram: instagram(body.instagram),
     from_home: body.fromHome ? 1 : 0,
+    // The admin form doesn't edit hours, so they only change when sent.
+    ...(body.hours !== undefined ? { hours: hours(body.hours) } : {}),
     ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
     ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
   };
@@ -351,7 +373,7 @@ function updateUser(id, f) {
 const userById = (id) => db.one("SELECT * FROM users WHERE id = ?", id);
 function productOut(p) {
   return {
-    id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit,
+    id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit, category: p.category || "",
     description: p.description, photo: p.photo, available: !!p.available, hidden: !!p.hidden, createdAt: p.created_at,
   };
 }
@@ -431,15 +453,46 @@ app.get("/api/catalog", async (_req, res) => {
     SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM products p JOIN users u ON u.id = p.seller_id
     WHERE u.role = 'seller' AND u.status = 'approved' AND p.hidden = 0
     ORDER BY 2 COLLATE NOCASE, p.created_at`);
-  res.json({ products: rows.map(productOut) });
+  res.json({ products: rows.map(productOut), hot: await hotProducts() });
 });
+
+// ----- lagi hits (trending) -----
+// The catalog counts a visitor's interest in a product once a day: opening it, calling, messaging, ordering or sharing.
+// Only the daily count is stored. The products with the most interest over the last 7 days are "lagi hits".
+const wibDay = (t = Date.now()) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+const seenTaps = new Map(); // "ip|product|day" → 1, so refreshing or tapping twice counts once
+const tapUse = new Map();   // at most 120 counted taps per IP per hour
+app.post("/api/tap", async (req, res) => {
+  const id = Number(req.body.productId);
+  if (!Number.isInteger(id) || id <= 0) return res.json({ ok: true });
+  const day = wibDay(), key = `${req.ip}|${id}|${day}`;
+  if (seenTaps.has(key)) return res.json({ ok: true });
+  const now = Date.now(), use = tapUse.get(req.ip);
+  if (!use || use.reset < now) tapUse.set(req.ip, { n: 1, reset: now + 36e5 });
+  else if (++use.n > 120) return res.json({ ok: true });
+  if (seenTaps.size > 50_000) seenTaps.clear();
+  seenTaps.set(key, 1);
+  if (await db.one("SELECT 1 AS x FROM products WHERE id = ? AND hidden = 0", id)) {
+    await db.run("INSERT INTO product_taps (product_id, day, n) VALUES (?, ?, 1) ON CONFLICT(product_id, day) DO UPDATE SET n = n + 1", id, day);
+  }
+  res.json({ ok: true });
+});
+// Up to 4 product ids, most interest first; a product needs at least 3 visitors in the week to count.
+async function hotProducts() {
+  const since = wibDay(Date.now() - 6 * 864e5);
+  const rows = await db.all(`SELECT t.product_id AS id, SUM(t.n) AS n FROM product_taps t
+    JOIN products p ON p.id = t.product_id JOIN users u ON u.id = p.seller_id
+    WHERE t.day >= ? AND p.hidden = 0 AND p.available = 1 AND u.status = 'approved'
+    GROUP BY t.product_id HAVING SUM(t.n) >= 3 ORDER BY n DESC LIMIT 4`, since);
+  return rows.map((r) => r.id);
+}
 
 // Shop name, shop location, contact number and open/paused state of every approved seller. Home addresses stay private.
 app.get("/api/stalls", async (_req, res) => {
   const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
-    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, paused: p.paused, pauseNote: p.pauseNote };
+    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, paused: p.paused, pauseNote: p.pauseNote };
   }) });
 });
 
@@ -517,12 +570,18 @@ seller.get("/products", async (req, res) => {
   res.json({ products: rows.map(productOut) });
 });
 
+// Fixed list so the catalog filter stays tidy; "" = not chosen.
+const CATEGORIES = ["", "pecel", "camilan", "minuman", "oleh-oleh", "lainnya"];
 function productFields(body, partial) {
   const f = {};
   if (!partial || body.name !== undefined) f.name = text(body.name, 60, { required: true, label: "label.product" });
   if (!partial || body.price !== undefined) f.price = money(body.price);
   if (!partial || body.unit !== undefined) f.unit = text(body.unit, 30);
   if (!partial || body.description !== undefined) f.description = text(body.description, 240);
+  if (!partial || body.category !== undefined) {
+    f.category = typeof body.category === "string" ? body.category : "";
+    if (!CATEGORIES.includes(f.category)) throw bad("categoryInvalid");
+  }
   if (body.available !== undefined) f.available = body.available ? 1 : 0;
   return f;
 }
@@ -536,8 +595,8 @@ seller.post("/products", async (req, res) => {
   const f = productFields(req.body, false);
   if ((await db.one("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?", req.user.id)).n >= 200) throw bad("maxProducts");
   const photo = req.body.photo ? await savePhoto(req.body.photo, req) : "";
-  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, description, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
-    req.user.id, f.name, f.price, f.unit, f.description, photo, Date.now());
+  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, description, category, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)",
+    req.user.id, f.name, f.price, f.unit, f.description, f.category, photo, Date.now());
   res.status(201).json({ id: r.id });
 });
 
@@ -552,7 +611,7 @@ seller.patch("/products/:id", async (req, res) => {
 
 seller.delete("/products/:id", async (req, res) => {
   const p = await ownProduct(req);
-  await db.run("DELETE FROM products WHERE id = ?", p.id);
+  await db.batch([["DELETE FROM product_taps WHERE product_id = ?", p.id], ["DELETE FROM products WHERE id = ?", p.id]]);
   removePhoto(p.photo, req);
   res.json({ ok: true });
 });
@@ -634,6 +693,7 @@ admin.delete("/sellers/:id", async (req, res) => {
     ["DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE seller_id = ?)", u.id],
     ["DELETE FROM orders WHERE seller_id = ?", u.id],
     ["DELETE FROM sessions WHERE user_id = ?", u.id],
+    ["DELETE FROM product_taps WHERE product_id IN (SELECT id FROM products WHERE seller_id = ?)", u.id],
     ["DELETE FROM products WHERE seller_id = ?", u.id],
     ["DELETE FROM users WHERE id = ?", u.id],
   ]);
@@ -655,7 +715,7 @@ admin.patch("/products/:id", async (req, res) => {
 admin.delete("/products/:id", async (req, res) => {
   const p = await db.one("SELECT * FROM products WHERE id = ?", Number(req.params.id));
   if (!p) throw new HttpError(404, "noProduct");
-  await db.run("DELETE FROM products WHERE id = ?", p.id);
+  await db.batch([["DELETE FROM product_taps WHERE product_id = ?", p.id], ["DELETE FROM products WHERE id = ?", p.id]]);
   removePhoto(p.photo, req);
   res.json({ ok: true });
 });

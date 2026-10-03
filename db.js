@@ -62,6 +62,14 @@ const SCHEMA = `
     price INTEGER NOT NULL,
     qty INTEGER NOT NULL
   );
+  -- How many different visitors showed interest in a product each day (opened it, called, messaged or shared).
+  -- Only counts are kept, nothing about the visitor. Used for the "lagi hits" (trending) label.
+  CREATE TABLE IF NOT EXISTS product_taps (
+    product_id INTEGER NOT NULL,
+    day TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (product_id, day)
+  );
   -- Site-wide settings the admins edit, such as the sponsor contact number. One row per setting.
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -77,7 +85,9 @@ const ADDED_USER_COLUMNS = {
   home_address: "TEXT NOT NULL DEFAULT ''", home_lat: "REAL", home_lng: "REAL",
   paused: "INTEGER NOT NULL DEFAULT 0", pause_note: "TEXT NOT NULL DEFAULT ''",
   instagram: "TEXT NOT NULL DEFAULT ''", from_home: "INTEGER NOT NULL DEFAULT 0",
+  hours: "TEXT NOT NULL DEFAULT ''",
 };
+const ADDED_PRODUCT_COLUMNS = { category: "TEXT NOT NULL DEFAULT ''" };
 
 const isNetworkError = (e) => /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network/i.test(`${e?.message} ${e?.cause?.message ?? ""} ${e?.cause?.code ?? ""}`);
 const arg = (v) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);
@@ -127,5 +137,9 @@ export async function setupSchema(db) {
   const have = new Set((await db.all("PRAGMA table_info(users)")).map((c) => c.name));
   for (const [col, type] of Object.entries(ADDED_USER_COLUMNS)) {
     if (!have.has(col)) await db.run(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
+  }
+  const haveP = new Set((await db.all("PRAGMA table_info(products)")).map((c) => c.name));
+  for (const [col, type] of Object.entries(ADDED_PRODUCT_COLUMNS)) {
+    if (!haveP.has(col)) await db.run(`ALTER TABLE products ADD COLUMN ${col} ${type}`);
   }
 }
