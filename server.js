@@ -1095,7 +1095,7 @@ app.get("/photo/:name", async (req, res, next) => {
 
 // The seller and admin pages moved to Indonesian addresses; old links still work.
 app.get(["/seller", "/seller.html"], (_req, res) => res.redirect(302, "/penjual"));
-app.get(["/cerita", "/cerita.html"], (_req, res) => res.redirect(302, "/"));
+app.get("/katalog", (req, res) => res.redirect(302, "/" + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "")));
 app.get(["/admin", "/admin.html"], (_req, res) => res.redirect(302, "/pengelola"));
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "30d", immutable: true }));
 app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));

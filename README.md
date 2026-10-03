@@ -6,13 +6,13 @@ The site is in Indonesian, with English as a second language. Every page has an 
 
 ## Pages
 
-The public site has four main tabs in the header: Cerita kami (`/`), Katalog, Lokasi lapak and Wisata. On phones and tablets (narrower than 900px) they sit in a row under the logo. The old address `/cerita` redirects to `/`.
+The public site has four main tabs in the header: Katalog (`/`), Lokasi lapak, Cerita kami and Wisata. On phones and tablets (narrower than 900px) they sit in a row under the logo.
 
 | Page | Who uses it | What it does |
 | --- | --- | --- |
-| `/` | Everyone | **Cerita kami** tab, the home page: welcome banner (today's pick, number of sellers), then about Kampoeng Semanggi and its history, linking to the full history page `/sejarah`. |
-| `/katalog` | Everyone | **Katalog** tab: the product catalog. Tapping a product opens its details, seller and contact buttons. |
+| `/` | Everyone | **Katalog** tab: welcome banner and the product catalog with **Call** and **WhatsApp** buttons. Buyers don't need an account. Filters for **Lagi hits** (trending), the buyer's **favourites** and product **categories**; each product shows the shop's open/closed status and has heart and share buttons. A shared link like `/?p=12` opens that product. |
 | `/lokasi` | Everyone | **Lokasi lapak** tab: every shop's location on a Google Map with its contact number and a **Directions** button, plus an **Instagram** button when the seller has one. Sellers who also (or only) sell from home are marked; their home address stays private and buyers are told the seller sends it on WhatsApp after they order. Shows each shop's opening hours status; favourite shops come first; `/lokasi#lapak-3` scrolls to a shop. |
+| `/cerita` | Everyone | **Cerita kami** tab: about Kampoeng Semanggi and its history, linking to the full history page `/sejarah`, then a box linking to `/wisata` and a sponsor/partner box with the contacts set under **Situs** in `/pengelola`. |
 | `/wisata` | Everyone | **Wisata** tab: tours and homestays the admins list, with photos, price, duration, group size, location, what's included and the schedule (set dates, or bookable any day with a notice period; past dates are hidden). **Daftar / Tanya** opens a helper that writes the WhatsApp message (always in Indonesian for the host). Shows "coming soon" when there are none. |
 | `/sejarah` | Everyone | The history of Kampoeng Semanggi in six short sections, a photo carousel and a download of the original document (`public/sejarah-foto/`). Text is from the residents' document *Sejarah Kampoeng Semanggi Surabaya*. |
 | `/penjual` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. Sellers can set weekly opening hours (Surabaya time) and a category per product. Up to 4 extra photos per product (buyers swipe through them), a **Statistik lapak** panel (how many buyers viewed, contacted and shared each product over 7 and 30 days), and a **large orders** setting (notice in days plus a note) that buyers see as a label and can filter by. |
