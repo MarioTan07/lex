@@ -9,6 +9,7 @@ The site is in Indonesian, with English as a second language. Every page has an 
 | Page | Who uses it | What it does |
 | --- | --- | --- |
 | `/` | Everyone | About Kampoeng Semanggi, the product catalog with **Call** and **WhatsApp** buttons, and every shop's location on a Google Map with its contact number and a **Directions** button. Buyers don't need an account. |
+| `/sejarah` | Everyone | The history of Kampoeng Semanggi in six short sections, a photo carousel and a download of the original document (`public/sejarah-foto/`). Text is from the residents' document *Sejarah Kampoeng Semanggi Surabaya*. |
 | `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. |
 | `/admin` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |
 
@@ -65,7 +66,7 @@ GitHub Pages can't run this, because it only serves static files and this site n
 ## How it's built
 
 - `server.js` is an Express server using Node's built-in SQLite (`node:sqlite`), so the only dependency is Express.
-- `public/` holds the pages: `index.html` + `shop.js` (+ `order.js` for the order helper), `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
+- `public/` holds the pages: `index.html` + `shop.js` (+ `order.js` for the order helper), `sejarah.html` + `sejarah.js`, `seller.html` + `seller.js`, `admin.html` + `admin.js`, plus the shared `styles.css`, `common.js` and `i18n.js`.
 - Passwords are hashed with scrypt. Sign-in uses an HTTP-only session cookie. Sign-in attempts are limited to 10 per 15 minutes per IP address.
 - The public pages show each seller's shop name, shop location and contact number. Home addresses are visible only to that seller and the admins.
 - Call buttons are `tel:` links and WhatsApp buttons are `wa.me` links; Indonesian numbers like `0812…` are converted to `62812…` for WhatsApp.
