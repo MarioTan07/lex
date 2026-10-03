@@ -127,6 +127,22 @@ const MESSAGES = {
     "label.sponsorName": "Nama kontak sponsor",
     "label.sponsorPhone": "Nomor sponsor",
     "label.homestayPhone": "Nomor homestay",
+    "label.tourPhone": "Nomor tur",
+    "label.listingName": "Nama",
+    "label.description": "Deskripsi",
+    "label.includes": "Termasuk",
+    "label.location": "Lokasi",
+    listingKind: "Pilih tur atau homestay.",
+    listingStatus: "Status tidak dikenal.",
+    listingNumber: "{label} harus berupa angka yang wajar, atau dikosongkan.",
+    listingGroup: "Jumlah orang minimal tidak boleh lebih besar dari maksimal.",
+    listingDates: "Tanggal tur tidak valid. Gunakan tanggal dan jam, maksimal 30 tanggal.",
+    noListing: "Tur atau homestay itu tidak ada.",
+    "label.price": "Harga",
+    "label.duration": "Lama tur",
+    "label.groupMin": "Jumlah orang minimal",
+    "label.groupMax": "Jumlah orang maksimal",
+    "label.noticeDays": "Pesan paling lambat",
     "label.sponsorEmail": "Email sponsor",
     tooManyPhotos: "Satu produk bisa punya maksimal 5 foto.",
     noPhoto: "Foto itu tidak ada di produk ini.",
@@ -183,6 +199,22 @@ const MESSAGES = {
     "label.sponsorName": "Sponsor contact name",
     "label.sponsorPhone": "Sponsor number",
     "label.homestayPhone": "Homestay number",
+    "label.tourPhone": "Tour number",
+    "label.listingName": "Name",
+    "label.description": "Description",
+    "label.includes": "Included",
+    "label.location": "Location",
+    listingKind: "Choose tour or homestay.",
+    listingStatus: "Unknown status.",
+    listingNumber: "{label} must be a sensible number, or left empty.",
+    listingGroup: "The minimum group size can't be larger than the maximum.",
+    listingDates: "The tour dates aren't valid. Use a date and time, up to 30 dates.",
+    noListing: "That tour or homestay doesn't exist.",
+    "label.price": "Price",
+    "label.duration": "Tour length",
+    "label.groupMin": "Minimum group size",
+    "label.groupMax": "Maximum group size",
+    "label.noticeDays": "Book at least",
     "label.sponsorEmail": "Sponsor email",
     tooManyPhotos: "A product can have at most 5 photos.",
     noPhoto: "That photo isn't on this product.",
@@ -534,6 +566,7 @@ const SETTINGS = {
     return e;
   },
   homestayPhone: (v) => text(v, 24, { label: "label.homestayPhone" }),
+  tourPhone: (v) => text(v, 24, { label: "label.tourPhone" }),
 };
 async function readSettings() {
   const rows = await db.all("SELECT key, value FROM settings");
@@ -547,17 +580,12 @@ app.get("/api/site", async (_req, res) => res.json({ site: await readSettings() 
 // Uses the free MyMemory service (no account). Set TRANSLATE_EMAIL to raise its daily limit from 5,000 to 50,000 characters.
 const translations = new Map(); // small cache so the same note isn't translated twice
 const translateUse = new Map();  // 30 notes per hour per IP
-app.post("/api/translate", async (req, res) => {
-  const note = text(req.body.text, 200, { required: true, label: "label.field" });
-  const from = req.body.from, to = req.body.to;
-  if (!(from === "en" && to === "id") && !(from === "id" && to === "en")) return res.json({ text: note });
-  const cacheKey = from + to + "|" + note;
-  if (translations.has(cacheKey)) return res.json({ text: translations.get(cacheKey) });
-  const now = Date.now(), use = translateUse.get(req.ip);
-  if (!use || use.reset < now) translateUse.set(req.ip, { n: 1, reset: now + 36e5 });
-  else if (++use.n > 30) throw new HttpError(429, "translateBusy");
+// One piece of text (up to ~450 characters) through MyMemory. Returns "" when it fails or comes back untranslated.
+async function machineTranslate(piece, from, to) {
+  const cacheKey = from + to + "|" + piece;
+  if (translations.has(cacheKey)) return translations.get(cacheKey);
   const url = new URL("https://api.mymemory.translated.net/get");
-  url.searchParams.set("q", note);
+  url.searchParams.set("q", piece);
   url.searchParams.set("langpair", from + "|" + to);
   if (process.env.TRANSLATE_EMAIL) url.searchParams.set("de", process.env.TRANSLATE_EMAIL);
   let out;
@@ -567,10 +595,106 @@ app.post("/api/translate", async (req, res) => {
     out = data.responseStatus == 200 && !data.quotaFinished ? String(data.responseData?.translatedText || "").trim() : "";
   } catch { out = ""; }
   // The free service sometimes hands the text back untranslated; treat that as a failure too.
-  if (!out || out.toLowerCase() === note.toLowerCase()) throw new HttpError(502, "translateFailed");
+  if (!out || out.toLowerCase() === piece.toLowerCase()) return "";
   if (translations.size > 500) translations.clear();
   translations.set(cacheKey, out);
+  return out;
+}
+// Longer text, translated line by line and sentence by sentence. Returns "" if any part fails.
+async function translateLong(textIn, from, to) {
+  const out = [];
+  for (const line of textIn.split("\n")) {
+    if (!line.trim()) { out.push(""); continue; }
+    const parts = line.length <= 450 ? [line] : line.match(/[^.!?]+[.!?]*\s*/g) || [line];
+    const done = [];
+    for (const part of parts) {
+      const t = await machineTranslate(part.trim().slice(0, 450), from, to);
+      if (!t) return "";
+      done.push(t);
+    }
+    out.push(done.join(" "));
+  }
+  return out.join("\n");
+}
+app.post("/api/translate", async (req, res) => {
+  const note = text(req.body.text, 200, { required: true, label: "label.field" });
+  const from = req.body.from, to = req.body.to;
+  if (!(from === "en" && to === "id") && !(from === "id" && to === "en")) return res.json({ text: note });
+  if (translations.has(from + to + "|" + note)) return res.json({ text: translations.get(from + to + "|" + note) });
+  const now = Date.now(), use = translateUse.get(req.ip);
+  if (!use || use.reset < now) translateUse.set(req.ip, { n: 1, reset: now + 36e5 });
+  else if (++use.n > 30) throw new HttpError(429, "translateBusy");
+  const out = await machineTranslate(note, from, to);
+  if (!out) throw new HttpError(502, "translateFailed");
   res.json({ text: out });
+});
+
+// ----- tours & homestays (Wisata) -----
+const listingPhotos = (l) => { try { return l.photos ? JSON.parse(l.photos) : []; } catch { return []; } };
+const listingSchedule = (l) => { try { return l.schedule ? JSON.parse(l.schedule) : null; } catch { return null; } };
+// "2026-10-18T08:00" in Surabaya time, for hiding tour dates that have passed.
+const wibNowStamp = () => new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" }).replace(" ", "T").slice(0, 16);
+function listingOut(l, { forAdmin = false } = {}) {
+  const sched = listingSchedule(l);
+  if (sched && sched.mode === "dates" && !forAdmin) { const now = wibNowStamp(); sched.dates = sched.dates.filter((d) => d > now); }
+  return {
+    id: l.id, kind: l.kind, status: l.status, name: l.name, nameEn: l.name_en, description: l.description, descriptionEn: l.description_en,
+    includes: l.includes, includesEn: l.includes_en, enAuto: !!l.en_auto, price: l.price ?? null, durationHours: l.duration_hours ?? null,
+    groupMin: l.group_min ?? null, groupMax: l.group_max ?? null, location: l.location, schedule: sched, photos: listingPhotos(l),
+  };
+}
+function optNumber(v, label, { min, max, integer = true }) {
+  if (v === undefined || v === null || String(v).trim() === "") return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < min || n > max || (integer && !Number.isInteger(n))) throw bad("listingNumber", { label });
+  return n;
+}
+async function listingFields(body) {
+  if (!["tour", "homestay"].includes(body.kind)) throw bad("listingKind");
+  if (!["shown", "hidden", "full"].includes(body.status)) throw bad("listingStatus");
+  const tour = body.kind === "tour";
+  const f = {
+    kind: body.kind, status: body.status,
+    name: text(body.name, 80, { required: true, label: "label.listingName" }),
+    description: text(body.description, 1500, { label: "label.description" }),
+    includes: text(body.includes, 600, { label: "label.includes" }),
+    price: optNumber(body.price, "label.price", { min: 0, max: 100_000_000 }),
+    location: text(body.location, 200, { label: "label.location" }),
+    duration_hours: tour ? optNumber(body.durationHours, "label.duration", { min: 0.5, max: 240, integer: false }) : null,
+    group_min: optNumber(body.groupMin, "label.groupMin", { min: 1, max: 1000 }),
+    group_max: optNumber(body.groupMax, "label.groupMax", { min: 1, max: 1000 }),
+    schedule: "",
+  };
+  if (f.group_min && f.group_max && f.group_min > f.group_max) throw bad("listingGroup");
+  if (tour) {
+    const sc = body.schedule || {};
+    if (sc.mode === "dates") {
+      const dates = Array.isArray(sc.dates) ? [...new Set(sc.dates)].sort() : [];
+      if (dates.length > 30 || dates.some((d) => !/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/.test(d))) throw bad("listingDates");
+      f.schedule = JSON.stringify({ mode: "dates", dates });
+    } else {
+      f.schedule = JSON.stringify({ mode: "request", noticeDays: optNumber(sc.noticeDays, "label.noticeDays", { min: 0, max: 60 }) ?? 0 });
+    }
+  }
+  // English: what the admin typed, or a machine translation of whatever they left empty.
+  const typed = { name_en: text(body.nameEn, 80), description_en: text(body.descriptionEn, 1500), includes_en: text(body.includesEn, 600) };
+  let auto = false;
+  for (const [en, idKey] of [["name_en", "name"], ["description_en", "description"], ["includes_en", "includes"]]) {
+    if (typed[en] || !f[idKey]) { f[en] = typed[en]; continue; }
+    f[en] = await translateLong(f[idKey], "id", "en");
+    auto = true;
+  }
+  f.en_auto = auto ? 1 : 0;
+  return f;
+}
+async function listingById(id) {
+  const l = await db.one("SELECT * FROM listings WHERE id = ?", Number(id));
+  if (!l) throw new HttpError(404, "noListing");
+  return l;
+}
+app.get("/api/listings", async (_req, res) => {
+  const rows = await db.all("SELECT * FROM listings WHERE status != 'hidden' ORDER BY kind, created_at");
+  res.json({ listings: rows.map((l) => listingOut(l)) });
 });
 
 // ----- seller -----
@@ -792,6 +916,49 @@ admin.delete("/products/:id", async (req, res) => {
   await db.batch([...productEventsDelete("= ?", p.id), ["DELETE FROM products WHERE id = ?", p.id]]);
   removePhoto(p.photo, req); extraPhotos(p).forEach((x) => removePhoto(x, req));
   res.json({ ok: true });
+});
+
+admin.get("/listings", async (_req, res) => {
+  const rows = await db.all("SELECT * FROM listings ORDER BY kind, created_at DESC");
+  res.json({ listings: rows.map((l) => listingOut(l, { forAdmin: true })) });
+});
+admin.post("/listings", async (req, res) => {
+  const f = await listingFields(req.body);
+  const keys = Object.keys(f);
+  const r = await db.run(`INSERT INTO listings (${keys.join(", ")}, created_at) VALUES (${keys.map(() => "?").join(", ")}, ?)`, ...keys.map((k) => f[k]), Date.now());
+  res.status(201).json({ listing: listingOut(await listingById(r.id), { forAdmin: true }) });
+});
+admin.put("/listings/:id", async (req, res) => {
+  const l = await listingById(req.params.id);
+  const f = await listingFields(req.body);
+  const keys = Object.keys(f);
+  await db.run(`UPDATE listings SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), l.id);
+  res.json({ listing: listingOut(await listingById(l.id), { forAdmin: true }) });
+});
+admin.delete("/listings/:id", async (req, res) => {
+  const l = await listingById(req.params.id);
+  await db.run("DELETE FROM listings WHERE id = ?", l.id);
+  listingPhotos(l).forEach((p) => removePhoto(p, req));
+  res.json({ ok: true });
+});
+// Up to 5 photos, added and removed one at a time.
+admin.post("/listings/:id/photos", async (req, res) => {
+  const l = await listingById(req.params.id);
+  const photos = listingPhotos(l);
+  if (photos.length >= 5) throw bad("tooManyPhotos");
+  photos.push(await savePhoto(req.body.photo, req));
+  await db.run("UPDATE listings SET photos = ? WHERE id = ?", JSON.stringify(photos), l.id);
+  res.status(201).json({ photos });
+});
+admin.delete("/listings/:id/photos", async (req, res) => {
+  const l = await listingById(req.params.id);
+  const photos = listingPhotos(l);
+  const i = photos.indexOf(req.body.photo);
+  if (i < 0) throw new HttpError(404, "noPhoto");
+  const [gone] = photos.splice(i, 1);
+  await db.run("UPDATE listings SET photos = ? WHERE id = ?", JSON.stringify(photos), l.id);
+  removePhoto(gone, req);
+  res.json({ photos });
 });
 
 app.use("/api/admin", admin);

@@ -65,6 +65,7 @@
     <div class="tabs" role="tablist" data-i18n-attr="aria-label:admin.sections" aria-label="Bagian admin" style="justify-self:start">
       <button role="tab" aria-selected="true" data-tab="sellers" data-i18n="admin.tabSellers">Penjual</button>
       <button role="tab" aria-selected="false" data-tab="products" data-i18n="admin.tabProducts">Produk</button>
+      <button role="tab" aria-selected="false" data-tab="wisata" data-i18n="nav.wisata">Wisata</button>
       <button role="tab" aria-selected="false" data-tab="site" data-i18n="admin.tabSite">Situs</button>
       <button role="tab" aria-selected="false" data-tab="account" data-i18n="admin.tabAccount">Akun</button>
     </div>
@@ -113,6 +114,74 @@
       </table></div>
     </div>
 
+    <div id="view-wisata" role="tabpanel" class="stack" hidden>
+      <form class="panel" id="listingForm" style="max-width:820px">
+        <div class="desk-head">
+          <h3 id="listingFormTitle">Tambah tur atau homestay</h3>
+          <button class="btn ghost small" type="button" id="listingCancel" hidden data-i18n="common.cancelEdit">Batal ubah</button>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="l-kind" data-i18n="lst.kind">Jenis</label>
+            <select id="l-kind"><option value="tour" data-i18n="lst.tour">Tur</option><option value="homestay" data-i18n="lst.homestay">Homestay</option></select></div>
+          <div class="field"><label for="l-status" data-i18n="col.status">Status</label>
+            <select id="l-status">
+              <option value="shown" data-i18n="lst.shown">Tampil</option>
+              <option value="hidden" data-i18n="lst.hidden">Disembunyikan (belum tampil)</option>
+              <option value="full" data-i18n="lst.full">Penuh (tampil, pendaftaran ditutup)</option>
+            </select></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="l-name" data-i18n="lst.name">Nama</label><input type="text" id="l-name" required maxlength="80" data-i18n-attr="placeholder:lst.namePlaceholder" placeholder="mis. Tur Kebun Semanggi"></div>
+          <div class="field"><label for="l-name-en" data-i18n="lst.nameEn">Nama dalam bahasa Inggris (opsional)</label><input type="text" id="l-name-en" maxlength="80"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="l-desc" data-i18n="lst.desc">Deskripsi</label><textarea id="l-desc" maxlength="1500" rows="4"></textarea></div>
+          <div class="field"><label for="l-desc-en" data-i18n="lst.descEn">Deskripsi dalam bahasa Inggris (opsional)</label><textarea id="l-desc-en" maxlength="1500" rows="4"></textarea></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="l-inc" id="l-inc-label" data-i18n="lst.includes">Termasuk (satu per baris)</label><textarea id="l-inc" maxlength="600" rows="3" data-i18n-attr="placeholder:lst.includesPlaceholder" placeholder="Makan pecel semanggi&#10;Lihat kebun semanggi"></textarea></div>
+          <div class="field"><label for="l-inc-en" data-i18n="lst.includesEn">Termasuk dalam bahasa Inggris (opsional)</label><textarea id="l-inc-en" maxlength="600" rows="3"></textarea></div>
+        </div>
+        <p class="hint muted small" data-i18n="lst.enHint">Kolom bahasa Inggris boleh dikosongkan: website menerjemahkan otomatis saat disimpan. Terjemahan otomatis bisa kurang tepat, jadi isi sendiri kalau perlu.</p>
+        <div class="row2">
+          <div class="field"><label for="l-price" id="l-price-label">Harga per orang (Rp)</label><input type="number" id="l-price" min="0" step="500"><span class="hint" data-i18n="lst.priceHint">Kosongkan untuk "Tanya harga". Isi 0 untuk "Gratis".</span></div>
+          <div class="field tour-only"><label for="l-hours" data-i18n="lst.hours">Lama tur (jam)</label><input type="number" id="l-hours" min="0.5" max="240" step="0.5"></div>
+        </div>
+        <div class="row2">
+          <div class="field tour-only"><label for="l-min" data-i18n="lst.groupMin">Jumlah orang minimal</label><input type="number" id="l-min" min="1" max="1000"></div>
+          <div class="field"><label for="l-max" id="l-max-label">Jumlah orang maksimal</label><input type="number" id="l-max" min="1" max="1000"></div>
+        </div>
+        <div class="field"><label for="l-loc" id="l-loc-label">Titik kumpul</label><input type="text" id="l-loc" maxlength="200" data-i18n-attr="placeholder:lst.locPlaceholder" placeholder="mis. Balai RW 03, Jalan Kendung Gang 9"></div>
+        <fieldset class="loc tour-only" id="l-sched">
+          <legend data-i18n="lst.schedule">Jadwal</legend>
+          <label class="check"><input type="radio" name="l-mode" value="request" checked> <span data-i18n="lst.modeRequest">Bisa dipesan kapan saja</span></label>
+          <label class="check"><input type="radio" name="l-mode" value="dates"> <span data-i18n="lst.modeDates">Tanggal tertentu</span></label>
+          <div class="field" id="l-notice-field"><label for="l-notice" data-i18n="lst.notice">Pesan paling lambat (hari sebelumnya)</label><input type="number" id="l-notice" min="0" max="60" value="3"></div>
+          <div id="l-dates-field" hidden>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
+              <div class="field"><label for="l-date" data-i18n="lst.addDate">Tambah tanggal dan jam</label><input type="datetime-local" id="l-date"></div>
+              <button class="btn small ghost" type="button" id="l-date-add" data-i18n="lst.add">Tambah</button>
+            </div>
+            <div class="chips" id="l-dates"></div>
+            <p class="hint muted small" data-i18n="lst.datesHint">Tanggal yang sudah lewat otomatis tidak ditampilkan ke pengunjung.</p>
+          </div>
+        </fieldset>
+        <div class="drop extra-photos">
+          <div class="field" style="flex:1;min-width:180px">
+            <label for="l-photos" data-i18n="lst.photos">Foto (maks. 5)</label>
+            <input type="file" id="l-photos" accept="image/*" multiple>
+          </div>
+          <div class="thumbs" id="l-thumbs"></div>
+        </div>
+        <p class="formerr" id="listingErr" hidden></p>
+        <div><button class="btn" type="submit" id="listingSubmit">Simpan</button></div>
+      </form>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th data-i18n="lst.name">Nama</th><th data-i18n="lst.kind">Jenis</th><th data-i18n="col.status">Status</th><th data-i18n="lst.schedule">Jadwal</th><th></th></tr></thead>
+        <tbody id="listingRows"></tbody>
+      </table></div>
+    </div>
+
     <div id="view-site" role="tabpanel" hidden>
       <form class="panel" id="siteForm" style="max-width:560px">
         <h3 data-i18n="site.title">Pengaturan situs</h3>
@@ -123,6 +192,7 @@
           <div class="field"><label for="site-sponsor-phone" data-i18n="site.sponsorPhone">Nomor sponsor</label><input type="tel" id="site-sponsor-phone" maxlength="24" placeholder="0812 3456 7890"></div>
         </div>
         <div class="field"><label for="site-sponsor-email" data-i18n="site.sponsorEmail">Email sponsor</label><input type="email" id="site-sponsor-email" maxlength="120" autocomplete="off" placeholder="nama@gmail.com"></div>
+        <div class="field"><label for="site-tour-phone" data-i18n="site.tourPhone">Nomor tur</label><input type="tel" id="site-tour-phone" maxlength="24" placeholder="0812 3456 7890"></div>
         <div class="field"><label for="site-homestay-phone" data-i18n="site.homestayPhone">Nomor homestay</label><input type="tel" id="site-homestay-phone" maxlength="24" placeholder="0812 3456 7890"><span class="hint" data-i18n="site.phoneHint">Dipakai untuk tombol Telepon dan WhatsApp. Gunakan nomor yang ada WhatsApp-nya.</span></div>
         <p class="formerr" id="siteErr" hidden></p>
         <div><button class="btn" type="submit" data-i18n="site.save">Simpan pengaturan</button></div>
@@ -144,5 +214,6 @@
 </main>
 
 <script type="module" src="/admin.js"></script>
+<script type="module" src="/admin-wisata.js"></script>
 </body>
 </html>

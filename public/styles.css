@@ -359,6 +359,7 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .photo.multi { display: block; }
 .pics { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .pics::-webkit-scrollbar { display: none; }
+.pics > div { flex: 0 0 100%; height: 100%; scroll-snap-align: start; }
 .pics button { flex: 0 0 100%; height: 100%; scroll-snap-align: start; border: 0; padding: 0; background: none; cursor: pointer; }
 .pics img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pic-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
@@ -378,6 +379,24 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .big-edit { display: grid; gap: 10px; }
 #statsPanel { display: grid; gap: 12px; }
 #statsPanel .desk-head { flex-wrap: wrap; gap: 10px; }
+
+/* Wisata: tours and homestays */
+.page-title { font-size: var(--step-2); letter-spacing: -0.035em; margin-top: 8px; max-width: 18em; }
+.listings { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.listing .card-head h3 { font-size: 1.35rem; }
+.listing .desc { white-space: pre-line; flex: none; }
+.facts { display: grid; gap: 6px; }
+.fact { display: flex; align-items: flex-start; gap: 8px; font-size: .875rem; color: var(--ink); }
+.fact .icon { width: 15px; height: 15px; flex: none; margin-top: 3px; color: var(--leaf); }
+.fact.dates ul { margin: 4px 0 0; padding-left: 1.1em; color: var(--muted); }
+.includes { font-size: .875rem; }
+.includes ul { margin: 4px 0 0; padding-left: 1.1em; color: var(--muted); display: grid; gap: 2px; }
+.full-badge { position: absolute; top: 12px; left: 12px; z-index: 2; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.empty.soon .badge { margin-bottom: 4px; }
+dialog.book { width: min(560px, calc(100% - 24px)); }
+.book-form { display: grid; gap: 14px; padding: 18px 20px 22px; }
+#listingForm { display: grid; gap: 14px; }
+#listingRows img { width: 56px; height: 42px; object-fit: cover; border-radius: 8px; background: var(--leaf-soft); display: block; }
 
 /* homestay (coming soon) and sponsors */
 .extras { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: stretch; }

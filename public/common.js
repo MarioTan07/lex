@@ -172,6 +172,7 @@ export const instagramLink = (handle) => "https://instagram.com/" + encodeURICom
 // Call / WhatsApp / Directions / Instagram buttons for a seller (Directions only when they have a shop, Instagram only when set). `message` pre-fills the WhatsApp chat;
 // with `order`, English-speaking buyers get the step-by-step order helper instead; Indonesian buyers just message the seller.
 // `onTap(kind)` runs when the buyer calls ("call"), messages ("whatsapp") or orders ("order"), to count interest in a product.
+export { telNumber };
 export function contactButtons(stall, message, { directions = true, order = null, onTap = null } = {}) {
   const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
   const name = stall.stallName;
@@ -400,9 +401,9 @@ export function confirmTap(btn, label, action) {
 }
 
 // ---------- site contacts ----------
-// Kampoeng Semanggi's Instagram (in every footer), and the homestay and sponsor contacts on /cerita.
+// Kampoeng Semanggi's Instagram (in every footer), and the sponsor contact on /cerita.
 // An admin sets them under Admin → Situs; a contact without a number shows "coming soon" instead of buttons.
-const siteSpots = { ig: document.querySelector(".site-ig"), stay: document.querySelector("#homestayContact"), sponsor: document.querySelector("#sponsorContact") };
+const siteSpots = { ig: document.querySelector(".site-ig"), sponsor: document.querySelector("#sponsorContact") };
 let site = null;
 function siteContact(box, label, phone, message, email = "") {
   if (!box) return;
@@ -417,7 +418,6 @@ function siteContact(box, label, phone, message, email = "") {
 }
 function renderSite() {
   if (!site) return;
-  siteContact(siteSpots.stay, "", site.homestayPhone, t("contact.waHomestay"));
   siteContact(siteSpots.sponsor, site.sponsorName, site.sponsorPhone, t("contact.waSponsor"), site.sponsorEmail);
   if (siteSpots.ig) {
     siteSpots.ig.hidden = !site.instagram;

@@ -79,6 +79,29 @@ const SCHEMA = `
     n INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (product_id, day, kind)
   );
+  -- Tours and homestays the admins list on the Wisata tab. kind: tour | homestay; status: shown | hidden | full.
+  -- English fields are typed by the admin or, when left empty, machine-translated on save (en_auto = 1).
+  -- schedule (tours only) is JSON: { mode: "dates", dates: ["2026-10-18T08:00"] } or { mode: "request", noticeDays: 3 }.
+  CREATE TABLE IF NOT EXISTS listings (
+    id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (kind IN ('tour', 'homestay')),
+    status TEXT NOT NULL DEFAULT 'shown' CHECK (status IN ('shown', 'hidden', 'full')),
+    name TEXT NOT NULL,
+    name_en TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    description_en TEXT NOT NULL DEFAULT '',
+    includes TEXT NOT NULL DEFAULT '',
+    includes_en TEXT NOT NULL DEFAULT '',
+    en_auto INTEGER NOT NULL DEFAULT 0,
+    price INTEGER,
+    duration_hours REAL,
+    group_min INTEGER,
+    group_max INTEGER,
+    location TEXT NOT NULL DEFAULT '',
+    schedule TEXT NOT NULL DEFAULT '',
+    photos TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL
+  );
   -- Site-wide settings the admins edit, such as the sponsor contact number. One row per setting.
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,

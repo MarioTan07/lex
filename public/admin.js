@@ -29,7 +29,7 @@ function handle(err) {
 // ---------- tabs ----------
 document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-  ["sellers", "products", "site", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
+  ["sellers", "products", "wisata", "site", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
 }));
 
 function refreshAll() { loadOverview(); loadSellers(); loadProducts(); loadSite(); }
@@ -224,6 +224,7 @@ async function loadSite() {
     $("#site-sponsor-phone").value = site.sponsorPhone;
     $("#site-sponsor-email").value = site.sponsorEmail;
     $("#site-homestay-phone").value = site.homestayPhone;
+    $("#site-tour-phone").value = site.tourPhone;
   } catch (e) { handle(e); }
 }
 $("#siteForm").addEventListener("submit", async (e) => {
@@ -232,7 +233,7 @@ $("#siteForm").addEventListener("submit", async (e) => {
   try {
     await api("/api/admin/site", { method: "PUT", body: {
       instagram: $("#site-ig").value, sponsorName: $("#site-sponsor-name").value,
-      sponsorPhone: $("#site-sponsor-phone").value, sponsorEmail: $("#site-sponsor-email").value, homestayPhone: $("#site-homestay-phone").value,
+      sponsorPhone: $("#site-sponsor-phone").value, sponsorEmail: $("#site-sponsor-email").value, homestayPhone: $("#site-homestay-phone").value, tourPhone: $("#site-tour-phone").value,
     } });
     toast(t("site.saved")); loadSite();
   } catch (x) {

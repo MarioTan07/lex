@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-i18n="shops.pageTitle">Lokasi lapak · Kampoeng Semanggi</title>
-<meta name="description" data-i18n-attr="content:home.meta" content="Pecel semanggi dan olahan semanggi dari Kampoeng Semanggi, Sememi, Surabaya. Pesan langsung ke penjual lewat telepon atau WhatsApp.">
+<title data-i18n="wisata.pageTitle">Wisata · Kampoeng Semanggi</title>
+<meta name="description" data-i18n-attr="content:wisata.meta" content="Tur dan homestay di Kampoeng Semanggi, Sememi, Surabaya. Daftar atau tanya langsung lewat WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
@@ -34,17 +34,17 @@
     <nav data-i18n-attr="aria-label:nav.label" aria-label="Menu utama">
       <div class="tabs-main">
         <a class="opt" href="/" data-i18n="nav.catalog">Katalog</a>
-        <a class="opt current" href="/lokasi" data-i18n="nav.shops" aria-current="page">Lokasi lapak</a>
+        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lokasi lapak</a>
         <a class="opt" href="/cerita" data-i18n="nav.story">Cerita kami</a>
-        <a class="opt" href="/wisata" data-i18n="nav.wisata">Wisata</a>
+        <a class="opt current" href="/wisata" data-i18n="nav.wisata" aria-current="page">Wisata</a>
       </div>
       <details class="navmenu">
-        <summary><span data-i18n="nav.shops">Lokasi lapak</span><span data-icon="chevron-down"></span></summary>
+        <summary><span data-i18n="nav.wisata">Wisata</span><span data-icon="chevron-down"></span></summary>
         <div class="navmenu-list">
           <a class="navlink" href="/" data-i18n="nav.catalog">Katalog</a>
-          <a class="navlink current" href="/lokasi" data-i18n="nav.shops" aria-current="page">Lokasi lapak</a>
+          <a class="navlink" href="/lokasi" data-i18n="nav.shops">Lokasi lapak</a>
           <a class="navlink" href="/cerita" data-i18n="nav.story">Cerita kami</a>
-          <a class="navlink" href="/wisata" data-i18n="nav.wisata">Wisata</a>
+          <a class="navlink current" href="/wisata" data-i18n="nav.wisata" aria-current="page">Wisata</a>
         </div>
       </details>
       <span class="actions">
@@ -56,47 +56,55 @@
 </header>
 
 <main>
-  <section class="wrap section shops" id="shops">
-    <div class="shops-intro">
+  <section class="wrap section">
+    <div class="section-head">
       <div>
-        <p class="eyebrow" data-i18n="shops.eyebrow">Temui mereka langsung</p>
-        <h2 data-i18n-html="shops.title">Pasar kecil,<br><em>cerita besar.</em></h2>
+        <p class="eyebrow" data-i18n="wisata.eyebrow">Wisata edukasi &amp; kuliner</p>
+        <h1 class="page-title" data-i18n="wisata.title">Datang, belajar, dan menginap di Kampoeng Semanggi</h1>
       </div>
-      <p data-i18n="shops.intro">Datang, kenalan, dan bawa pulang rasa khas Sememi. Semua penjual di sini adalah tetangga kami sendiri.</p>
     </div>
-    <div class="grid" id="shopGrid"></div>
-    <div class="empty" id="shopsEmpty" hidden>
-      <h3 data-i18n="shops.empty">Belum ada lapak</h3>
-      <p data-i18n="shops.emptyText">Lokasi dan nomor kontak setiap lapak tampil di sini setelah admin menambahkannya.</p>
-    </div>
+    <p class="howto"><span data-icon="info"></span><span data-i18n="wisata.howTo">Daftar atau tanya lewat WhatsApp. Pembayaran dilakukan langsung di tempat.</span></p>
   </section>
 
+  <div class="band" id="tur">
+    <section class="wrap section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" data-i18n="wisata.toursEyebrow">Tur</p>
+          <h2 data-i18n="wisata.toursTitle">Jalan-jalan di Kampoeng Semanggi</h2>
+        </div>
+      </div>
+      <div class="grid listings" id="tourGrid"></div>
+      <div class="empty soon" id="toursEmpty" hidden>
+        <span class="badge"><span data-icon="sparkles"></span><span data-i18n="homestay.badge">Segera hadir</span></span>
+        <h3 data-i18n="wisata.toursSoon">Tur segera hadir</h3>
+        <p data-i18n="wisata.toursSoonText">Kami sedang menyiapkan tur keliling kampung, kebun semanggi, dan dapur para penjual. Nantikan kabar selanjutnya!</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="wrap section" id="homestay">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow" data-i18n="homestay.eyebrow">Homestay</p>
+        <h2 data-i18n="homestay.title">Menginap di Kampoeng Semanggi</h2>
+      </div>
+    </div>
+    <div class="grid listings" id="stayGrid"></div>
+    <div class="empty soon" id="staysEmpty" hidden>
+      <span class="badge"><span data-icon="sparkles"></span><span data-i18n="homestay.badge">Segera hadir</span></span>
+      <h3 data-i18n="wisata.staysSoon">Homestay segera hadir</h3>
+      <p data-i18n="homestay.text">Homestay di Kampoeng Semanggi segera hadir. Nantikan kabar selanjutnya!</p>
+    </div>
+  </section>
 </main>
 
-<dialog id="compare" class="compare" aria-labelledby="compareTitle">
+<dialog id="book" class="compare book" aria-labelledby="bookTitle">
   <div class="compare-head">
-    <h2 id="compareTitle"></h2>
-    <button type="button" class="btn small ghost" id="compareClose" data-i18n="compare.close">Tutup</button>
+    <h2 id="bookTitle"></h2>
+    <button type="button" class="btn small ghost" id="bookClose" data-i18n="compare.close">Tutup</button>
   </div>
-  <div class="compare-tools">
-    <div class="chips" id="compareSort" role="group" data-i18n-attr="aria-label:compare.sortLabel" aria-label="Urutkan">
-      <span class="small muted" data-i18n="compare.sortLabel">Urutkan</span>
-      <button type="button" data-sort="cheapest" aria-pressed="true" data-i18n="compare.cheapest">Termurah</button>
-      <button type="button" data-sort="perPiece" aria-pressed="false" data-i18n="compare.perPiece">Termurah per buah</button>
-      <button type="button" data-sort="closest" aria-pressed="false" data-i18n="compare.closest">Terdekat</button>
-    </div>
-    <label class="small check"><input type="checkbox" id="compareHide"> <span data-i18n="compare.hideUnavailable">Sembunyikan yang habis atau tutup</span></label>
-    <p class="muted small" id="compareNote"></p>
-  </div>
-  <div class="compare-list" id="compareList"></div>
-</dialog>
-
-<dialog id="order" class="compare order" aria-labelledby="orderTitle">
-  <div class="compare-head">
-    <h2 id="orderTitle"></h2>
-    <button type="button" class="btn small ghost" id="orderClose">Tutup</button>
-  </div>
-  <div class="chat" id="orderChat" aria-live="polite"></div>
+  <form class="book-form" id="bookForm"></form>
 </dialog>
 
 <footer class="site-footer">
@@ -113,6 +121,6 @@
   </div>
 </footer>
 
-<script type="module" src="/shop.js"></script>
+<script type="module" src="/wisata.js"></script>
 </body>
 </html>
