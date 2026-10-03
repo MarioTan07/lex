@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "rewrites": [{ "source": "/", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/", "destination": "/index.html" }],
+  "redirects": [
+    { "source": "/seller", "destination": "/penjual", "permanent": false },
+    { "source": "/admin", "destination": "/pengelola", "permanent": false }
+  ]
 }

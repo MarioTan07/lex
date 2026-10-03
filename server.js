@@ -36,7 +36,7 @@ async function setup() {
   // Sellers used to sign themselves up and wait for approval. Admins now create sellers already
   // approved, so any still waiting are suspended: hidden from buyers until an admin reactivates them.
   const moved = await db.run("UPDATE users SET status = 'suspended' WHERE role = 'seller' AND status = 'pending'");
-  if (moved.changes) console.log(`Moved ${moved.changes} seller(s) still waiting for approval to suspended. Reactivate them under Sellers in /admin.`);
+  if (moved.changes) console.log(`Moved ${moved.changes} seller(s) still waiting for approval to suspended. Reactivate them under Sellers in /pengelola.`);
 
   // There are two admin accounts. Missing ones are created from ADMIN_EMAIL/ADMIN_PASSWORD and
   // ADMIN2_EMAIL/ADMIN2_PASSWORD. On your own computer, a missing password is generated and
@@ -67,7 +67,7 @@ async function setup() {
   }
   if (notes.length) {
     const file = path.join(DATA_DIR, "initial-admin.txt");
-    fs.appendFileSync(file, `\n${notes.join("\n")}Sign in at /admin and change these passwords under Account.\n`);
+    fs.appendFileSync(file, `\n${notes.join("\n")}Sign in at /pengelola and change these passwords under Account.\n`);
     console.log(`Created ${notes.length} admin account(s). Sign-in details are in ${file}`);
   }
 
@@ -133,8 +133,8 @@ const MESSAGES = {
     emailTaken: "Sudah ada akun dengan email ini.",
     loginWrong: "Email dan kata sandi tidak cocok.",
     suspended: "Akun ini ditangguhkan. Hubungi admin Kampoeng Semanggi.",
-    adminAccount: "Ini akun admin. Masuk di /admin.",
-    sellerAccount: "Ini akun penjual. Masuk di /seller.",
+    adminAccount: "Ini akun admin. Masuk di /pengelola.",
+    sellerAccount: "Ini akun penjual. Masuk di /penjual.",
     currentWrong: "Kata sandi Anda saat ini salah.",
     notYourProduct: "Produk itu bukan milik lapak Anda.",
     maxProducts: "Satu lapak bisa memajang maksimal 200 produk.",
@@ -176,8 +176,8 @@ const MESSAGES = {
     emailTaken: "An account with this email already exists.",
     loginWrong: "That email and password don't match.",
     suspended: "This account is suspended. Contact the Kampoeng Semanggi admin.",
-    adminAccount: "This is an admin account. Sign in at /admin.",
-    sellerAccount: "This is a seller account. Sign in at /seller.",
+    adminAccount: "This is an admin account. Sign in at /pengelola.",
+    sellerAccount: "This is a seller account. Sign in at /penjual.",
     currentWrong: "Your current password is wrong.",
     notYourProduct: "That product isn't in your shop.",
     maxProducts: "A shop can list up to 200 products.",
@@ -572,6 +572,9 @@ app.use("/api/admin", admin);
 let homePage = null;
 try { homePage = fs.readFileSync(new URL("./public/index.html", import.meta.url), "utf8"); } catch {}
 app.get("/", (_req, res, next) => (homePage ? res.type("html").send(homePage) : next()));
+// The seller and admin pages moved to Indonesian addresses; old links still work.
+app.get(["/seller", "/seller.html"], (_req, res) => res.redirect(302, "/penjual"));
+app.get(["/admin", "/admin.html"], (_req, res) => res.redirect(302, "/pengelola"));
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "30d", immutable: true }));
 app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));
 

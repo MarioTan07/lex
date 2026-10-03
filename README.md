@@ -14,13 +14,13 @@ The public site has three main tabs in the header. On phones (narrower than 900p
 | `/lokasi` | Everyone | **Lokasi lapak** tab: every shop's location on a Google Map with its contact number and a **Directions** button. |
 | `/cerita` | Everyone | **Cerita kami** tab: about Kampoeng Semanggi and its history, linking to the full history page `/sejarah`. |
 | `/sejarah` | Everyone | The history of Kampoeng Semanggi in six short sections, a photo carousel and a download of the original document (`public/sejarah-foto/`). Text is from the residents' document *Sejarah Kampoeng Semanggi Surabaya*. |
-| `/seller` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. |
-| `/admin` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |
+| `/penjual` | Sellers | Sign in, add, edit and remove products with photos and prices, mark items sold out, temporarily close the shop with a note for buyers, and update their shop details, shop location and home address. |
+| `/pengelola` | Admins (two accounts) | Create and edit seller accounts (including shop location and home address), reset seller passwords, suspend sellers, hide or delete products, and view totals. |
 
 ### How ordering works
 
-1. An admin creates the seller's account at `/admin` and gives the seller their email and starting password. There is no public sign-up.
-2. The seller signs in at `/seller`, changes their password and lists products, which show up in the catalog on `/`.
+1. An admin creates the seller's account at `/pengelola` and gives the seller their email and starting password. There is no public sign-up.
+2. The seller signs in at `/penjual`, changes their password and lists products, which show up in the catalog on `/`.
 3. A buyer finds something in the catalog and taps **Call** or **WhatsApp** on it. WhatsApp opens with a message naming the shop and product, ready to send. The seller's contact number is used for both, so it should be one that's on WhatsApp.
    On the English version of the site the WhatsApp button says **Order** and opens a short step-by-step helper instead (see below).
 4. The buyer taps **Directions** on the seller's shop to get there, picks up the order and pays in person.
@@ -46,7 +46,7 @@ npm start
 
 Open http://localhost:3000.
 
-On start, the server makes sure there are two admin accounts. Any it creates get a random password, saved with its email in `data/initial-admin.txt`. Sign in at `/admin`, change each password under **Account**, then delete that file.
+On start, the server makes sure there are two admin accounts. Any it creates get a random password, saved with its email in `data/initial-admin.txt`. Sign in at `/pengelola`, change each password under **Account**, then delete that file.
 
 ## Shop locations and maps
 
@@ -64,7 +64,7 @@ On Vercel the data lives online: accounts, shops and products in a **Turso** dat
 1. In the Vercel project, open **Storage** and connect a **Turso** database and a **Blob** store to the project. This adds `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN` for older Blob stores) to the project's environment variables.
 2. Either copy your local data up (step 3), or set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN2_EMAIL` and `ADMIN2_PASSWORD` under **Settings → Environment Variables** so the two admins are created on first start.
 3. To copy your local admins, sellers, products and photos: create a `.env` file in the project folder with `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` (copy them from Vercel's environment variables page; see `.env.example`), then run `npm run copy-to-turso`. Product photos are only copied if Blob credentials are in `.env` too; otherwise re-add them on the live site. The `.env` file is never uploaded to GitHub.
-4. Push to GitHub, or press **Redeploy** in Vercel. `vercel.json` makes `/seller` and `/admin` work without `.html`.
+4. Push to GitHub, or press **Redeploy** in Vercel. `vercel.json` makes `/penjual` and `/pengelola` work without `.html`, and sends the old addresses `/seller` and `/admin` to them.
 
 To remove the example shops from the live site: `npm run demo:remove:online` (uses the `.env` file).
 

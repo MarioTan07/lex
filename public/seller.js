@@ -14,7 +14,7 @@ $("#s-home").replaceWith(homeLoc.node);
 // ---------- session ----------
 async function start() {
   const { user } = await api("/api/me").catch(() => ({ user: null }));
-  if (user && user.role === "admin") { location.href = "/admin"; return; }
+  if (user && user.role === "admin") { location.href = "/pengelola"; return; }
   me = user;
   $("#authView").hidden = !!me;
   $("#deskView").hidden = !me;
