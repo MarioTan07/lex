@@ -36,9 +36,23 @@ const chosen = () => o.menu.filter((p) => o.qty.get(p.id) > 0);
 const total = () => chosen().reduce((sum, p) => sum + p.price * o.qty.get(p.id), 0);
 
 // ---------- the WhatsApp message ----------
-function itemLine(p) {
+// "2 bungkus Peyek semanggi" reads well, but a "Dijual per" that is just a count ("1", "65", "isi 12", "10 buah")
+// would give "2 1 car". Then the line is "2× car", plus the pack size when it's more than one: "2× car, isi 65 buah".
+const COUNT_UNIT = /^\s*(?:isi\s*)?(\d+)\s*(?:buah|biji|pcs?|potong|butir)?\s*$/i;
+// " / bungkus" after a price; a count unit shows as the pack size (" / isi 65 buah"), or nothing for one piece.
+function unitText(p, l = lang) {
+  const count = COUNT_UNIT.exec(p.unit || "");
+  const pack = p.pieces || (count ? Number(count[1]) : 0);
+  if (p.unit && !count) return " / " + p.unit;
+  return pack > 1 ? " / " + tIn(l, "msg.pack", { n: pack }) : "";
+}
+function itemLine(p, l) {
   const n = o.qty.get(p.id);
-  return "• " + (p.unit ? `${n} ${p.unit} ${p.name}` : `${n}× ${p.name}`) + " (" + rp(p.price * n) + ")";
+  const count = COUNT_UNIT.exec(p.unit || "");
+  const pack = p.pieces || (count ? Number(count[1]) : 0);
+  const what = p.unit && !count ? `${n} ${p.unit} ${p.name}`
+    : `${n}× ${p.name}` + (pack > 1 ? ", " + tIn(l, "msg.pack", { n: pack }) : "");
+  return "• " + what + " (" + rp(p.price * n) + ")";
 }
 function message(l, note) {
   const when = o.day === "asap" ? tIn(l, "msg.asap")
@@ -46,7 +60,7 @@ function message(l, note) {
   const reqs = [...o.reqs].map((k) => tIn(l, k).toLowerCase());
   return [
     tIn(l, "msg.hello", { stall: o.stall.stallName }),
-    ...chosen().map(itemLine),
+    ...chosen().map((p) => itemLine(p, l)),
     tIn(l, "msg.total", { total: rp(total()) }),
     "",
     tIn(l, "msg.pickup", { when }),
@@ -108,7 +122,7 @@ function itemsStep(box) {
       o.qty.set(p.id, n); count.textContent = String(n); refresh();
     };
     list.append(el("div", { class: "order-item" },
-      el("div", {}, el("strong", { text: p.name }), el("span", { class: "muted small", text: " " + rp(p.price) + (p.unit ? " / " + p.unit : "") })),
+      el("div", {}, el("strong", { text: p.name }), el("span", { class: "muted small", text: " " + rp(p.price) + unitText(p) })),
       el("div", { class: "stepper" },
         el("button", { type: "button", "aria-label": t("order.less", { name: p.name }), onclick: () => change(-1), text: "−" }),
         count,
