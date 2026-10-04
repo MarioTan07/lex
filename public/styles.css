@@ -36,6 +36,17 @@
   --gutter: clamp(16px, 4vw, 48px);
 }
 
+/* Follows the phone or computer: light by default, the dark palette when the device is set to dark mode. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #151813; --surface: #1c2019; --band: #1a1d17; --ink: #e6e9dd; --heading: #eef1e6; --muted: #a3aa99;
+    --line: #2c3227; --line-strong: #3a4134;
+    --leaf: #8cc08a; --leaf-soft: #22301f; --leaf-ink: #a6d3a2; --sauce: #e0a86f; --sauce-soft: #352819; --on-leaf: #0f1a10;
+    --footer: #1f2e21; --on-footer: #dfe6d6; --ok: #8cc08a; --bad: #ee8a80; --bad-soft: #3b201d;
+    --shadow: 0 22px 50px rgb(0 0 0 / .35); --shadow-sm: 0 8px 20px rgb(0 0 0 / .3);
+  }
+}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; scroll-padding-top: 84px; }
@@ -441,6 +452,7 @@ dialog.book { width: min(560px, calc(100% - 24px)); }
 
 /* homestay (coming soon) and sponsors */
 .extras { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: stretch; }
+.extras.one { grid-template-columns: minmax(0, 1fr); } /* a single box spans the full width, like the partner list */
 .extra { display: grid; gap: 12px; align-content: start; padding: clamp(24px, 4vw, 36px); border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
 .extra.stay { background: var(--leaf-soft); border-color: transparent; }
 .extra .badge { justify-self: start; background: var(--surface); }
