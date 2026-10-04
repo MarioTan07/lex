@@ -35,16 +35,6 @@
   --radius-xl: 32px;
   --gutter: clamp(16px, 4vw, 48px);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #151813; --surface: #1c2019; --band: #1a1d17; --ink: #e6e9dd; --heading: #eef1e6; --muted: #a3aa99;
-    --line: #2c3227; --line-strong: #3a4134;
-    --leaf: #8cc08a; --leaf-soft: #22301f; --leaf-ink: #a6d3a2; --sauce: #e0a86f; --sauce-soft: #352819; --on-leaf: #0f1a10;
-    --footer: #1f2e21; --on-footer: #dfe6d6; --ok: #8cc08a; --bad: #ee8a80; --bad-soft: #3b201d;
-    --shadow: 0 22px 50px rgb(0 0 0 / .35); --shadow-sm: 0 8px 20px rgb(0 0 0 / .3);
-  }
-}
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -353,9 +343,9 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .tool { width: 38px; height: 38px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; color: var(--ink); background: color-mix(in srgb, var(--surface) 88%, transparent); box-shadow: 0 2px 8px rgb(0 0 0 / .15); backdrop-filter: blur(4px); }
 .tool .icon { width: 18px; height: 18px; }
 .tool:hover { color: var(--leaf); }
-.tool.fav[aria-pressed="true"] { color: #d64545; }
+.tool.fav[aria-pressed="true"] { color: var(--bad); }
 .tool.fav[aria-pressed="true"] .icon { fill: currentColor; }
-.hot-badge { position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border-radius: 999px; background: #d9572b; color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgb(0 0 0 / .18); }
+.hot-badge { position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border-radius: 999px; background: var(--sauce); color: var(--on-leaf); font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgb(0 0 0 / .18); }
 .hot-badge .icon { width: 14px; height: 14px; }
 .chips button .icon { width: 14px; height: 14px; margin-right: 4px; vertical-align: -2px; }
 .hours { display: flex; align-items: center; gap: 6px; font-size: .8125rem; font-weight: 600; margin-top: 4px; }
@@ -472,7 +462,7 @@ dialog.book { width: min(560px, calc(100% - 24px)); }
 .track::-webkit-scrollbar { display: none; }
 .track:focus-visible { outline: 3px solid var(--leaf-soft); outline-offset: 3px; }
 .track figure { flex: 0 0 100%; scroll-snap-align: start; margin: 0; display: grid; grid-template-rows: auto auto; }
-.track img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; background: #1f241c; display: block; }
+.track img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; background: var(--band); display: block; }
 .track figcaption { padding: 12px 18px 16px; font-size: .9375rem; color: var(--muted); }
 .carousel-bar { display: flex; align-items: center; gap: 12px; }
 .carousel-bar .small { margin-left: auto; }
@@ -559,3 +549,18 @@ dialog.book { width: min(560px, calc(100% - 24px)); }
 .setup-head { display: grid; gap: 8px; }
 .setup-head h1 { font-size: var(--step-2); }
 fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
+
+/* About us (Cerita kami): one box style for the people groups, partners, the pincuk card and the
+   sponsor and packages boxes. Boxes sit on the page colour; inside a band they use the paper colour. */
+.groups li, .partners li, .pincuk, .extra, .extra.stay {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: clamp(20px, 3vw, 28px); box-shadow: none;
+}
+.band .groups li, .band .partners li, .band .pincuk, .band .extra { background: var(--paper); }
+.extra h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); }
+/* Warga Kami: the text on top, then the groups in a grid */
+.people { grid-template-columns: minmax(0, 1fr); }
+.people .prose { max-width: 46em; }
+.groups { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 900px) { .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .groups { grid-template-columns: minmax(0, 1fr); } }
