@@ -1200,7 +1200,11 @@ const TEXT = {
 
 // The site is written in Indonesian and always opens in Indonesian. English is only shown after
 // the visitor picks EN, and that choice is remembered in this browser.
+// The admin page always opens in Indonesian. Its ID/EN switch works for that visit only and doesn't
+// change the language remembered for the rest of the site.
+const ADMIN_PAGE = /^\/(pengelola|admin)(\.html)?\/?$/.test(location.pathname);
 function pickLang() {
+  if (ADMIN_PAGE) return "id";
   try { const saved = localStorage.getItem("ks-lang-v2"); if (LANGS.includes(saved)) return saved; } catch {}
   return "id";
 }
@@ -1258,7 +1262,7 @@ export function applyI18n(root = document) {
 export function setLang(next) {
   if (!LANGS.includes(next) || next === lang) return;
   lang = next;
-  try { localStorage.setItem("ks-lang-v2", lang); } catch {}
+  if (!ADMIN_PAGE) try { localStorage.setItem("ks-lang-v2", lang); } catch {}
   applyI18n();
   window.dispatchEvent(new Event("langchange"));
 }
