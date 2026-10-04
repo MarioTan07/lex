@@ -180,6 +180,9 @@ const ADDED_USER_COLUMNS = {
   // Sellers who existed before this was added already have their details, so they start at 1.
   profile_done: "INTEGER NOT NULL DEFAULT 1",
   big_order_days: "INTEGER NOT NULL DEFAULT 0", big_order_note: "TEXT NOT NULL DEFAULT ''",
+  // Pickup only or delivery, as JSON: {"mode":"pickup"} or {"mode":"delivery","countries":["ID","SG"],"regions":["Jawa Timur"]}.
+  // regions are Indonesian provinces, only when Indonesia is a country. Empty = the seller hasn't said.
+  delivery: "TEXT NOT NULL DEFAULT ''",
 };
 // Product columns added later. pieces: how many pieces one listed price covers (e.g. Rp 160.000 for 65),
 // for comparing prices per piece; empty means not given. category: one of the catalog filter categories.

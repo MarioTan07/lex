@@ -356,5 +356,11 @@
 "collab.pageTitle": "الشراكات · Kampoeng Semanggi",
 "collab.meta": "شركاء وداعمو Kampoeng Semanggi في سيميمي، سورابايا، وكيف تصبح راعيًا أو شريكًا.",
 "collab.lede": "نمت Kampoeng Semanggi بدعم من الحكومة والشركات والجامعات. شكرًا لكل شركائنا.",
-"people.photoView": "صورة"
+"people.photoView": "صورة",
+"delivery.pickupOnly": "الاستلام من المتجر فقط، بدون توصيل",
+"delivery.to": "يوصّل إلى {places}",
+"delivery.allIndonesia": "كل إندونيسيا",
+"delivery.nRegions": "{n} مقاطعات",
+"delivery.moreCountries": "{n} دول أخرى",
+"delivery.chip": "يوصّل"
 }

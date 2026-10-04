@@ -6,6 +6,7 @@ import { put, del, get } from "@vercel/blob";
 import { Readable } from "node:stream";
 import { connect, setupSchema, ROOT, DATA_DIR } from "./db.js";
 import ABOUT_SEED from "./content-seed.js";
+import { COUNTRIES, PROVINCES } from "./public/places.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const ON_VERCEL = !!process.env.VERCEL;
@@ -157,6 +158,9 @@ const MESSAGES = {
     tooManyPhotos: "Satu tur, pengalaman, atau homestay bisa punya maksimal 10 foto.",
     noPhoto: "Foto itu tidak ditemukan.",
     bigOrderDays: "Pilih berapa hari sebelumnya pesanan besar harus dipesan.",
+    deliveryInvalid: "Pilihan pengiriman tidak valid. Muat ulang halaman lalu coba lagi.",
+    deliveryCountries: "Pilih minimal satu negara tujuan pengiriman.",
+    deliveryRegions: "Pilih minimal satu provinsi di Indonesia yang Anda layani.",
     hoursInvalid: "Jam buka tidak valid. Isi jam buka dan tutup untuk setiap hari yang buka.",
     categoryInvalid: "Kategori tidak dikenal.",
     instagramInvalid: "Isi nama akun Instagram, misalnya @kampoengsemanggi, atau tautan profilnya.",
@@ -253,6 +257,9 @@ const MESSAGES = {
     tooManyPhotos: "A tour, experience or homestay can have at most 10 photos.",
     noPhoto: "That photo wasn't found.",
     bigOrderDays: "Choose how many days ahead large orders must be placed.",
+    deliveryInvalid: "That delivery choice isn't valid. Reload the page and try again.",
+    deliveryCountries: "Choose at least one country you deliver to.",
+    deliveryRegions: "Choose at least one Indonesian province you deliver to.",
     hoursInvalid: "The opening hours aren't valid. Give an opening and closing time for each day the shop is open.",
     categoryInvalid: "Unknown category.",
     instagramInvalid: "Enter an Instagram username, like @kampoengsemanggi, or a link to the profile.",
@@ -422,6 +429,7 @@ function publicUser(u) {
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
     paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home, hours: hoursOut(u),
     bigOrders: u.big_order_days ? { days: u.big_order_days, note: u.big_order_note || "" } : null,
+    delivery: deliveryOut(u),
   };
 }
 // Accepts "@name", "name" or an instagram.com profile link, and keeps just the username.
@@ -454,6 +462,28 @@ function bigOrders(v) {
   if (!Number.isInteger(days) || days < 1 || days > 30) throw bad("bigOrderDays");
   return { big_order_days: days, big_order_note: text(v.note, 80) };
 }
+// Pickup only, or delivery to chosen countries (and Indonesian provinces when Indonesia is one of them).
+const COUNTRY_SET = new Set(COUNTRIES), PROVINCE_SET = new Set(PROVINCES);
+function delivery(v) {
+  if (!v) return "";
+  if (typeof v !== "object") throw bad("deliveryInvalid");
+  if (v.mode === "pickup") return JSON.stringify({ mode: "pickup" });
+  if (v.mode !== "delivery" || !Array.isArray(v.countries) || (v.regions != null && !Array.isArray(v.regions))) throw bad("deliveryInvalid");
+  const countries = [...new Set(v.countries)];
+  if (!countries.every((c) => COUNTRY_SET.has(c))) throw bad("deliveryInvalid");
+  if (!countries.length) throw bad("deliveryCountries");
+  let regions = [];
+  if (countries.includes("ID")) {
+    regions = [...new Set(v.regions || [])];
+    if (!regions.every((r) => PROVINCE_SET.has(r))) throw bad("deliveryInvalid");
+    if (!regions.length) throw bad("deliveryRegions");
+    regions = PROVINCES.filter((p) => regions.includes(p));
+  }
+  // Indonesia first, then in code order; the pages sort the names in the reader's language.
+  countries.sort((a, b) => (a === "ID" ? -1 : b === "ID" ? 1 : a.localeCompare(b)));
+  return JSON.stringify({ mode: "delivery", countries, regions });
+}
+const deliveryOut = (u) => { try { return u.delivery ? JSON.parse(u.delivery) : null; } catch { return null; } };
 const hoursOut = (u) => { try { return u.hours ? JSON.parse(u.hours) : null; } catch { return null; } };
 // A shop without a name goes by the seller's name.
 const shopName = (u) => u.stall_name || u.name;
@@ -483,6 +513,7 @@ function sellerFields(body) {
     // The admin form doesn't edit hours or big orders, so they only change when sent.
     ...(body.hours !== undefined ? { hours: hours(body.hours) } : {}),
     ...(body.bigOrders !== undefined ? bigOrders(body.bigOrders) : {}),
+    ...(body.delivery !== undefined ? { delivery: delivery(body.delivery) } : {}),
     ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
     ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
   };
@@ -739,7 +770,7 @@ app.get("/api/stalls", async (_req, res) => {
   const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' AND profile_done = 1 ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
-    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, bigOrders: p.bigOrders, paused: p.paused, pauseNote: p.pauseNote };
+    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, bigOrders: p.bigOrders, delivery: p.delivery, paused: p.paused, pauseNote: p.pauseNote };
   }) });
 });
 

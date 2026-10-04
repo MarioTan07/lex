@@ -356,5 +356,11 @@
 "collab.pageTitle": "Partenariats · Kampoeng Semanggi",
 "collab.meta": "Les partenaires et soutiens de Kampoeng Semanggi, Sememi, Surabaya, et comment devenir sponsor ou partenaire.",
 "collab.lede": "Kampoeng Semanggi a grandi grâce au soutien du gouvernement, d'entreprises et d'universités. Merci à tous nos partenaires.",
-"people.photoView": "Photo"
+"people.photoView": "Photo",
+"delivery.pickupOnly": "À emporter uniquement, pas de livraison",
+"delivery.to": "Livraison : {places}",
+"delivery.allIndonesia": "toute l'Indonésie",
+"delivery.nRegions": "{n} provinces",
+"delivery.moreCountries": "{n} autres pays",
+"delivery.chip": "Livraison"
 }

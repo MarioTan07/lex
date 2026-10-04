@@ -356,5 +356,11 @@
 "collab.pageTitle": "合作伙伴 · Kampoeng Semanggi",
 "collab.meta": "泗水 Sememi 的 Kampoeng Semanggi 的合作伙伴和支持者，以及如何成为赞助商或合作伙伴。",
 "collab.lede": "Kampoeng Semanggi 在政府、企业和大学的支持下成长。感谢所有合作伙伴。",
-"people.photoView": "照片"
+"people.photoView": "照片",
+"delivery.pickupOnly": "仅限到店自取，不送货",
+"delivery.to": "可送达：{places}",
+"delivery.allIndonesia": "印度尼西亚全境",
+"delivery.nRegions": "{n}个省",
+"delivery.moreCountries": "另外{n}个国家",
+"delivery.chip": "可送货"
 }

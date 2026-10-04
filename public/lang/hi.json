@@ -356,5 +356,11 @@
 "collab.pageTitle": "साझेदारियाँ · Kampoeng Semanggi",
 "collab.meta": "Kampoeng Semanggi, सेमेमी, सुराबाया के साझेदार और समर्थक, और प्रायोजक या साझेदार कैसे बनें।",
 "collab.lede": "Kampoeng Semanggi सरकार, कंपनियों और विश्वविद्यालयों के सहयोग से आगे बढ़ा है। हमारे सभी साझेदारों का धन्यवाद।",
-"people.photoView": "फ़ोटो"
+"people.photoView": "फ़ोटो",
+"delivery.pickupOnly": "केवल दुकान से लें, डिलीवरी नहीं",
+"delivery.to": "{places} में डिलीवरी करता है",
+"delivery.allIndonesia": "पूरा इंडोनेशिया",
+"delivery.nRegions": "{n} प्रांत",
+"delivery.moreCountries": "{n} और देश",
+"delivery.chip": "डिलीवरी"
 }

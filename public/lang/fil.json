@@ -356,5 +356,11 @@
 "collab.pageTitle": "Pakikipagtulungan · Kampoeng Semanggi",
 "collab.meta": "Mga partner at tagasuporta ng Kampoeng Semanggi, Sememi, Surabaya, at kung paano maging sponsor o partner.",
 "collab.lede": "Lumago ang Kampoeng Semanggi dahil sa suporta ng pamahalaan, mga kumpanya at unibersidad. Salamat sa lahat ng aming partner.",
-"people.photoView": "Larawan"
+"people.photoView": "Larawan",
+"delivery.pickupOnly": "Pickup lang, walang delivery",
+"delivery.to": "Nagde-deliver sa {places}",
+"delivery.allIndonesia": "buong Indonesia",
+"delivery.nRegions": "{n} lalawigan",
+"delivery.moreCountries": "{n} pang bansa",
+"delivery.chip": "May delivery"
 }

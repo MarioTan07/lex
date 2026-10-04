@@ -202,6 +202,28 @@
               <div class="field"><label for="s-big-note" data-i18n="big.note">Catatan (opsional)</label><input type="text" id="s-big-note" maxlength="80" data-i18n-attr="placeholder:big.notePlaceholder" placeholder="mis. minimal 50 porsi"></div>
             </div>
           </fieldset>
+          <fieldset class="loc deliv-edit">
+            <legend data-i18n="deliv.legend">Ambil sendiri atau diantar</legend>
+            <label class="check"><input type="radio" name="s-deliv" value="pickup" id="s-deliv-pickup"> <span data-i18n="deliv.pickup">Ambil sendiri saja (pembeli datang ke toko)</span></label>
+            <label class="check"><input type="radio" name="s-deliv" value="delivery" id="s-deliv-delivery"> <span data-i18n="deliv.delivery">Bisa diantar / dikirim</span></label>
+            <div id="s-deliv-fields" class="deliv-fields" hidden>
+              <div class="field">
+                <span class="label" id="s-countries-label" data-i18n="deliv.countries">Negara tujuan</span>
+                <input type="search" id="s-country-find" autocomplete="off" data-i18n-attr="placeholder:deliv.countryFind;aria-label:deliv.countryFind" placeholder="Cari negara" aria-label="Cari negara">
+                <div class="pick-list" id="s-countries" role="group" aria-labelledby="s-countries-label"></div>
+                <span class="hint" id="s-countries-chosen"></span>
+              </div>
+              <div class="field" id="s-regions-field" hidden>
+                <span class="label" id="s-regions-label" data-i18n="deliv.regions">Provinsi di Indonesia</span>
+                <div class="pick-actions">
+                  <button type="button" class="btn small ghost" id="s-regions-all" data-i18n="deliv.selectAll">Pilih semua</button>
+                  <button type="button" class="btn small ghost" id="s-regions-none" data-i18n="deliv.clearAll">Hapus semua</button>
+                </div>
+                <div class="pick-list" id="s-regions" role="group" aria-labelledby="s-regions-label"></div>
+                <span class="hint" id="s-regions-chosen"></span>
+              </div>
+            </div>
+          </fieldset>
           <div id="s-shop"></div>
           <div id="s-home"></div>
           <p class="formerr" id="profileErr" hidden></p>

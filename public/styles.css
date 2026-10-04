@@ -261,7 +261,7 @@ form { display: grid; gap: 14px; }
 .field { display: grid; gap: 6px; }
 .field label, .field .label { font-size: var(--step--1); font-weight: 600; }
 .field .hint { font-size: 12px; color: var(--muted); }
-input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="password"], textarea, select {
+input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="password"], .field input[type="search"], textarea, select {
   width: 100%; border: 1px solid var(--line-strong); background: var(--paper); border-radius: 12px; padding: 10px 14px;
 }
 input:focus, textarea:focus, select:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-soft); }
@@ -395,6 +395,14 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .big-order { display: flex; align-items: flex-start; gap: 6px; font-size: .8125rem; font-weight: 600; color: var(--leaf-ink); margin-top: 2px; }
 .big-order .icon { width: 14px; height: 14px; flex: none; margin-top: 3px; }
 .big-edit { display: grid; gap: 10px; }
+.deliv { display: flex; align-items: flex-start; gap: 6px; font-size: .8125rem; font-weight: 600; color: var(--heading); margin-top: 2px; }
+.deliv .icon { width: 14px; height: 14px; flex: none; margin-top: 3px; }
+/* Seller form: the delivery choice, with scrolling tick lists of countries and provinces */
+.deliv-edit, .deliv-fields { display: grid; gap: 12px; }
+.pick-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; display: grid; gap: 6px; background: var(--surface); }
+.pick-list .check { font-weight: 400; }
+.pick-list .check[hidden] { display: none; }
+.pick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 #statsPanel { display: grid; gap: 12px; }
 #statsPanel .desk-head { flex-wrap: wrap; gap: 10px; }
 

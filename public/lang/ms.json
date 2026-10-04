@@ -356,5 +356,11 @@
 "collab.pageTitle": "Kerjasama · Kampoeng Semanggi",
 "collab.meta": "Rakan kongsi dan penyokong Kampoeng Semanggi, Sememi, Surabaya, dan cara menjadi penaja atau rakan kongsi.",
 "collab.lede": "Kampoeng Semanggi berkembang dengan sokongan kerajaan, syarikat dan universiti. Terima kasih kepada semua rakan kongsi kami.",
-"people.photoView": "Foto"
+"people.photoView": "Foto",
+"delivery.pickupOnly": "Ambil sendiri sahaja, tiada penghantaran",
+"delivery.to": "Menghantar ke {places}",
+"delivery.allIndonesia": "seluruh Indonesia",
+"delivery.nRegions": "{n} wilayah",
+"delivery.moreCountries": "{n} negara lagi",
+"delivery.chip": "Ada penghantaran"
 }

@@ -1,4 +1,6 @@
 import { $, el, rp, t, api, toast, shrinkPhoto, confirmTap, locationEditor, hoursEditor } from "/common.js";
+import { locale } from "/i18n.js";
+import { PROVINCES, sortedCountries } from "/places.js";
 
 let me = null;
 let products = [];
@@ -16,6 +18,55 @@ $("#s-hours").replaceWith(hoursEd.node);
 // Large orders: the notice and note only matter when the box is ticked.
 const syncBig = () => { $("#s-big-fields").hidden = !$("#s-big").checked; };
 $("#s-big").addEventListener("change", syncBig);
+
+// ---------- pickup only or delivery: countries (Indonesia first), then provinces when Indonesia is ticked ----------
+const deliv = { countries: new Set(), regions: new Set() };
+const delivMode = () => document.querySelector('input[name="s-deliv"]:checked')?.value || "";
+function tickList(box, items, chosen, onChange) {
+  box.replaceChildren(...items.map(({ value, name }) => {
+    const c = el("input", { type: "checkbox", value });
+    c.checked = chosen.has(value);
+    c.addEventListener("change", () => { c.checked ? chosen.add(value) : chosen.delete(value); onChange(); });
+    return el("label", { class: "check", "data-name": name.toLowerCase() }, c, el("span", { text: name }));
+  }));
+}
+function drawCountries() {
+  tickList($("#s-countries"), sortedCountries(locale()).map((c) => ({ value: c.code, name: c.name })), deliv.countries, syncDeliv);
+  filterCountries();
+}
+function drawRegions() {
+  tickList($("#s-regions"), PROVINCES.map((p) => ({ value: p, name: p })), deliv.regions, syncDeliv);
+}
+function filterCountries() {
+  const q = $("#s-country-find").value.trim().toLowerCase();
+  for (const l of $("#s-countries").children) l.hidden = !!q && !l.dataset.name.includes(q);
+}
+function syncDeliv() {
+  $("#s-deliv-fields").hidden = delivMode() !== "delivery";
+  $("#s-regions-field").hidden = !deliv.countries.has("ID");
+  const names = [...$("#s-countries").querySelectorAll("input:checked")].map((c) => c.nextSibling.textContent);
+  $("#s-countries-chosen").textContent = names.length ? t("deliv.chosen", { list: names.join(", ") }) : t("deliv.noneChosen");
+  const n = deliv.regions.size;
+  $("#s-regions-chosen").textContent = n === PROVINCES.length ? t("deliv.allRegions") : n ? t("deliv.chosen", { list: PROVINCES.filter((p) => deliv.regions.has(p)).join(", ") }) : t("deliv.noneChosen");
+}
+function setDeliv(d) {
+  document.querySelectorAll('input[name="s-deliv"]').forEach((r) => { r.checked = r.value === d?.mode; });
+  deliv.countries = new Set(d?.countries || []); deliv.regions = new Set(d?.regions || []);
+  // A seller starting to deliver most likely delivers in Indonesia, around Surabaya.
+  if (!d || d.mode !== "delivery") { deliv.countries.add("ID"); deliv.regions.add("Jawa Timur"); }
+  drawCountries(); drawRegions(); syncDeliv();
+}
+function getDeliv() {
+  const mode = delivMode();
+  if (!mode) return null;
+  if (mode === "pickup") return { mode };
+  return { mode, countries: [...deliv.countries], regions: deliv.countries.has("ID") ? [...deliv.regions] : [] };
+}
+document.querySelectorAll('input[name="s-deliv"]').forEach((r) => r.addEventListener("change", syncDeliv));
+$("#s-country-find").addEventListener("input", filterCountries);
+$("#s-regions-all").addEventListener("click", () => { PROVINCES.forEach((p) => deliv.regions.add(p)); drawRegions(); syncDeliv(); });
+$("#s-regions-none").addEventListener("click", () => { deliv.regions.clear(); drawRegions(); syncDeliv(); });
+window.addEventListener("langchange", () => { drawCountries(); syncDeliv(); });
 
 // ---------- session ----------
 async function start() {
@@ -132,6 +183,7 @@ function fillProfile() {
   shopLoc.set(me.shop); homeLoc.set(me.home); hoursEd.set(me.hours);
   $("#s-big").checked = !!me.bigOrders; $("#s-big-days").value = String(me.bigOrders?.days || 2); $("#s-big-note").value = me.bigOrders?.note || "";
   syncBig();
+  setDeliv(me.delivery);
 }
 
 // Session expired or account suspended mid-visit.
@@ -241,7 +293,7 @@ $("#profileForm").addEventListener("submit", async (e) => {
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
     const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(),
-      bigOrders: $("#s-big").checked ? { days: Number($("#s-big-days").value), note: $("#s-big-note").value } : null, shop: shopLoc.get(), home: homeLoc.get() };
+      bigOrders: $("#s-big").checked ? { days: Number($("#s-big-days").value), note: $("#s-big-note").value } : null, delivery: getDeliv(), shop: shopLoc.get(), home: homeLoc.get() };
     const firstTime = !me.profileDone;
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     if (firstTime) { toast(t("setup.done")); start(); window.scrollTo(0, 0); return; }

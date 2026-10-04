@@ -356,5 +356,11 @@
 "collab.pageTitle": "ပူးပေါင်းဆောင်ရွက်မှုများ · Kampoeng Semanggi",
 "collab.meta": "Sememi၊ Surabaya ရှိ Kampoeng Semanggi ၏ မိတ်ဖက်များနှင့် ထောက်ပံ့သူများ၊ ထောက်ပံ့သူ သို့မဟုတ် မိတ်ဖက် ဖြစ်လာနည်း။",
 "collab.lede": "Kampoeng Semanggi သည် အစိုးရ၊ ကုမ္ပဏီများနှင့် တက္ကသိုလ်များ၏ ထောက်ပံ့မှုဖြင့် ကြီးထွားလာခဲ့သည်။ မိတ်ဖက်အားလုံးကို ကျေးဇူးတင်ပါသည်။",
-"people.photoView": "ဓာတ်ပုံ"
+"people.photoView": "ဓာတ်ပုံ",
+"delivery.pickupOnly": "ဆိုင်တွင်သာ လာယူရန်၊ ပို့ဆောင်မှုမရှိ",
+"delivery.to": "{places} သို့ ပို့ဆောင်ပေးသည်",
+"delivery.allIndonesia": "အင်ဒိုနီးရှားတစ်နိုင်ငံလုံး",
+"delivery.nRegions": "ပြည်နယ် {n} ခု",
+"delivery.moreCountries": "နောက်ထပ် နိုင်ငံ {n} ခု",
+"delivery.chip": "ပို့ဆောင်ပေးသည်"
 }

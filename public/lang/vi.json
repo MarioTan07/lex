@@ -356,5 +356,11 @@
 "collab.pageTitle": "Hợp tác · Kampoeng Semanggi",
 "collab.meta": "Các đối tác và nhà hỗ trợ của Kampoeng Semanggi, Sememi, Surabaya, và cách trở thành nhà tài trợ hoặc đối tác.",
 "collab.lede": "Kampoeng Semanggi lớn mạnh nhờ sự hỗ trợ của chính quyền, doanh nghiệp và các trường đại học. Cảm ơn tất cả các đối tác của chúng tôi.",
-"people.photoView": "Ảnh"
+"people.photoView": "Ảnh",
+"delivery.pickupOnly": "Chỉ nhận tại cửa hàng, không giao hàng",
+"delivery.to": "Giao đến {places}",
+"delivery.allIndonesia": "toàn Indonesia",
+"delivery.nRegions": "{n} tỉnh",
+"delivery.moreCountries": "{n} nước khác",
+"delivery.chip": "Có giao hàng"
 }

@@ -356,5 +356,11 @@
 "collab.pageTitle": "ความร่วมมือ · Kampoeng Semanggi",
 "collab.meta": "พันธมิตรและผู้สนับสนุนของ Kampoeng Semanggi เซเมมี สุราบายา และวิธีเป็นผู้สนับสนุนหรือพันธมิตร",
 "collab.lede": "Kampoeng Semanggi เติบโตด้วยการสนับสนุนจากภาครัฐ บริษัท และมหาวิทยาลัย ขอบคุณพันธมิตรทุกท่าน",
-"people.photoView": "รูปภาพ"
+"people.photoView": "รูปภาพ",
+"delivery.pickupOnly": "รับที่ร้านเท่านั้น ไม่มีบริการส่ง",
+"delivery.to": "ส่งถึง {places}",
+"delivery.allIndonesia": "ทั่วอินโดนีเซีย",
+"delivery.nRegions": "{n} จังหวัด",
+"delivery.moreCountries": "อีก {n} ประเทศ",
+"delivery.chip": "มีบริการส่ง"
 }

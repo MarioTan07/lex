@@ -1,5 +1,6 @@
 // Shared helpers for the shop, seller desk and admin desk.
 import { t, lang, locale } from "/i18n.js";
+import { PROVINCES, countryName } from "/places.js";
 export { t };
 export const $ = (s, root = document) => root.querySelector(s);
 
@@ -34,6 +35,8 @@ const ICONS = {
   palette: '<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2z"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+  truck: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+  "shopping-bag": '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
   calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
   "chevron-left": '<path d="m15 18-6-6 6-6"/>',
   "chevron-right": '<path d="m9 18 6-6-6-6"/>',
@@ -312,6 +315,28 @@ export function bigOrderLine(stall) {
   const b = stall && stall.bigOrders;
   if (!b) return null;
   return el("p", { class: "big-order" }, icon("calendar"), t(b.days === 1 ? "big.label1" : "big.labelN", { days: b.days }) + (b.note ? " · " + b.note : ""));
+}
+// "Pickup only", or "Delivers to Indonesia (Jawa Timur, Bali) and Singapore". Cards use the short form
+// (up to four places, or three and a count of the rest); the shop page and product window list every place.
+export function deliveryLine(stall, { full = false } = {}) {
+  const d = stall && stall.delivery;
+  if (!d) return null;
+  if (d.mode === "pickup") return el("p", { class: "deliv" }, icon("shopping-bag"), t("delivery.pickupOnly"));
+  const loc = locale();
+  const parts = [], longParts = [];
+  if (d.countries.includes("ID")) {
+    const r = d.regions || [], id = countryName("ID", loc);
+    const all = r.length >= PROVINCES.length;
+    longParts.push(all ? t("delivery.allIndonesia") : `${id} (${r.join(", ")})`);
+    parts.push(all ? t("delivery.allIndonesia") : r.length <= 2 ? longParts[0] : `${id} (${t("delivery.nRegions", { n: r.length })})`);
+  }
+  const others = d.countries.filter((c) => c !== "ID").map((c) => countryName(c, loc)).sort((a, b) => a.localeCompare(b, loc));
+  longParts.push(...others);
+  if (others.length + parts.length <= 4) parts.push(...others);
+  else parts.push(...others.slice(0, 3 - parts.length), t("delivery.moreCountries", { n: others.length - (3 - parts.length) }));
+  const join = (xs) => { try { return new Intl.ListFormat(loc, { type: "conjunction" }).format(xs); } catch { return xs.join(", "); } };
+  const long = t("delivery.to", { places: join(longParts) });
+  return el("p", { class: "deliv", title: full ? null : long }, icon("truck"), full ? long : t("delivery.to", { places: join(parts) }));
 }
 // Share a link with the phone's share sheet, or on WhatsApp where that isn't available.
 export function shareButton({ title, text, url, onShare }) {

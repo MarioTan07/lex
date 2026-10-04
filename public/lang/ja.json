@@ -356,5 +356,11 @@
 "collab.pageTitle": "パートナー · Kampoeng Semanggi",
 "collab.meta": "スラバヤ・セメミの Kampoeng Semanggi のパートナーと支援者、そして協賛者・パートナーになる方法。",
 "collab.lede": "Kampoeng Semanggi は、行政、企業、大学の支援を受けて成長してきました。すべてのパートナーに感謝します。",
-"people.photoView": "写真"
+"people.photoView": "写真",
+"delivery.pickupOnly": "店頭受け取りのみ（配達なし）",
+"delivery.to": "配達先：{places}",
+"delivery.allIndonesia": "インドネシア全土",
+"delivery.nRegions": "{n}州",
+"delivery.moreCountries": "ほか{n}か国",
+"delivery.chip": "配達あり"
 }

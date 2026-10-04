@@ -1,4 +1,4 @@
-import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, bigOrderLine } from "/common.js";
+import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, bigOrderLine, deliveryLine } from "/common.js";
 import { lang, locale } from "/i18n.js";
 import { openOrder } from "/order.js";
 
@@ -70,12 +70,14 @@ function renderShop() {
   const hasFav = pool.some((p) => favs.has("p", p.id));
   const takesBig = (p) => !!stallById(p.sellerId)?.bigOrders;
   const hasBig = pool.some(takesBig);
-  if (filterKind === "hot" && !hotHere.length || filterKind === "fav" && !hasFav || filterKind === "big" && !hasBig) filterKind = "all";
+  const delivers = (p) => stallById(p.sellerId)?.delivery?.mode === "delivery";
+  const hasDeliv = pool.some(delivers);
+  if (filterKind === "hot" && !hotHere.length || filterKind === "fav" && !hasFav || filterKind === "big" && !hasBig || filterKind === "deliv" && !hasDeliv) filterKind = "all";
   const kindChip = (k, label, ico) => el("button", { "aria-pressed": String(filterKind === k), onclick: () => { filterKind = k; renderShop(); } }, ico ? icon(ico) : null, label);
-  const kindList = [hotHere.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, hasBig ? kindChip("big", t("big.chip"), "calendar") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
+  const kindList = [hotHere.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, hasBig ? kindChip("big", t("big.chip"), "calendar") : null, hasDeliv ? kindChip("deliv", t("delivery.chip"), "truck") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
   kinds.hidden = !kindList.length;
   if (kindList.length) kinds.append(kindChip("all", t("cat.all")), ...kindList);
-  const kindOk = (p) => filterKind === "all" || (filterKind === "hot" ? hot.includes(p.id) : filterKind === "fav" ? favs.has("p", p.id) : filterKind === "big" ? takesBig(p) : p.category === filterKind);
+  const kindOk = (p) => filterKind === "all" || (filterKind === "hot" ? hot.includes(p.id) : filterKind === "fav" ? favs.has("p", p.id) : filterKind === "big" ? takesBig(p) : filterKind === "deliv" ? delivers(p) : p.category === filterKind);
   const shown = pool.filter((p) => kindOk(p) && (filterStall === "all" || p.sellerId === filterStall)
     && (!query || norm(p.name + " " + p.stallName + " " + (p.description || "")).includes(query)));
   const grid = $("#productGrid"); grid.replaceChildren();
@@ -104,7 +106,8 @@ function renderShop() {
             el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
             el("p", { class: "stall" }, icon("store"), shopLink(p.sellerId, p.stallName)),
             stall && !stall.paused ? hoursLine(stall.hours) : null,
-            bigOrderLine(stall)),
+            bigOrderLine(stall),
+            deliveryLine(stall)),
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
         perPieceLine(p),
         sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: compare, text: t("compare.count", { n: sellers }) }) : null,
@@ -256,6 +259,7 @@ function renderCompare() {
         stall ? homeNote(stall) : null,
         stall && !stall.paused ? hoursLine(stall.hours) : null,
         bigOrderLine(stall),
+        deliveryLine(stall),
         sortBy === "closest" ? el("p", { class: "small dist", text: dist != null ? distText(dist) : t("compare.noDistance") }) : null,
         !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
         !stall ? null
@@ -290,6 +294,7 @@ function renderShops() {
         el("h3", {}, shopLink(s.id, s.stallName)),
         s.paused ? null : hoursLine(s.hours),
         bigOrderLine(s),
+        deliveryLine(s),
         hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
         homeNote(s),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
@@ -314,6 +319,7 @@ function renderShopPage() {
       el("h1", { text: s.stallName }),
       s.paused ? closedNotice(s) : hoursLine(s.hours),
       bigOrderLine(s),
+      deliveryLine(s, { full: true }),
       hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
       homeNote(s),
       el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
@@ -405,6 +411,7 @@ function renderProduct() {
         homeNote(stall),
         stall.paused ? null : hoursLine(stall.hours),
         bigOrderLine(stall),
+        deliveryLine(stall, { full: true }),
         stall.paused ? closedNotice(stall)
           : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) })
           : null)) : null);
