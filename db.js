@@ -141,6 +141,13 @@ const SCHEMA = `
   );
   CREATE INDEX IF NOT EXISTS idx_orders_seller ON orders(seller_id);
   CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
+  -- Attempt counters (sign-ins, codes, translations…) kept in the database so limits hold across
+  -- every server copy and restart. One row per key, e.g. "login-acct:6281234567890".
+  CREATE TABLE IF NOT EXISTS rate_limits (
+    key TEXT PRIMARY KEY,
+    n INTEGER NOT NULL,
+    reset_at INTEGER NOT NULL
+  );
   -- Posters and ads a seller puts on their shop page: an image and an optional caption.
   CREATE TABLE IF NOT EXISTS posters (
     id INTEGER PRIMARY KEY,

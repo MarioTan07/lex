@@ -82,8 +82,9 @@ async function setup() {
     console.log(`Created ${notes.length} admin account(s). Sign-in details are in ${file}`);
   }
 
-  // Sign-ins that have expired are no longer needed.
+  // Sign-ins that have expired, and rate-limit counters that ran out a day ago, are no longer needed.
   await db.run("DELETE FROM sessions WHERE expires_at < ?", Date.now());
+  await db.run("DELETE FROM rate_limits WHERE reset_at < ?", Date.now() - 864e5);
 }
 
 // If starting up fails (for example the database can't be reached for a moment), the next
@@ -176,6 +177,9 @@ const MESSAGES = {
     translateFailed: "Catatan tidak bisa diterjemahkan sekarang.",
     emailInvalid: "Masukkan alamat email yang valid.",
     passwordShort: "Gunakan kata sandi minimal 8 karakter.",
+    passwordShortAdmin: "Kata sandi admin minimal 12 karakter.",
+    passwordLong: "Kata sandi maksimal 200 karakter.",
+    tooMany: "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.",
     emailTaken: "Sudah ada akun dengan email ini.",
     loginWrong: "Nomor HP/email dan kata sandi tidak cocok.",
     phoneInvalid: "Masukkan nomor HP yang valid, misalnya 0812 3456 7890.",
@@ -269,6 +273,9 @@ const MESSAGES = {
     translateFailed: "The note couldn't be translated right now.",
     emailInvalid: "Enter a valid email address.",
     passwordShort: "Use a password of at least 8 characters.",
+    passwordShortAdmin: "Admin passwords need at least 12 characters.",
+    passwordLong: "Passwords can be at most 200 characters.",
+    tooMany: "Too many attempts. Wait a little and try again.",
     emailTaken: "An account with this email already exists.",
     loginWrong: "That phone number or email and password don't match.",
     phoneInvalid: "Enter a valid phone number, for example 0812 3456 7890.",
@@ -361,6 +368,11 @@ async function savePhoto(dataUrl, req) {
   if (!m) throw bad("photoType");
   const buf = Buffer.from(m[2], "base64");
   if (buf.length > 1.5 * 1024 * 1024) throw bad("photoSize");
+  // Check the file itself, not just its label: JPG starts FF D8 FF, PNG 89 "PNG", WebP "RIFF"…"WEBP".
+  const real = m[1] === "jpeg" ? buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff
+    : m[1] === "png" ? buf.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+    : buf.subarray(0, 4).toString("latin1") === "RIFF" && buf.subarray(8, 12).toString("latin1") === "WEBP";
+  if (!real) throw bad("photoType");
   const name = crypto.randomBytes(12).toString("hex") + "." + (m[1] === "jpeg" ? "jpg" : m[1]);
   if (USE_BLOB) {
     try {
@@ -491,6 +503,38 @@ function productOut(p) {
 // ---------- app ----------
 const app = express();
 app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
+// The visitor's address. On Vercel it comes from Vercel's own header (visitors can't fake it);
+// on your own computer, from the connection itself.
+const clientIp = (req) => (ON_VERCEL && (req.get("x-vercel-forwarded-for") || req.get("x-real-ip"))) || req.socket.remoteAddress || "unknown";
+
+// Security headers. On Vercel they're set for every file in vercel.json; here they cover running locally.
+const SECURITY_HEADERS = {
+  "Content-Security-Policy": [
+    "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data: blob: https://*.blob.vercel-storage.com",
+    "frame-src https://www.google.com https://maps.google.com", "connect-src 'self'",
+    "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
+  ].join("; "),
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)",
+  "Cross-Origin-Opener-Policy": "same-origin",
+};
+if (!ON_VERCEL) app.use((_req, res, next) => { res.set(SECURITY_HEADERS); next(); });
+
+app.use("/api", (req, res, next) => {
+  // Answers can hold private details (who's signed in, shop data); browsers and proxies shouldn't keep them.
+  res.set("Cache-Control", "no-store");
+  // Changes may only come from this site's own pages: refuse requests another website makes a visitor's browser send.
+  if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    const origin = req.get("origin");
+    if (origin && origin !== `${req.protocol}://${req.get("host")}`) return next(new HttpError(403, "forbidden"));
+  }
+  next();
+});
 app.use(express.json({ limit: "3mb" }));
 
 // Wait for the database to be ready before handling anything.
@@ -512,32 +556,47 @@ const requireRole = (...roles) => (req, _res, next) => {
   next();
 };
 
-// Simple login throttle: 10 attempts per 15 minutes per IP (per server instance).
-const attempts = new Map();
-function throttle(req) {
-  const now = Date.now(), key = req.ip;
-  const a = attempts.get(key);
-  if (!a || a.reset < now) { attempts.set(key, { n: 1, reset: now + 15 * 6e4 }); return; }
-  if (++a.n > 10) throw new HttpError(429, "throttle");
+// Rate limits, counted in the database: allow `max` attempts per `windowMs` for a key (like "login-ip:1.2.3.4").
+// Returns false once the limit is used up. Atomic, so parallel requests can't slip past it.
+async function allow(key, max, windowMs) {
+  const now = Date.now();
+  const r = await db.one(`INSERT INTO rate_limits (key, n, reset_at) VALUES (?, 1, ?)
+    ON CONFLICT(key) DO UPDATE SET n = CASE WHEN reset_at <= ? THEN 1 ELSE n + 1 END,
+      reset_at = CASE WHEN reset_at <= ? THEN ? ELSE reset_at END
+    RETURNING n`, key, now + windowMs, now, now, now + windowMs);
+  return r.n <= max;
 }
+async function limit(key, max, windowMs, message = "tooMany") {
+  if (!(await allow(key, max, windowMs))) throw new HttpError(429, message);
+}
+const MIN = 6e4, HOUR = 36e5;
+// Checking a password against this when the account doesn't exist takes as long as a real check,
+// so response times don't reveal which emails or phone numbers have accounts.
+const DUMMY_HASH = hashPassword(crypto.randomBytes(16).toString("hex"));
 
 // ----- auth -----
 // Seller accounts are created by an admin (POST /api/admin/sellers); there is no public sign-up.
-function newPassword(v) {
+function newPassword(v, { admin = false } = {}) {
   if (typeof v !== "string" || v.length < 8) throw bad("passwordShort");
+  if (v.length > 200) throw bad("passwordLong");
+  if (admin && v.length < 12) throw bad("passwordShortAdmin");
   return v;
 }
 
 app.post("/api/auth/login", async (req, res) => {
-  throttle(req);
   // The form field is still called "email" but takes a phone number or an email.
   const key = loginKey(text(req.body.email, 120));
-  const password = typeof req.body.password === "string" ? req.body.password : "";
+  const ip = clientIp(req);
+  // 20 tries per address and 10 per account every 15 minutes; the second stops slow guessing from many addresses.
+  await limit("login-ip:" + ip, 20, 15 * MIN, "throttle");
+  if (key) await limit("login-acct:" + key, 10, 15 * MIN, "throttle");
+  const password = typeof req.body.password === "string" && req.body.password.length <= 200 ? req.body.password : "";
   const u = key ? await db.one("SELECT * FROM users WHERE email = ?", key) : null;
-  if (!u || !checkPassword(password, u.password_hash)) throw new HttpError(401, "loginWrong");
+  const ok = checkPassword(password, u ? u.password_hash : DUMMY_HASH) && !!u;
+  if (!ok) throw new HttpError(401, "loginWrong");
   if (u.status === "suspended") throw new HttpError(403, "suspended");
   if (req.body.role && req.body.role !== u.role) throw new HttpError(403, u.role === "admin" ? "adminAccount" : "sellerAccount");
-  attempts.delete(req.ip);
+  await db.run("DELETE FROM rate_limits WHERE key IN (?, ?)", "login-ip:" + ip, "login-acct:" + key);
   await createSession(res, u.id);
   res.json({ user: publicUser(u) });
 });
@@ -574,6 +633,7 @@ const resetHash = (id, code) => sha256(`${id}:${code}`);
 
 app.post("/api/auth/reset/start", async (req, res) => {
   if (!process.env.FONNTE_TOKEN) throw new HttpError(503, "resetUnavailable");
+  await limit("reset-start-ip:" + clientIp(req), 10, HOUR, "resetTooMany");
   const typed = text(req.body.phone, 24, { required: true, label: "label.loginPhone" });
   if (!phoneKey(typed)) throw bad("phoneInvalid");
   const found = await sellerByPhone(typed);
@@ -592,6 +652,7 @@ app.post("/api/auth/reset/start", async (req, res) => {
 });
 
 app.post("/api/auth/reset/finish", async (req, res) => {
+  await limit("reset-finish-ip:" + clientIp(req), 30, HOUR);
   const found = await sellerByPhone(text(req.body.phone, 24));
   const code = String(req.body.code || "").replace(/\D/g, "");
   const password = newPassword(req.body.password);
@@ -619,8 +680,9 @@ app.get("/api/me", (req, res) => res.json({ user: publicUser(req.user) || null }
 
 app.post("/api/auth/password", requireRole("seller", "admin"), async (req, res) => {
   const { current, next } = req.body;
-  if (typeof current !== "string" || !checkPassword(current, req.user.password_hash)) throw bad("currentWrong");
-  await db.run("UPDATE users SET password_hash = ? WHERE id = ?", hashPassword(newPassword(next)), req.user.id);
+  await limit("pw:" + req.user.id, 10, 15 * MIN);
+  if (typeof current !== "string" || current.length > 200 || !checkPassword(current, req.user.password_hash)) throw bad("currentWrong");
+  await db.run("UPDATE users SET password_hash = ? WHERE id = ?", hashPassword(newPassword(next, { admin: req.user.role === "admin" })), req.user.id);
   await db.run("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?", req.user.id, req.sessionHash);
   res.json({ ok: true });
 });
@@ -640,19 +702,17 @@ app.get("/api/catalog", async (_req, res) => {
 // Only the daily count is stored. The products with the most interest over the last 7 days are "lagi hits".
 const wibDay = (t = Date.now()) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 const seenTaps = new Map(); // "ip|product|day" → 1, so refreshing or tapping twice counts once
-const tapUse = new Map();   // at most 120 counted taps per IP per hour
 // `kind` (view, call, whatsapp, order, share) also goes into the seller's statistics, once per visitor, product, kind and day.
 const TAP_KINDS = ["view", "call", "whatsapp", "order", "share"];
 app.post("/api/tap", async (req, res) => {
   const id = Number(req.body.productId);
   const kind = TAP_KINDS.includes(req.body.kind) ? req.body.kind : "view";
   if (!Number.isInteger(id) || id <= 0) return res.json({ ok: true });
-  const day = wibDay(), key = `${req.ip}|${id}|${day}`, kindKey = key + "|" + kind;
+  const ip = clientIp(req);
+  const day = wibDay(), key = `${ip}|${id}|${day}`, kindKey = key + "|" + kind;
   const newVisitor = !seenTaps.has(key), newKind = !seenTaps.has(kindKey);
   if (!newVisitor && !newKind) return res.json({ ok: true });
-  const now = Date.now(), use = tapUse.get(req.ip);
-  if (!use || use.reset < now) tapUse.set(req.ip, { n: 1, reset: now + 36e5 });
-  else if (++use.n > 120) return res.json({ ok: true });
+  if (!(await allow("tap:" + ip, 120, HOUR))) return res.json({ ok: true });
   if (seenTaps.size > 50_000) seenTaps.clear();
   seenTaps.set(key, 1); seenTaps.set(kindKey, 1);
   if (await db.one("SELECT 1 AS x FROM products WHERE id = ? AND hidden = 0", id)) {
@@ -718,7 +778,6 @@ app.get("/api/site", async (_req, res) => res.json({ site: await readSettings() 
 // and back to English so the buyer can check the meaning survived.
 // Uses the free MyMemory service (no account). Set TRANSLATE_EMAIL to raise its daily limit from 5,000 to 50,000 characters.
 const translations = new Map(); // small cache so the same note isn't translated twice
-const translateUse = new Map();  // 30 notes per hour per IP
 // One piece of text (up to ~450 characters) through MyMemory. Returns "" when it fails or comes back untranslated.
 async function machineTranslate(piece, from, to) {
   const cacheKey = from + to + "|" + piece;
@@ -760,9 +819,7 @@ app.post("/api/translate", async (req, res) => {
   const from = req.body.from, to = req.body.to;
   if (!(from === "en" && to === "id") && !(from === "id" && to === "en")) return res.json({ text: note });
   if (translations.has(from + to + "|" + note)) return res.json({ text: translations.get(from + to + "|" + note) });
-  const now = Date.now(), use = translateUse.get(req.ip);
-  if (!use || use.reset < now) translateUse.set(req.ip, { n: 1, reset: now + 36e5 });
-  else if (++use.n > 30) throw new HttpError(429, "translateBusy");
+  await limit("translate:" + clientIp(req), 30, HOUR, "translateBusy");
   const out = await machineTranslate(note, from, to);
   if (!out) throw new HttpError(502, "translateFailed");
   res.json({ text: out });

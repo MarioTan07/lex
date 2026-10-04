@@ -133,3 +133,12 @@ Codes are sent through [Fonnte](https://fonnte.com), an Indonesian WhatsApp gate
 Every shop has its own page at `/lapak?id=<shop id>`: its details (address, opening hours, map, contact buttons), its posters and ads, and all of its products with search and categories. Shop names on product cards, in the product window and the comparison list, and the shop cards on `/lokasi` link to it. The home catalog still lists every product.
 
 Sellers add posters under **Poster & iklan** on `/penjual`: an image and an optional caption, up to 10 per shop, newest first. Admins see every poster under **Produk** on `/pengelola` and can remove any of them. Deleting a shop also deletes its posters.
+
+## Security
+
+- **Passwords** are hashed with scrypt; sign-in uses a random token in an HTTP-only, SameSite=Lax cookie (Secure on Vercel), stored hashed. Admin passwords need 12+ characters; all passwords are capped at 200.
+- **Rate limits** are counted in the database (`rate_limits`), so they hold across Vercel's server copies: sign-in 20 tries per address and 10 per account every 15 minutes, password changes, reset codes, translations and the view counter. Wrong emails take as long to check as wrong passwords, so accounts can't be discovered by timing.
+- **Cross-site requests**: the API refuses changes whose `Origin` isn't the site itself.
+- **Headers** (in `vercel.json`, and in `server.js` when running locally): a Content Security Policy that only allows the site's own scripts plus Google Fonts and Google Maps, no framing by other sites, HSTS, `nosniff`, a strict referrer policy and a limited permissions policy. API answers aren't cached.
+- **Uploads** must really be JPG, PNG or WebP (checked from the file's bytes), up to 1.5 MB; SVG and other types are refused.
+- **Access**: sellers can only change their own shop, products and posters; admin routes need an admin; home addresses are only shown to that seller and admins.
