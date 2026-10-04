@@ -245,6 +245,8 @@ button.photo { border: 0; padding: 0; width: 100%; cursor: pointer; }
 .site-footer { background: var(--footer); color: var(--on-footer); }
 .site-footer .wrap { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; padding-block: 44px; }
 .site-footer .fbrand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.5rem; }
+/* The clover logo, on a white circle like in the header so it stays clear on the dark footer */
+.site-footer .fbrand img { width: 44px; height: 44px; object-fit: contain; background: #fff; border-radius: 50%; padding: 3px; flex: none; }
 .site-footer p { font-size: .875rem; line-height: 1.7; color: color-mix(in srgb, var(--on-footer) 75%, transparent); }
 .site-footer .tagline { margin-top: 10px; max-width: 22em; }
 .site-footer .fright { text-align: right; }
