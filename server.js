@@ -5,6 +5,7 @@ import path from "node:path";
 import { put, del, get } from "@vercel/blob";
 import { Readable } from "node:stream";
 import { connect, setupSchema, ROOT, DATA_DIR } from "./db.js";
+import ABOUT_SEED from "./content-seed.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const ON_VERCEL = !!process.env.VERCEL;
@@ -33,6 +34,7 @@ let db;
 async function setup() {
   db = connect();
   await setupSchema(db);
+  await seedAbout();
 
   // Sellers used to sign themselves up and wait for approval. Admins now create sellers already
   // approved, so any still waiting are suspended: hidden from buyers until an admin reactivates them.
@@ -129,6 +131,13 @@ const MESSAGES = {
     "label.homestayPhone": "Nomor homestay",
     "label.tourPhone": "Nomor tur",
     "label.listingName": "Nama",
+    "label.aboutName": "Nama",
+    "label.aboutText": "Teks",
+    "label.years": "Tahun",
+    "label.caption": "Keterangan foto",
+    "label.aboutIntro": "Teks pembuka",
+    noAboutItem: "Kelompok atau mitra itu tidak ada.",
+    tooManyAboutPhotos: "Maksimal {max} foto.",
     "label.description": "Deskripsi",
     "label.includes": "Termasuk",
     "label.location": "Lokasi",
@@ -215,6 +224,13 @@ const MESSAGES = {
     "label.homestayPhone": "Homestay number",
     "label.tourPhone": "Tour number",
     "label.listingName": "Name",
+    "label.aboutName": "Name",
+    "label.aboutText": "Text",
+    "label.years": "Years",
+    "label.caption": "Photo caption",
+    "label.aboutIntro": "Intro text",
+    noAboutItem: "That group or partner doesn't exist.",
+    tooManyAboutPhotos: "At most {max} photos.",
     "label.description": "Description",
     "label.includes": "Included",
     "label.location": "Location",
@@ -846,6 +862,93 @@ app.get("/api/listings", async (_req, res) => {
   }) });
 });
 
+// ----- Our People and Collaborations (About and Collaborations pages) -----
+// Groups of residents and partners, each with a name, a text and photos with captions, in both languages.
+// English left empty is machine-translated; those fields are listed in auto (en_auto, or auto on a photo)
+// so the admin form can show them as suggestions and they're translated again when the Indonesian changes.
+const ABOUT = { groups: { table: "people_groups", maxPhotos: 20 }, partners: { table: "partners", maxPhotos: 30 } };
+const GROUP_ICONS = ["store", "sprout", "palette", "users", "home", "sparkles", "leaf", "heart"];
+const ABOUT_TEXTS = ["peopleIntro", "collabIntro", "sponsorText"];
+const jsonList = (v) => { try { const x = v ? JSON.parse(v) : []; return Array.isArray(x) ? x : []; } catch { return []; } };
+function aboutOut(kind, r) {
+  const out = { id: r.id, name: r.name, nameEn: r.name_en, body: r.body, bodyEn: r.body_en, photos: jsonList(r.photos), auto: jsonList(r.en_auto) };
+  return kind === "groups" ? { ...out, icon: r.icon, showSellers: !!r.show_sellers } : { ...out, years: r.years };
+}
+// The English for one field: what the admin typed, the earlier machine translation if the Indonesian didn't
+// change, or a new machine translation. Returns [english, wasMachineTranslated].
+async function english(idText, typed, old) {
+  if (typed) return [typed, false];
+  if (!idText) return ["", false];
+  if (old && old.auto && old.id === idText && old.en) return [old.en, true];
+  return [await translateLong(idText, "id", "en"), true];
+}
+async function aboutFields(kind, body, old) {
+  const f = {
+    name: text(body.name, 100, { required: true, label: "label.aboutName" }),
+    body: text(body.body, 1200, { label: "label.aboutText" }),
+  };
+  if (kind === "groups") {
+    f.icon = GROUP_ICONS.includes(body.icon) ? body.icon : "users";
+    f.show_sellers = body.showSellers ? 1 : 0;
+  } else f.years = text(body.years, 30, { label: "label.years" });
+  const wasAuto = old ? jsonList(old.en_auto) : [];
+  const auto = [];
+  for (const [col, idKey, typedKey, max] of [["name_en", "name", "nameEn", 100], ["body_en", "body", "bodyEn", 1200]]) {
+    const [en, machine] = await english(f[idKey], text(body[typedKey], max), old && { id: old[idKey], en: old[col], auto: wasAuto.includes(col) });
+    f[col] = en;
+    if (machine) auto.push(col);
+  }
+  f.en_auto = JSON.stringify(auto);
+  // Photos already saved: the admin can reorder them, change captions and leave some out (removed).
+  if (old) {
+    const had = jsonList(old.photos);
+    const wanted = Array.isArray(body.photos) ? body.photos : had;
+    const photos = [];
+    for (const p of wanted) {
+      const was = had.find((h) => h.src === p?.src);
+      if (!was || photos.some((x) => x.src === was.src)) continue;
+      photos.push(await photoCaption(was, p));
+    }
+    f.photos = JSON.stringify(photos);
+    f.removed = had.filter((h) => !photos.some((p) => p.src === h.src)).map((h) => h.src);
+  }
+  return f;
+}
+async function photoCaption(was, p) {
+  const caption = text(p.caption, 200, { label: "label.caption" });
+  const [captionEn, machine] = await english(caption, text(p.captionEn, 200, { label: "label.caption" }), was && { id: was.caption, en: was.captionEn, auto: was.auto });
+  return { src: was.src, w: was.w ?? null, h: was.h ?? null, caption, captionEn, auto: machine };
+}
+async function aboutById(kind, id) {
+  const r = await db.one(`SELECT * FROM ${ABOUT[kind].table} WHERE id = ?`, Number(id));
+  if (!r) throw new HttpError(404, "noAboutItem");
+  return r;
+}
+async function aboutList(kind) {
+  return (await db.all(`SELECT * FROM ${ABOUT[kind].table} ORDER BY position, id`)).map((r) => aboutOut(kind, r));
+}
+async function aboutTexts() {
+  const rows = await db.all("SELECT key, value FROM settings WHERE key LIKE 'about.%'");
+  const saved = Object.fromEntries(rows.map((r) => [r.key.slice(6), (() => { try { return JSON.parse(r.value); } catch { return null; } })()]));
+  return Object.fromEntries(ABOUT_TEXTS.map((k) => [k, saved[k] || { ...ABOUT_SEED.texts[k], auto: false }]));
+}
+// The starting content goes in once (fixed ids, so two servers starting together don't add it twice).
+async function seedAbout() {
+  if (await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.about'")) return;
+  const now = Date.now(), writes = [];
+  ABOUT_SEED.groups.forEach((g, i) => writes.push(["INSERT OR IGNORE INTO people_groups (id, position, name, name_en, body, body_en, icon, show_sellers, photos, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    i + 1, i + 1, g.name, g.nameEn, g.body, g.bodyEn, g.icon, g.showSellers ? 1 : 0, JSON.stringify(g.photos.map((p) => ({ ...p, auto: false }))), now]));
+  ABOUT_SEED.partners.forEach((p, i) => writes.push(["INSERT OR IGNORE INTO partners (id, position, years, name, name_en, body, body_en, photos, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    i + 1, i + 1, p.years, p.name, p.nameEn, p.body, p.bodyEn, JSON.stringify(p.photos.map((x) => ({ ...x, auto: false }))), now]));
+  writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES ('seeded.about', '1')"]);
+  await db.batch(writes);
+}
+app.get("/api/about", async (_req, res) => {
+  const [groups, partners, texts] = await Promise.all([aboutList("groups"), aboutList("partners"), aboutTexts()]);
+  const clean = (x) => { const { auto, ...rest } = x; return { ...rest, photos: rest.photos.map(({ auto: _a, ...p }) => p) }; };
+  res.json({ groups: groups.map(clean), partners: partners.map(clean), texts: Object.fromEntries(Object.entries(texts).map(([k, v]) => [k, { id: v.id, en: v.en }])) });
+});
+
 // ----- seller -----
 const seller = express.Router();
 seller.use(requireRole("seller"));
@@ -1139,6 +1242,69 @@ admin.delete("/listings/:id/photos", async (req, res) => {
   await db.run("UPDATE listings SET photos = ? WHERE id = ?", JSON.stringify(photos), l.id);
   removePhoto(gone, req);
   res.json({ photos });
+});
+
+// Our People groups and Collaborations partners.
+for (const kind of Object.keys(ABOUT)) {
+  const { table, maxPhotos } = ABOUT[kind];
+  admin.get("/" + kind, async (_req, res) => res.json({ items: await aboutList(kind) }));
+  admin.post("/" + kind, async (req, res) => {
+    const { removed, photos, ...f } = await aboutFields(kind, req.body, null);
+    const last = await db.one(`SELECT MAX(position) AS p FROM ${table}`);
+    const keys = Object.keys(f);
+    const r = await db.run(`INSERT INTO ${table} (${keys.join(", ")}, position, created_at) VALUES (${keys.map(() => "?").join(", ")}, ?, ?)`, ...keys.map((k) => f[k]), (last?.p || 0) + 1, Date.now());
+    res.status(201).json({ item: aboutOut(kind, await aboutById(kind, r.id)) });
+  });
+  admin.put("/" + kind + "/:id", async (req, res) => {
+    const old = await aboutById(kind, req.params.id);
+    const { removed, ...f } = await aboutFields(kind, req.body, old);
+    const keys = Object.keys(f);
+    await db.run(`UPDATE ${table} SET ${keys.map((k) => k + " = ?").join(", ")} WHERE id = ?`, ...keys.map((k) => f[k]), old.id);
+    removed.forEach((p) => removePhoto(p, req));
+    res.json({ item: aboutOut(kind, await aboutById(kind, old.id)) });
+  });
+  admin.delete("/" + kind + "/:id", async (req, res) => {
+    const old = await aboutById(kind, req.params.id);
+    await db.run(`DELETE FROM ${table} WHERE id = ?`, old.id);
+    jsonList(old.photos).forEach((p) => removePhoto(p.src, req));
+    res.json({ ok: true });
+  });
+  // Move one place up (-1) or down (1) by swapping with its neighbour.
+  admin.post("/" + kind + "/:id/move", async (req, res) => {
+    const list = await db.all(`SELECT id, position FROM ${table} ORDER BY position, id`);
+    const i = list.findIndex((r) => r.id === Number(req.params.id));
+    if (i < 0) throw new HttpError(404, "noAboutItem");
+    const j = i + (req.body.dir < 0 ? -1 : 1);
+    if (j >= 0 && j < list.length) {
+      [list[i], list[j]] = [list[j], list[i]];
+      await db.batch(list.map((r, k) => [`UPDATE ${table} SET position = ? WHERE id = ?`, k + 1, r.id]));
+    }
+    res.json({ items: await aboutList(kind) });
+  });
+  // One photo at a time, with its caption, so each upload stays small.
+  admin.post("/" + kind + "/:id/photos", async (req, res) => {
+    const old = await aboutById(kind, req.params.id);
+    const photos = jsonList(old.photos);
+    if (photos.length >= maxPhotos) throw bad("tooManyAboutPhotos", { max: maxPhotos });
+    const src = await savePhoto(req.body.photo, req);
+    const size = (v) => (Number.isInteger(v) && v > 0 && v < 10000 ? v : null);
+    photos.push(await photoCaption({ src, w: size(req.body.w), h: size(req.body.h) }, req.body));
+    await db.run(`UPDATE ${table} SET photos = ? WHERE id = ?`, JSON.stringify(photos), old.id);
+    res.status(201).json({ item: aboutOut(kind, await aboutById(kind, old.id)) });
+  });
+}
+admin.get("/about-texts", async (_req, res) => res.json({ texts: await aboutTexts() }));
+admin.put("/about-texts", async (req, res) => {
+  const now = await aboutTexts(), writes = [];
+  for (const k of ABOUT_TEXTS) {
+    const v = req.body[k];
+    if (!v) continue;
+    const id = text(v.id, 1500, { required: true, label: "label.aboutIntro" });
+    const [en, auto] = await english(id, text(v.en, 1500, { label: "label.aboutIntro" }), now[k]);
+    writes.push(["INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", "about." + k, JSON.stringify({ id, en, auto })]);
+  }
+  if (writes.length) await db.batch(writes);
+  res.json({ texts: await aboutTexts() });
 });
 
 app.use("/api/admin", admin);

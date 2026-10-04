@@ -643,3 +643,19 @@ dialog.photo-view::backdrop { background: rgb(0 0 0 / .7); }
 .partner-photos img { display: block; height: 110px; width: auto; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .25s; }
 .partner-photos .zoom:hover img { transform: scale(1.04); }
 .group-photos > .partner-photos { grid-column: 1 / -1; margin-top: 0; }
+
+/* Our People: a group with one photo shows it wide */
+.group-photos.one { grid-template-columns: minmax(0, 1fr); }
+.group-photos.one img { aspect-ratio: 4 / 3; }
+.intro-text { display: grid; gap: 16px; }
+.intro-text p { color: var(--muted); line-height: 1.75; }
+
+/* Admin → Warga & Mitra: photos with their captions */
+.ab-photos { display: grid; gap: 10px; }
+.ab-photo { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.ab-photo img { width: 96px; height: 72px; object-fit: cover; border-radius: 8px; display: block; background: var(--leaf-soft); }
+.ab-caps { display: grid; gap: 6px; }
+.ab-caps .pill { justify-self: start; }
+.ab-photo .acts { display: flex; gap: 4px; }
+#ab-rows-groups img, #ab-rows-partners img { width: 56px; height: 42px; object-fit: cover; border-radius: 8px; background: var(--leaf-soft); display: block; }
+@media (max-width: 560px) { .ab-photo { grid-template-columns: 72px minmax(0, 1fr); } .ab-photo img { width: 72px; height: 54px; } .ab-photo .acts { grid-column: 1 / -1; justify-content: end; } }

@@ -29,7 +29,7 @@ function handle(err) {
 // ---------- tabs ----------
 document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-  ["sellers", "products", "wisata", "site", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
+  ["sellers", "products", "wisata", "about", "site", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
 }));
 
 function refreshAll() { loadOverview(); loadSellers(); loadProducts(); loadPosters(); loadSite(); }

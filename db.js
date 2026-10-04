@@ -107,6 +107,33 @@ const SCHEMA = `
   -- English fields are typed by the admin or, when left empty, machine-translated on save (en_auto = 1).
   -- schedule (tours only) is JSON: { mode: "dates", dates: ["2026-10-18T08:00"] } or { mode: "request", noticeDays: 3 }.
   ${listingsTable("listings")};
+  -- Our People groups (About page) and Collaborations partners, edited by admins. position orders them;
+  -- photos is a JSON list of {src, w, h, caption, captionEn, auto}; en_auto lists English fields that were machine-translated.
+  CREATE TABLE IF NOT EXISTS people_groups (
+    id INTEGER PRIMARY KEY,
+    position INTEGER NOT NULL DEFAULT 0,
+    name TEXT NOT NULL,
+    name_en TEXT NOT NULL DEFAULT '',
+    body TEXT NOT NULL DEFAULT '',
+    body_en TEXT NOT NULL DEFAULT '',
+    icon TEXT NOT NULL DEFAULT 'users',
+    show_sellers INTEGER NOT NULL DEFAULT 0,
+    photos TEXT NOT NULL DEFAULT '',
+    en_auto TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS partners (
+    id INTEGER PRIMARY KEY,
+    position INTEGER NOT NULL DEFAULT 0,
+    years TEXT NOT NULL DEFAULT '',
+    name TEXT NOT NULL,
+    name_en TEXT NOT NULL DEFAULT '',
+    body TEXT NOT NULL DEFAULT '',
+    body_en TEXT NOT NULL DEFAULT '',
+    photos TEXT NOT NULL DEFAULT '',
+    en_auto TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL
+  );
   -- Site-wide settings the admins edit, such as the sponsor contact number. One row per setting.
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,

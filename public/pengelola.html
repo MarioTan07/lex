@@ -66,6 +66,7 @@
       <button role="tab" aria-selected="true" data-tab="sellers" data-i18n="admin.tabSellers">Penjual</button>
       <button role="tab" aria-selected="false" data-tab="products" data-i18n="admin.tabProducts">Produk</button>
       <button role="tab" aria-selected="false" data-tab="wisata" data-i18n="nav.packages">Paket</button>
+      <button role="tab" aria-selected="false" data-tab="about" data-i18n="admin.tabAbout">Warga &amp; Mitra</button>
       <button role="tab" aria-selected="false" data-tab="site" data-i18n="admin.tabSite">Situs</button>
       <button role="tab" aria-selected="false" data-tab="account" data-i18n="admin.tabAccount">Akun</button>
     </div>
@@ -212,6 +213,74 @@
       </table></div>
     </div>
 
+    <div id="view-about" role="tabpanel" class="stack" hidden>
+      <form class="panel" id="aboutTexts" style="max-width:820px">
+        <h3 data-i18n="ab.textsTitle">Teks pembuka</h3>
+        <p class="hint muted small" data-i18n="ab.textsHint">Pisahkan paragraf dengan baris kosong. Kolom bahasa Inggris boleh dikosongkan: website menerjemahkan otomatis saat disimpan.</p>
+        <div class="row2">
+          <div class="field"><label for="t-peopleIntro" data-i18n="ab.peopleIntro">Warga Kami: teks pembuka</label><textarea id="t-peopleIntro" rows="4" maxlength="1500"></textarea></div>
+          <div class="field"><label for="t-peopleIntro-en" data-i18n="ab.inEnglish">Dalam bahasa Inggris (opsional)</label><textarea id="t-peopleIntro-en" rows="4" maxlength="1500"></textarea></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="t-collabIntro" data-i18n="ab.collabIntro">Kerja Sama: teks pembuka</label><textarea id="t-collabIntro" rows="4" maxlength="1500"></textarea></div>
+          <div class="field"><label for="t-collabIntro-en" data-i18n="ab.inEnglish">Dalam bahasa Inggris (opsional)</label><textarea id="t-collabIntro-en" rows="4" maxlength="1500"></textarea></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="t-sponsorText" data-i18n="ab.sponsorText">Kerja Sama: ajakan menjadi sponsor</label><textarea id="t-sponsorText" rows="4" maxlength="1500"></textarea></div>
+          <div class="field"><label for="t-sponsorText-en" data-i18n="ab.inEnglish">Dalam bahasa Inggris (opsional)</label><textarea id="t-sponsorText-en" rows="4" maxlength="1500"></textarea></div>
+        </div>
+        <div><button class="btn" type="submit" id="aboutTextsSave" data-i18n="ab.saveTexts">Simpan teks</button></div>
+      </form>
+      <section class="panel" style="max-width:820px">
+        <div class="desk-head">
+          <h3 data-i18n="ab.groupsTitle">Warga Kami: kelompok</h3>
+          <button class="btn small" type="button" id="ab-add-groups" data-i18n="ab.addGroup">Tambah kelompok</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th data-i18n="lst.name">Nama</th><th data-i18n="ab.photos">Foto</th><th></th></tr></thead>
+          <tbody id="ab-rows-groups"></tbody>
+        </table></div>
+      </section>
+      <section class="panel" style="max-width:820px">
+        <div class="desk-head">
+          <h3 data-i18n="ab.partnersTitle">Kerja Sama: mitra</h3>
+          <button class="btn small" type="button" id="ab-add-partners" data-i18n="ab.addPartner">Tambah mitra</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th data-i18n="lst.name">Nama</th><th data-i18n="ab.photos">Foto</th><th></th></tr></thead>
+          <tbody id="ab-rows-partners"></tbody>
+        </table></div>
+      </section>
+      <form class="panel" id="aboutForm" hidden style="max-width:820px">
+        <div class="desk-head">
+          <h3 id="ab-title"></h3>
+          <button class="btn ghost small" type="button" id="ab-close" data-i18n="ab.close">Tutup</button>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="ab-name" data-i18n="ab.name">Nama</label><input type="text" id="ab-name" required maxlength="100"></div>
+          <div class="field"><label for="ab-name-en" data-i18n="ab.nameEn">Nama dalam bahasa Inggris (opsional)</label><input type="text" id="ab-name-en" maxlength="100"></div>
+        </div>
+        <div class="field ab-partner"><label for="ab-years" data-i18n="ab.years">Tahun</label><input type="text" id="ab-years" maxlength="30" data-i18n-attr="placeholder:ab.yearsPh" placeholder="mis. 2021–2022"></div>
+        <div class="row2 ab-group">
+          <div class="field"><label for="ab-icon" data-i18n="ab.icon">Ikon</label><select id="ab-icon"></select></div>
+          <label class="check"><input type="checkbox" id="ab-sellers"> <span data-i18n="ab.showSellers">Tampilkan daftar penjual di situs ini di bawah kelompok ini</span></label>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="ab-body" data-i18n="ab.body">Teks</label><textarea id="ab-body" rows="4" maxlength="1200"></textarea></div>
+          <div class="field"><label for="ab-body-en" data-i18n="ab.bodyEn">Teks dalam bahasa Inggris (opsional)</label><textarea id="ab-body-en" rows="4" maxlength="1200"></textarea></div>
+        </div>
+        <p class="hint muted small" data-i18n="lst.enHint">Kolom bahasa Inggris boleh dikosongkan: website menerjemahkan otomatis saat disimpan. Terjemahan otomatis bisa kurang tepat, jadi isi sendiri kalau perlu.</p>
+        <fieldset class="loc">
+          <legend data-i18n="ab.photos">Foto</legend>
+          <p class="hint muted small" data-i18n="ab.photosHint">Beri keterangan untuk setiap foto. Urutannya sama dengan di situs: foto pertama tampil paling besar.</p>
+          <div class="ab-photos" id="ab-photos"></div>
+          <div class="field"><label for="ab-add-photo" data-i18n="ab.addPhotos">Tambah foto</label><input type="file" id="ab-add-photo" accept="image/*" multiple></div>
+        </fieldset>
+        <p class="formerr" id="ab-err" hidden></p>
+        <div><button class="btn" type="submit" id="ab-save">Simpan</button></div>
+      </form>
+    </div>
+
     <div id="view-site" role="tabpanel" hidden>
       <form class="panel" id="siteForm" style="max-width:560px">
         <h3 data-i18n="site.title">Pengaturan situs</h3>
@@ -245,5 +314,6 @@
 
 <script type="module" src="/admin.js"></script>
 <script type="module" src="/admin-wisata.js"></script>
+<script type="module" src="/admin-about.js"></script>
 </body>
 </html>
