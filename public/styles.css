@@ -599,3 +599,34 @@ fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
 .poster-item img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
 .poster-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; display: block; }
 @media (max-width: 900px) { .shop-head { grid-template-columns: minmax(0, 1fr); } }
+
+/* Warga Kami: one section per group, photos on one side and the text on the other, alternating */
+.group-list { display: grid; gap: clamp(36px, 6vw, 64px); margin-top: clamp(32px, 5vw, 48px); }
+.group { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); align-items: center; scroll-margin-top: 120px; }
+.group:nth-child(even) > .group-photos { order: 2; }
+.group-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.group-photos figure { margin: 0; display: grid; gap: 6px; }
+.group-photos .zoom { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; }
+.group-photos img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; transition: transform .25s; }
+.group-photos .zoom:hover img { transform: scale(1.03); }
+.group-photos figcaption { font-size: .8125rem; color: var(--muted); line-height: 1.45; }
+/* Groups without photos yet: one card each, side by side */
+.group-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.group.card { display: block; padding: clamp(20px, 3vw, 28px); border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
+.group.card .group-text h3 { font-size: clamp(1.25rem, 2.4vw, 1.5rem); }
+.group-text { display: grid; gap: 10px; align-content: center; }
+.group-text h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+.group-text > p { color: var(--muted); line-height: 1.75; }
+.group-icon .icon, .group-text > .icon { width: 26px; height: 26px; color: var(--leaf); }
+.group .people-sellers { margin-top: 8px; gap: 10px; }
+.group .people-sellers h4 { font-size: 1rem; }
+dialog.photo-view { width: min(960px, calc(100% - 24px)); padding: 12px; border: 0; border-radius: var(--radius-lg); background: var(--surface); }
+dialog.photo-view::backdrop { background: rgb(0 0 0 / .7); }
+.photo-view img { display: block; width: 100%; max-height: 78vh; object-fit: contain; border-radius: var(--radius); }
+.photo-view p { margin: 10px 4px 2px; color: var(--muted); font-size: .9375rem; }
+.photo-view #photoClose { display: block; margin: 0 0 10px auto; }
+@media (max-width: 760px) {
+  .group { grid-template-columns: minmax(0, 1fr); }
+  .group:nth-child(even) > .group-photos { order: 0; }
+  .group-cards { grid-template-columns: minmax(0, 1fr); }
+}

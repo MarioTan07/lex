@@ -41,7 +41,7 @@
             <a href="/sejarah" data-i18n="nav.ourStory">Cerita Kami</a>
             <a href="/cerita#semanggi" data-i18n="nav.ourSemanggi">Semanggi Kami</a>
             <a href="/cerita#people" data-i18n="nav.ourPeople">Warga Kami</a>
-            <a href="/cerita#collab" data-i18n="nav.collab">Kerja Sama</a>
+            <a href="/kerja-sama" data-i18n="nav.collab">Kerja Sama</a>
           </div>
         </details>
         <details class="navdrop">
@@ -117,45 +117,60 @@
         <p data-i18n="people.p1">Kampoeng Semanggi adalah warga RW 03 Kendung, Kelurahan Sememi. Lebih dari 120 perajin, perempuan maupun laki-laki, masih membuat pecel semanggi dan olahannya, meneruskan resep yang diwariskan sejak tahun 1960-an.</p>
         <p data-i18n="people.p2">Sebagian berangkat sejak dini hari untuk berjualan di penjuru Surabaya. Yang lain melayani pembeli dari lapak atau langsung dari rumah.</p>
       </div>
-      <ul class="groups">
-        <li><span data-icon="store"></span><b data-i18n="people.sellers">Para penjual</b><span data-i18n="people.sellersText">Warga Kendung, perempuan maupun laki-laki, yang membuat dan menjual pecel semanggi, kue, dan olahan semanggi lainnya.</span></li>
-        <li><span data-icon="sprout"></span><b data-i18n="people.farmers">Petani</b><span data-i18n="people.farmersText">Menanam semanggi dan padi di sawah sekitar kampung, sehingga daun semanggi selalu segar.</span></li>
-        <li><span data-icon="palette"></span><b data-i18n="people.batik">Pembatik</b><span data-i18n="people.batikText">Perajin batik dari kampung, bagian dari kerajinan dan budaya Kampoeng Semanggi.</span></li>
-        <li><span data-icon="users"></span><b data-i18n="people.leaders">Tokoh masyarakat</b><span data-i18n="people.leadersText">Sesepuh dan tokoh warga yang menjaga tradisi semanggi dan membimbing kampung.</span></li>
-        <li><span data-icon="home"></span><b data-i18n="people.rw">Pengurus RW 03, RT, dan PKK</b><span data-i18n="people.rwText">Menjaga kampung, mengatur kegiatan warga, dan menyambut tamu yang berkunjung.</span></li>
-        <li><span data-icon="sparkles"></span><b data-i18n="people.youth">Karang Taruna RW 03</b><span data-i18n="people.youthText">Pemuda kampung yang mengelola situs web Kampoeng Semanggi.</span></li>
-      </ul>
     </div>
-    <div class="people-sellers" id="peopleSellers" hidden>
-      <h3 data-i18n="people.listTitle">Penjual di situs ini</h3>
-      <div class="people-list" id="peopleList"></div>
+    <div class="group-list">
+      <article class="group" id="penjual">
+        <div class="group-photos"><figure><button type="button" class="zoom" data-full="/warga-foto/penjual-2.jpg"><img src="/warga-foto/penjual-2.jpg" width="1100" height="825" loading="lazy" data-i18n-attr="alt:people.photoSeller2" alt="Penjual semanggi menyambut pembeli di lapaknya."></button><figcaption data-i18n="people.photoSeller2">Penjual semanggi menyambut pembeli di lapaknya.</figcaption></figure><figure><button type="button" class="zoom" data-full="/warga-foto/penjual-1.jpg"><img src="/warga-foto/penjual-1.jpg" width="1100" height="825" loading="lazy" data-i18n-attr="alt:people.photoSeller1" alt="Lapak pecel semanggi dengan kerupuk puli yang besar."></button><figcaption data-i18n="people.photoSeller1">Lapak pecel semanggi dengan kerupuk puli yang besar.</figcaption></figure></div>
+        <div class="group-text">
+          <span class="group-icon" data-icon="store"></span>
+          <h3 data-i18n="people.sellers">Para Penjual</h3>
+          <p data-i18n="people.sellersText">Warga Kendung, perempuan maupun laki-laki, yang membuat dan menjual pecel semanggi, kue, dan olahan semanggi lainnya.</p>
+          <div class="people-sellers" id="peopleSellers" hidden>
+            <h4 data-i18n="people.listTitle">Penjual di situs ini</h4>
+            <div class="people-list" id="peopleList"></div>
+          </div>
+        </div>
+      </article>
+      <article class="group" id="petani">
+        <div class="group-photos"><figure><button type="button" class="zoom" data-full="/warga-foto/petani-1.jpg"><img src="/warga-foto/petani-1.jpg" width="842" height="1100" loading="lazy" data-i18n-attr="alt:people.photoFarmer1" alt="Petani memanen semanggi di sawah Kendung."></button><figcaption data-i18n="people.photoFarmer1">Petani memanen semanggi di sawah Kendung.</figcaption></figure><figure><button type="button" class="zoom" data-full="/warga-foto/petani-2.jpg"><img src="/warga-foto/petani-2.jpg" width="1100" height="825" loading="lazy" data-i18n-attr="alt:people.photoFarmer2" alt="Sawah semanggi di tengah kampung."></button><figcaption data-i18n="people.photoFarmer2">Sawah semanggi di tengah kampung.</figcaption></figure></div>
+        <div class="group-text">
+          <span class="group-icon" data-icon="sprout"></span>
+          <h3 data-i18n="people.farmers">Petani</h3>
+          <p data-i18n="people.farmersText">Menanam semanggi dan padi di sawah sekitar kampung, sehingga daun semanggi selalu segar.</p>
+        </div>
+      </article>
+      <div class="group-cards">
+        <article class="group card" id="pembatik">
+          <div class="group-text">
+            <span class="group-icon" data-icon="palette"></span>
+            <h3 data-i18n="people.batik">Pembatik</h3>
+            <p data-i18n="people.batikText">Perajin batik dari kampung, bagian dari kerajinan dan budaya Kampoeng Semanggi.</p>
+          </div>
+        </article>
+        <article class="group card" id="tokoh">
+          <div class="group-text">
+            <span class="group-icon" data-icon="users"></span>
+            <h3 data-i18n="people.leaders">Tokoh Masyarakat</h3>
+            <p data-i18n="people.leadersText">Sesepuh dan tokoh warga yang menjaga tradisi semanggi dan membimbing kampung.</p>
+          </div>
+        </article>
+        <article class="group card" id="pengurus">
+          <div class="group-text">
+            <span class="group-icon" data-icon="home"></span>
+            <h3 data-i18n="people.rw">Pengurus RW 03, RT, dan PKK</h3>
+            <p data-i18n="people.rwText">Menjaga kampung, mengatur kegiatan warga, dan menyambut tamu yang berkunjung.</p>
+          </div>
+        </article>
+        <article class="group card" id="karang-taruna">
+          <div class="group-text">
+            <span class="group-icon" data-icon="sparkles"></span>
+            <h3 data-i18n="people.youth">Karang Taruna RW 03</h3>
+            <p data-i18n="people.youthText">Pemuda kampung yang mengelola situs web Kampoeng Semanggi.</p>
+          </div>
+        </article>
+        </div>
     </div>
   </section>
-
-  <div class="band" id="collab">
-    <section class="wrap section">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-i18n="nav.collab">Kerja Sama</p>
-          <h2 data-i18n="collab.title">Tumbuh bersama mitra</h2>
-        </div>
-      </div>
-      <ul class="partners">
-        <li><span class="yr">2017</span><b data-i18n="collab.gov">Kecamatan Benowo dan Kelurahan Sememi</b><p data-i18n="collab.govText">Memberi nama Kampoeng Semanggi, melatih 180 pedagang semanggi, dan menyiapkan kampung wisata edukasi dan kuliner.</p></li>
-        <li><span class="yr">2021</span><b data-i18n="collab.astra">Astra: Kampung Berseri Astra</b><p data-i18n="collab.astraText">Kampoeng Semanggi menjadi kampung binaan Astra lewat empat pilar: sehat, pendidikan, kreatif, dan lingkungan.</p></li>
-        <li><span class="yr">2021–2022</span><b data-i18n="collab.uwp">Universitas Wijaya Putra Surabaya</b><p data-i18n="collab.uwpText">Mitra program Kampung Berseri Astra. Mahasiswa KKN membuat spot foto dan situs web kampung.</p></li>
-        <li><span class="yr">2022</span><b data-i18n="collab.utm">Universitas Trunojoyo Madura</b><p data-i18n="collab.utmText">Mahasiswa KKN ikut membangun kampung.</p></li>
-      </ul>
-      <div class="extras one">
-    <article class="extra" id="sponsor">
-      <p class="eyebrow" data-i18n="sponsor.eyebrow">Kerja sama</p>
-      <h2 data-i18n="sponsor.title">Jadi sponsor atau mitra</h2>
-      <p data-i18n="sponsor.text">Ingin mendukung pedagang semanggi dan kegiatan warga Kendung? Kami terbuka untuk sponsor acara, kemitraan usaha, dan program CSR.</p>
-      <div id="sponsorContact"></div>
-    </article>
-      </div>
-    </section>
-  </div>
 
   <section class="wrap section extras one">
     <article class="extra stay">
@@ -166,6 +181,12 @@
     </article>
   </section>
 </main>
+
+<dialog id="photoView" class="photo-view" data-i18n-attr="aria-label:people.photoView" aria-label="Foto">
+  <button type="button" class="btn small ghost" id="photoClose" data-i18n="compare.close">Tutup</button>
+  <img id="photoBig" alt="">
+  <p id="photoCap"></p>
+</dialog>
 
 <footer class="site-footer">
   <div class="wrap">

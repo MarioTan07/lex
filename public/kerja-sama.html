@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-i18n="shops.pageTitle">Lokasi lapak · Kampoeng Semanggi</title>
-<meta name="description" data-i18n-attr="content:home.meta" content="Pecel semanggi dan olahan semanggi dari Kampoeng Semanggi, Sememi, Surabaya. Pesan langsung ke penjual lewat telepon atau WhatsApp.">
+<title data-i18n="collab.pageTitle">Kerja Sama · Kampoeng Semanggi</title>
+<meta name="description" data-i18n-attr="content:collab.meta" content="Mitra dan pendukung Kampoeng Semanggi, Sememi, Surabaya, serta cara menjadi sponsor atau mitra.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
@@ -34,9 +34,9 @@
     <nav data-i18n-attr="aria-label:nav.label" aria-label="Menu utama">
       <div class="tabs-main">
         <a class="opt" href="/" data-i18n="nav.home">Beranda</a>
-        <a class="opt current" aria-current="page" href="/lokasi" data-i18n="nav.shops">Lapak</a>
+        <a class="opt" href="/lokasi" data-i18n="nav.shops">Lapak</a>
         <details class="navdrop">
-          <summary class="opt"><span data-i18n="nav.about">Tentang Kami</span><span data-icon="chevron-down"></span></summary>
+          <summary class="opt current"><span data-i18n="nav.about">Tentang Kami</span><span data-icon="chevron-down"></span></summary>
           <div class="navdrop-list">
             <a href="/sejarah" data-i18n="nav.ourStory">Cerita Kami</a>
             <a href="/cerita#semanggi" data-i18n="nav.ourSemanggi">Semanggi Kami</a>
@@ -62,48 +62,30 @@
 </header>
 
 <main>
-  <section class="wrap section shops" id="shops">
-    <div class="shops-intro">
-      <div>
-        <p class="eyebrow" data-i18n="shops.eyebrow">Temui mereka langsung</p>
-        <h2 data-i18n-html="shops.title">Pasar kecil,<br><em>cerita besar.</em></h2>
+  <section class="wrap section" id="collab">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" data-i18n="nav.collab">Kerja Sama</p>
+          <h1 class="page-title" data-i18n="collab.title">Tumbuh bersama mitra</h1>
+          <p class="section-lede" data-i18n="collab.lede">Kampoeng Semanggi tumbuh berkat dukungan pemerintah, perusahaan, dan kampus. Terima kasih kepada semua mitra kami.</p>
+        </div>
       </div>
-      <p data-i18n="shops.intro">Datang, kenalan, dan bawa pulang rasa khas Sememi. Semua penjual di sini adalah tetangga kami sendiri.</p>
-    </div>
-    <div class="grid" id="shopGrid"></div>
-    <div class="empty" id="shopsEmpty" hidden>
-      <h3 data-i18n="shops.empty">Belum ada lapak</h3>
-      <p data-i18n="shops.emptyText">Lokasi dan nomor kontak setiap lapak tampil di sini setelah admin menambahkannya.</p>
-    </div>
+      <ul class="partners">
+        <li><span class="yr">2017</span><b data-i18n="collab.gov">Kecamatan Benowo dan Kelurahan Sememi</b><p data-i18n="collab.govText">Memberi nama Kampoeng Semanggi, melatih 180 pedagang semanggi, dan menyiapkan kampung wisata edukasi dan kuliner.</p></li>
+        <li><span class="yr">2021</span><b data-i18n="collab.astra">Astra: Kampung Berseri Astra</b><p data-i18n="collab.astraText">Kampoeng Semanggi menjadi kampung binaan Astra lewat empat pilar: sehat, pendidikan, kreatif, dan lingkungan.</p></li>
+        <li><span class="yr">2021–2022</span><b data-i18n="collab.uwp">Universitas Wijaya Putra Surabaya</b><p data-i18n="collab.uwpText">Mitra program Kampung Berseri Astra. Mahasiswa KKN membuat spot foto dan situs web kampung.</p></li>
+        <li><span class="yr">2022</span><b data-i18n="collab.utm">Universitas Trunojoyo Madura</b><p data-i18n="collab.utmText">Mahasiswa KKN ikut membangun kampung.</p></li>
+      </ul>
+      <div class="extras one">
+    <article class="extra" id="sponsor">
+      <p class="eyebrow" data-i18n="sponsor.eyebrow">Kerja sama</p>
+      <h2 data-i18n="sponsor.title">Jadi sponsor atau mitra</h2>
+      <p data-i18n="sponsor.text">Ingin mendukung pedagang semanggi dan kegiatan warga Kendung? Kami terbuka untuk sponsor acara, kemitraan usaha, dan program CSR.</p>
+      <div id="sponsorContact"></div>
+    </article>
+      </div>
   </section>
-
 </main>
-
-<dialog id="compare" class="compare" aria-labelledby="compareTitle">
-  <div class="compare-head">
-    <h2 id="compareTitle"></h2>
-    <button type="button" class="btn small ghost" id="compareClose" data-i18n="compare.close">Tutup</button>
-  </div>
-  <div class="compare-tools">
-    <div class="chips" id="compareSort" role="group" data-i18n-attr="aria-label:compare.sortLabel" aria-label="Urutkan">
-      <span class="small muted" data-i18n="compare.sortLabel">Urutkan</span>
-      <button type="button" data-sort="cheapest" aria-pressed="true" data-i18n="compare.cheapest">Termurah</button>
-      <button type="button" data-sort="perPiece" aria-pressed="false" data-i18n="compare.perPiece">Termurah per buah</button>
-      <button type="button" data-sort="closest" aria-pressed="false" data-i18n="compare.closest">Terdekat</button>
-    </div>
-    <label class="small check"><input type="checkbox" id="compareHide"> <span data-i18n="compare.hideUnavailable">Sembunyikan yang habis atau tutup</span></label>
-    <p class="muted small" id="compareNote"></p>
-  </div>
-  <div class="compare-list" id="compareList"></div>
-</dialog>
-
-<dialog id="order" class="compare order" aria-labelledby="orderTitle">
-  <div class="compare-head">
-    <h2 id="orderTitle"></h2>
-    <button type="button" class="btn small ghost" id="orderClose">Tutup</button>
-  </div>
-  <div class="chat" id="orderChat" aria-live="polite"></div>
-</dialog>
 
 <footer class="site-footer">
   <div class="wrap">
@@ -119,6 +101,6 @@
   </div>
 </footer>
 
-<script type="module" src="/shop.js"></script>
+<script type="module" src="/common.js"></script>
 </body>
 </html>
