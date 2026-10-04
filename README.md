@@ -126,3 +126,9 @@ Admins create a seller with just a **phone number** and a starting password (Pen
 On `/penjual`, **Lupa kata sandi?** lets a seller reset their password with a 6-digit code sent to their WhatsApp: the number they sign in with, or for older email sign-ins their contact number. Codes last 10 minutes and allow 5 tries; a number gets at most one code a minute and three an hour; the form never reveals whether a number is registered. After a reset the seller is signed in and signed out everywhere else.
 
 Codes are sent through [Fonnte](https://fonnte.com), an Indonesian WhatsApp gateway. Sign up, connect the WhatsApp number that should send the codes, copy the device's token, and set it as `FONNTE_TOKEN` in Vercel (Settings → Environment Variables), then redeploy. Without it, the form tells sellers to contact the admin, who can still use **Reset kata sandi** on `/pengelola`.
+
+## Shop pages and posters
+
+Every shop has its own page at `/lapak?id=<shop id>`: its details (address, opening hours, map, contact buttons), its posters and ads, and all of its products with search and categories. Shop names on product cards, in the product window and the comparison list, and the shop cards on `/lokasi` link to it. The home catalog still lists every product.
+
+Sellers add posters under **Poster & iklan** on `/penjual`: an image and an optional caption, up to 10 per shop, newest first. Admins see every poster under **Produk** on `/pengelola` and can remove any of them. Deleting a shop also deletes its posters.

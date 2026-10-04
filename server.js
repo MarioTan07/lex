@@ -173,6 +173,10 @@ const MESSAGES = {
     phoneTaken: "Sudah ada akun dengan nomor HP ini.",
     profileIncomplete: "Lengkapi data lapak Anda dulu.",
     "label.loginPhone": "Nomor HP",
+    "label.posterCaption": "Keterangan poster",
+    maxPosters: "Satu lapak bisa memasang maksimal 10 poster. Hapus yang lama dulu.",
+    posterImage: "Pilih gambar untuk poster.",
+    noPoster: "Poster itu tidak ditemukan.",
     resetUnavailable: "Reset lewat WhatsApp belum aktif. Hubungi admin Kampoeng Semanggi untuk mengatur ulang kata sandi.",
     resetSendFailed: "Kode tidak bisa dikirim ke WhatsApp sekarang. Coba lagi sebentar lagi, atau hubungi admin.",
     resetTooSoon: "Kode baru saja dikirim. Tunggu satu menit sebelum meminta lagi.",
@@ -255,6 +259,10 @@ const MESSAGES = {
     phoneTaken: "An account with this phone number already exists.",
     profileIncomplete: "Complete your shop details first.",
     "label.loginPhone": "Phone number",
+    "label.posterCaption": "Poster caption",
+    maxPosters: "A shop can show up to 10 posters. Remove an old one first.",
+    posterImage: "Choose an image for the poster.",
+    noPoster: "That poster wasn't found.",
     resetUnavailable: "Resetting by WhatsApp isn't switched on yet. Contact the Kampoeng Semanggi admin to reset your password.",
     resetSendFailed: "The code couldn't be sent to WhatsApp right now. Try again in a little while, or contact the admin.",
     resetTooSoon: "A code was just sent. Wait a minute before asking again.",
@@ -657,6 +665,17 @@ app.get("/api/stalls", async (_req, res) => {
   }) });
 });
 
+// ----- posters & ads on a shop's page -----
+const MAX_POSTERS = 10;
+const POSTER_SELECT = `SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM posters p JOIN users u ON u.id = p.seller_id`;
+const posterOut = (r) => ({ id: r.id, sellerId: r.seller_id, stallName: r.stall_name, image: r.image, caption: r.caption, createdAt: r.created_at });
+
+app.get("/api/stalls/:id/posters", async (req, res) => {
+  const rows = await db.all(POSTER_SELECT + " WHERE p.seller_id = ? AND u.role = 'seller' AND u.status = 'approved' AND u.profile_done = 1 ORDER BY p.created_at DESC",
+    Number(req.params.id));
+  res.json({ posters: rows.map(posterOut) });
+});
+
 // ----- site settings -----
 // Contact details shown on the site. Numbers stay empty until an admin fills them in under Admin → Situs.
 const SETTING_DEFAULTS = { instagram: "kampoeng_semanggi", sponsorEmail: "admin1semanggi@gmail.com" };
@@ -933,6 +952,26 @@ seller.delete("/products/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
+seller.get("/posters", async (req, res) => {
+  const rows = await db.all(POSTER_SELECT + " WHERE p.seller_id = ? ORDER BY p.created_at DESC", req.user.id);
+  res.json({ posters: rows.map(posterOut) });
+});
+seller.post("/posters", async (req, res) => {
+  if (!req.body.image) throw bad("posterImage");
+  const caption = text(req.body.caption, 140, { label: "label.posterCaption" });
+  if ((await db.one("SELECT COUNT(*) AS n FROM posters WHERE seller_id = ?", req.user.id)).n >= MAX_POSTERS) throw bad("maxPosters");
+  const image = await savePhoto(req.body.image, req);
+  const r = await db.run("INSERT INTO posters (seller_id, image, caption, created_at) VALUES (?, ?, ?, ?)", req.user.id, image, caption, Date.now());
+  res.status(201).json({ id: r.id });
+});
+seller.delete("/posters/:id", async (req, res) => {
+  const p = await db.one("SELECT * FROM posters WHERE id = ? AND seller_id = ?", Number(req.params.id), req.user.id);
+  if (!p) throw new HttpError(404, "noPoster");
+  await db.run("DELETE FROM posters WHERE id = ?", p.id);
+  removePhoto(p.image, req);
+  res.json({ ok: true });
+});
+
 app.use("/api/seller", seller);
 
 // ----- admin -----
@@ -1006,8 +1045,10 @@ admin.patch("/sellers/:id", async (req, res) => {
 // Permanently delete a shop: the seller's account, sign-ins, products, photos and any old orders.
 admin.delete("/sellers/:id", async (req, res) => {
   const u = await sellerById(req.params.id);
-  const photos = (await db.all("SELECT photo, extra_photos FROM products WHERE seller_id = ?", u.id)).flatMap((p) => [p.photo, ...extraPhotos(p)]).filter(Boolean);
+  const photos = (await db.all("SELECT photo, extra_photos FROM products WHERE seller_id = ?", u.id)).flatMap((p) => [p.photo, ...extraPhotos(p)]).filter(Boolean)
+    .concat((await db.all("SELECT image FROM posters WHERE seller_id = ?", u.id)).map((p) => p.image));
   await db.batch([
+    ["DELETE FROM posters WHERE seller_id = ?", u.id],
     ["DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE seller_id = ?)", u.id],
     ["DELETE FROM orders WHERE seller_id = ?", u.id],
     ["DELETE FROM sessions WHERE user_id = ?", u.id],
@@ -1035,6 +1076,18 @@ admin.delete("/products/:id", async (req, res) => {
   if (!p) throw new HttpError(404, "noProduct");
   await db.batch([...productEventsDelete("= ?", p.id), ["DELETE FROM products WHERE id = ?", p.id]]);
   removePhoto(p.photo, req); extraPhotos(p).forEach((x) => removePhoto(x, req));
+  res.json({ ok: true });
+});
+
+admin.get("/posters", async (_req, res) => {
+  const rows = await db.all(POSTER_SELECT + " ORDER BY p.created_at DESC");
+  res.json({ posters: rows.map(posterOut) });
+});
+admin.delete("/posters/:id", async (req, res) => {
+  const p = await db.one("SELECT * FROM posters WHERE id = ?", Number(req.params.id));
+  if (!p) throw new HttpError(404, "noPoster");
+  await db.run("DELETE FROM posters WHERE id = ?", p.id);
+  removePhoto(p.image, req);
   res.json({ ok: true });
 });
 

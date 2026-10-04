@@ -34,6 +34,10 @@ const onShops = !!$("#shopGrid");
 const moved = { "#shops": "/lokasi", "#story": "/cerita", "#history": "/cerita#history" };
 if (moved[location.hash]) location.replace(moved[location.hash]);
 
+// On a shop's own page (/lapak?id=3) the catalog shows only that shop's products.
+const shopPageId = $("#shopPage") ? Number(new URLSearchParams(location.search).get("id")) || -1 : null;
+const shopLink = (id, name) => el("a", { class: "shoplink", href: "/lapak?id=" + id, text: name });
+
 // ---------- catalog ----------
 async function loadCatalog() {
   try {
@@ -51,7 +55,9 @@ if (onCatalog) $("#search").addEventListener("input", (e) => { query = norm(e.ta
 
 function renderShop() {
   if (!onCatalog) return;
-  const names = [...new Map(products.map((p) => [p.sellerId, p.stallName])).entries()];
+  const pool = shopPageId ? products.filter((p) => p.sellerId === shopPageId) : products;
+  const hotHere = hot.filter((id) => pool.some((p) => p.id === id));
+  const names = [...new Map(pool.map((p) => [p.sellerId, p.stallName])).entries()];
   const chips = $("#stallChips"); chips.replaceChildren();
   chips.hidden = names.length < 2;
   if (names.length > 1) {
@@ -60,17 +66,17 @@ function renderShop() {
   }
   // Lagi hits, favourites and the categories that have products.
   const kinds = $("#kindChips"); kinds.replaceChildren();
-  const cats = CATEGORIES.filter((c) => products.some((p) => p.category === c));
-  const hasFav = products.some((p) => favs.has("p", p.id));
+  const cats = CATEGORIES.filter((c) => pool.some((p) => p.category === c));
+  const hasFav = pool.some((p) => favs.has("p", p.id));
   const takesBig = (p) => !!stallById(p.sellerId)?.bigOrders;
-  const hasBig = products.some(takesBig);
-  if (filterKind === "hot" && !hot.length || filterKind === "fav" && !hasFav || filterKind === "big" && !hasBig) filterKind = "all";
+  const hasBig = pool.some(takesBig);
+  if (filterKind === "hot" && !hotHere.length || filterKind === "fav" && !hasFav || filterKind === "big" && !hasBig) filterKind = "all";
   const kindChip = (k, label, ico) => el("button", { "aria-pressed": String(filterKind === k), onclick: () => { filterKind = k; renderShop(); } }, ico ? icon(ico) : null, label);
-  const kindList = [hot.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, hasBig ? kindChip("big", t("big.chip"), "calendar") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
+  const kindList = [hotHere.length ? kindChip("hot", t("hot.label"), "flame") : null, hasFav ? kindChip("fav", t("fav.mine"), "heart") : null, hasBig ? kindChip("big", t("big.chip"), "calendar") : null, ...cats.map((c) => kindChip(c, t("cat." + c)))].filter(Boolean);
   kinds.hidden = !kindList.length;
   if (kindList.length) kinds.append(kindChip("all", t("cat.all")), ...kindList);
   const kindOk = (p) => filterKind === "all" || (filterKind === "hot" ? hot.includes(p.id) : filterKind === "fav" ? favs.has("p", p.id) : filterKind === "big" ? takesBig(p) : p.category === filterKind);
-  const shown = products.filter((p) => kindOk(p) && (filterStall === "all" || p.sellerId === filterStall)
+  const shown = pool.filter((p) => kindOk(p) && (filterStall === "all" || p.sellerId === filterStall)
     && (!query || norm(p.name + " " + p.stallName + " " + (p.description || "")).includes(query)));
   const grid = $("#productGrid"); grid.replaceChildren();
   $("#shopEmpty").hidden = shown.length > 0;
@@ -96,7 +102,7 @@ function renderShop() {
         el("div", { class: "card-head" },
           el("div", {},
             el("h3", {}, el("button", { type: "button", class: "titlelink", onclick: open, text: p.name })),
-            el("p", { class: "stall" }, icon("store"), p.stallName),
+            el("p", { class: "stall" }, icon("store"), shopLink(p.sellerId, p.stallName)),
             stall && !stall.paused ? hoursLine(stall.hours) : null,
             bigOrderLine(stall)),
           el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
@@ -140,6 +146,7 @@ function photoBox(p, open) {
 // ---------- hero: today's pick & seller count ----------
 // One product from a shop that's open, changing once a day, so the hero shows something real.
 function renderHero() {
+  if (!$("#pick")) return;
   const open = products.filter((p) => { const s = stallById(p.sellerId); return p.available && s && !s.paused; });
   const pick = $("#pick");
   pick.hidden = !open.length;
@@ -241,7 +248,7 @@ function renderCompare() {
       stall ? mapFrame(stall.shop, t("shops.mapOf", { name: q.stallName })) : null,
       el("div", { class: "body" },
         el("div", { class: "offer-head" },
-          el("h3", { text: q.stallName }),
+          el("h3", {}, shopLink(q.sellerId, q.stallName)),
           el("span", { class: "price" }, rp(q.price), q.unit ? el("small", { text: " / " + q.unit }) : null)),
         perPieceLine(q),
         norm(q.name) !== norm(comparing.name) ? el("p", { class: "small", text: q.name }) : null,
@@ -261,6 +268,7 @@ function renderCompare() {
 async function loadShops() {
   try { ({ stalls } = await api("/api/stalls")); } catch { return; }
   renderShops();
+  renderShopPage();
   renderShop(); // product cards need each stall's phone for their buttons
   renderCompare();
   renderProduct();
@@ -279,14 +287,58 @@ function renderShops() {
         favButton("s", s.id, s.stallName, renderShops),
         shareButton({ title: s.stallName, text: t("share.shopText", { stall: s.stallName }), url: location.origin + "/lokasi#lapak-" + s.id })),
       el("div", { class: "body" },
-        el("h3", { text: s.stallName }),
+        el("h3", {}, shopLink(s.id, s.stallName)),
         s.paused ? null : hoursLine(s.hours),
         bigOrderLine(s),
         hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
         homeNote(s),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
+        el("a", { class: "btn ghost small shop-open", href: "/lapak?id=" + s.id }, icon("store"), t("shopPage.view")),
         s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null }))));
   }
+}
+
+// ---------- a shop's own page: details, posters, then its products (the catalog below) ----------
+function renderShopPage() {
+  if (!shopPageId || !stalls.length) return;
+  const s = stallById(shopPageId);
+  const head = $("#shopHead");
+  if (!s) {
+    head.replaceChildren(el("div", { class: "empty" }, el("h3", { text: t("shopPage.notFound") }), el("p", { text: t("shopPage.notFoundText") })));
+    return;
+  }
+  document.title = s.stallName + " · Kampoeng Semanggi";
+  head.replaceChildren(
+    el("div", { class: "shop-head-main" },
+      el("p", { class: "eyebrow", text: t("shopPage.eyebrow") }),
+      el("h1", { text: s.stallName }),
+      s.paused ? closedNotice(s) : hoursLine(s.hours),
+      bigOrderLine(s),
+      hasShop(s) || !s.fromHome ? el("p", { class: "addr" }, icon("map-pin"), s.shop.address || t("shops.noAddress")) : null,
+      homeNote(s),
+      el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
+      el("div", { class: "detail-tools" },
+        favButton("s", s.id, s.stallName, renderShopPage),
+        shareButton({ title: s.stallName, text: t("share.shopText", { stall: s.stallName }), url: location.origin + "/lapak?id=" + s.id })),
+      s.paused ? null : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null })),
+    mapFrame(s.shop, t("shops.mapOf", { name: s.stallName })));
+  renderPosters();
+}
+let posters = null;
+async function loadPosters() {
+  if (!shopPageId || shopPageId < 0) return;
+  try { ({ posters } = await api(`/api/stalls/${shopPageId}/posters`)); } catch { posters = []; }
+  renderPosters();
+}
+function renderPosters() {
+  const wrap = $("#posterWrap");
+  if (!wrap || !posters) return;
+  const s = stallById(shopPageId);
+  wrap.hidden = !posters.length || !s;
+  $("#posterList").replaceChildren(...posters.map((p, i) => el("figure", { class: "poster" },
+    el("a", { href: p.image, target: "_blank", rel: "noopener", "aria-label": t("posters.open", { n: i + 1 }) },
+      el("img", { src: p.image, alt: p.caption || t("posters.alt", { stall: s ? s.stallName : "" }), loading: "lazy" })),
+    p.caption ? el("figcaption", { text: p.caption }) : null)));
 }
 
 // Links shared from a product (/?p=12) open it; links to a shop (/lokasi#lapak-3) scroll to it.
@@ -348,7 +400,7 @@ function renderProduct() {
       mapFrame(stall.shop, t("shops.mapOf", { name: stall.stallName })),
       el("div", { class: "body" },
         el("p", { class: "eyebrow", text: t("detail.seller") }),
-        el("h3", { text: stall.stallName }),
+        el("h3", {}, shopLink(stall.id, stall.stallName)),
         stall.shop.address ? el("p", { class: "addr" }, icon("map-pin"), stall.shop.address) : null,
         homeNote(stall),
         stall.paused ? null : hoursLine(stall.hours),
@@ -361,9 +413,11 @@ function renderProduct() {
 window.addEventListener("langchange", () => {
   if (catalogLoaded) renderShop(); else loadCatalog();
   renderShops();
+  renderShopPage();
   renderCompare();
   renderProduct();
 });
 
 loadCatalog();
 loadShops();
+loadPosters();

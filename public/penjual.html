@@ -158,6 +158,22 @@
           <h3 data-i18n="mine.title">Produk Anda</h3>
           <div id="myProducts"></div>
         </div>
+
+        <form class="panel" id="posterForm">
+          <h3 data-i18n="posters.sellerTitle">Poster &amp; iklan</h3>
+          <p class="muted small" data-i18n="posters.sellerHint">Pasang poster promo, menu, atau pengumuman. Poster tampil di halaman lapak Anda. Maksimal 10 poster.</p>
+          <div class="drop">
+            <img id="po-preview" alt="" hidden>
+            <div class="field" style="flex:1;min-width:180px"><label for="po-image" data-i18n="posters.image">Gambar poster</label><input type="file" id="po-image" accept="image/*"></div>
+          </div>
+          <div class="field"><label for="po-caption" data-i18n="posters.caption">Keterangan (opsional)</label><input type="text" id="po-caption" maxlength="140" data-i18n-attr="placeholder:posters.captionPlaceholder" placeholder="mis. Promo Lebaran: diskon 10%"></div>
+          <p class="formerr" id="posterErr" hidden></p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn" type="submit" id="posterBtn" data-i18n="posters.add">Pasang poster</button>
+            <a class="small" id="myShopLink" href="/lokasi" data-i18n="posters.viewShop">Lihat halaman lapak saya</a>
+          </div>
+          <div class="poster-mine" id="myPosters"></div>
+        </form>
       </div>
 
       <div class="stack">

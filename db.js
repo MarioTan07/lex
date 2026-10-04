@@ -114,6 +114,15 @@ const SCHEMA = `
   );
   CREATE INDEX IF NOT EXISTS idx_orders_seller ON orders(seller_id);
   CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_id);
+  -- Posters and ads a seller puts on their shop page: an image and an optional caption.
+  CREATE TABLE IF NOT EXISTS posters (
+    id INTEGER PRIMARY KEY,
+    seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    image TEXT NOT NULL,
+    caption TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_posters_seller ON posters(seller_id);
   -- Codes sent to a seller's WhatsApp to reset a forgotten password. Only a hash of the code is kept.
   CREATE TABLE IF NOT EXISTS password_resets (
     id INTEGER PRIMARY KEY,

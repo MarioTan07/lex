@@ -576,3 +576,26 @@ fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
 .groups { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 @media (max-width: 900px) { .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .groups { grid-template-columns: minmax(0, 1fr); } }
+
+/* A shop's own page: details and map side by side, posters, then the shop's products */
+.backlink { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-weight: 600; font-size: .9375rem; text-decoration: none; justify-self: start; }
+.backlink:hover { color: var(--leaf); }
+.shop-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 48px); align-items: start; }
+.shop-head-main { display: grid; gap: 10px; align-content: start; }
+.shop-head h1 { font-size: var(--step-2); }
+.shop-head .map { border-radius: var(--radius-lg); aspect-ratio: 4 / 3; }
+.shop-head .addr { display: flex; gap: 6px; align-items: flex-start; color: var(--muted); }
+.shop-head .contact { font-weight: 700; font-variant-numeric: tabular-nums; }
+.posters-wrap { display: grid; gap: 18px; }
+.posters { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
+.poster { margin: 0; display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 10px; }
+.poster img { width: 100%; height: auto; display: block; border-radius: var(--radius); }
+.poster figcaption { font-size: .9375rem; color: var(--muted); padding: 0 4px 4px; }
+.shoplink { color: inherit; text-decoration: none; }
+.shoplink:hover { color: var(--leaf); text-decoration: underline; }
+.shop-open { justify-self: start; }
+.poster-mine { display: grid; gap: 10px; }
+.poster-item { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); }
+.poster-item img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+.poster-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; display: block; }
+@media (max-width: 900px) { .shop-head { grid-template-columns: minmax(0, 1fr); } }

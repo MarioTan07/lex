@@ -22,7 +22,7 @@ await setupSchema(local);
 await setupSchema(remote);
 
 // Children before parents when deleting; parents before children when inserting.
-const TABLES = ["users", "products", "orders", "order_items", "settings", "listings"];
+const TABLES = ["users", "products", "orders", "order_items", "settings", "listings", "posters"];
 
 const existing = (await remote.one("SELECT (SELECT COUNT(*) FROM users) + (SELECT COUNT(*) FROM products) AS n")).n;
 if (existing && !replace) {

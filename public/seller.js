@@ -31,7 +31,7 @@ async function start() {
   $("#logoutBtn").hidden = !me;
   placeProfileForm(setup);
   if (setup) { fillProfile(); return; }
-  if (me) { renderHead(); fillProfile(); loadProducts(); loadStats(); }
+  if (me) { renderHead(); fillProfile(); loadProducts(); loadStats(); loadPosters(); }
 }
 
 // On the first sign-in the shop-details form is shown on its own; afterwards it sits in the desk as usual.
@@ -264,6 +264,47 @@ $("#passwordForm").addEventListener("submit", async (e) => {
     if (x.status === 401 || x.status === 403) return handle(x);
     err.textContent = x.message; err.hidden = false;
   }
+});
+
+// ---------- posters & ads, shown on the shop's page ----------
+let posterPending = null;
+$("#po-image").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; posterPending = null; $("#po-preview").hidden = true;
+  if (!f) return;
+  try { posterPending = await shrinkPhoto(f, 1400); $("#po-preview").src = posterPending; $("#po-preview").hidden = false; }
+  catch { toast(t("product.badPhoto")); e.target.value = ""; }
+});
+async function loadPosters() {
+  let posters = [];
+  try { ({ posters } = await api("/api/seller/posters")); } catch (e) { return handle(e); }
+  $("#myShopLink").href = "/lapak?id=" + me.id;
+  const box = $("#myPosters"); box.replaceChildren();
+  if (!posters.length) { box.append(el("p", { class: "muted small", text: t("posters.none") })); return; }
+  for (const p of posters) {
+    box.append(el("div", { class: "poster-item" },
+      el("img", { src: p.image, alt: "" }),
+      el("span", { class: "small", text: p.caption || "—" }),
+      el("button", { type: "button", class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => removePoster(p)) }, t("admin.delete"))));
+  }
+}
+async function removePoster(p) {
+  try { await api("/api/seller/posters/" + p.id, { method: "DELETE" }); toast(t("posters.removed")); loadPosters(); }
+  catch (e) { handle(e); }
+}
+$("#posterForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showErr("#posterErr", "");
+  if (!posterPending) { showErr("#posterErr", t("posters.needImage")); return; }
+  const btn = $("#posterBtn"); btn.disabled = true;
+  try {
+    await api("/api/seller/posters", { method: "POST", body: { image: posterPending, caption: $("#po-caption").value } });
+    e.target.reset(); posterPending = null; $("#po-preview").hidden = true;
+    toast(t("posters.added"));
+    loadPosters();
+  } catch (err) {
+    if (err.status === 401) handle(err); else showErr("#posterErr", err.message);
+  }
+  btn.disabled = false;
 });
 
 window.addEventListener("langchange", () => {

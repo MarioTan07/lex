@@ -32,7 +32,25 @@ document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("cli
   ["sellers", "products", "wisata", "site", "account"].forEach((v) => ($("#view-" + v).hidden = v !== b.dataset.tab));
 }));
 
-function refreshAll() { loadOverview(); loadSellers(); loadProducts(); loadSite(); }
+function refreshAll() { loadOverview(); loadSellers(); loadProducts(); loadPosters(); loadSite(); }
+
+// ---------- posters & ads ----------
+async function loadPosters() {
+  let posters;
+  try { ({ posters } = await api("/api/admin/posters")); } catch (e) { return handle(e); }
+  const body = $("#posterRows"); body.replaceChildren();
+  if (!posters.length) body.append(el("tr", {}, el("td", { colspan: "5", class: "muted", text: t("posters.adminNone") })));
+  for (const p of posters) {
+    body.append(el("tr", {},
+      el("td", {}, el("a", { href: p.image, target: "_blank", rel: "noopener" }, el("img", { src: p.image, alt: "", class: "poster-thumb" }))),
+      el("td", {}, el("a", { href: "/lapak?id=" + p.sellerId, target: "_blank", rel: "noopener", text: p.stallName })),
+      el("td", { text: p.caption || "—" }),
+      el("td", { class: "small", text: when(p.createdAt) }),
+      el("td", {}, el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), async () => {
+        try { await api("/api/admin/posters/" + p.id, { method: "DELETE" }); toast(t("posters.removed")); loadPosters(); } catch (e) { handle(e); }
+      }) }, t("admin.delete")))));
+  }
+}
 $("#refreshBtn").addEventListener("click", refreshAll);
 
 // ---------- overview ----------
