@@ -631,3 +631,15 @@ dialog.photo-view::backdrop { background: rgb(0 0 0 / .7); }
   .group:nth-child(even) > .group-photos { order: 0; }
   .group-cards { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Group photos: landscape crops for the newer groups; with three photos the first one runs across the top */
+.group-photos.wide img { aspect-ratio: 4 / 3; }
+.group-photos.three > figure:first-child { grid-column: 1 / -1; }
+.group-photos.three > figure:first-child img { aspect-ratio: 16 / 9; }
+.group-cards > :only-child { grid-column: 1 / -1; }
+/* Partner cards: a row of photos that scrolls sideways; tap one to see it bigger */
+.partner-photos { display: flex; gap: 8px; overflow-x: auto; margin: 6px -4px 0; padding: 4px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.partner-photos .zoom { flex: none; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 10px; overflow: hidden; scroll-snap-align: start; }
+.partner-photos img { display: block; height: 110px; width: auto; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .25s; }
+.partner-photos .zoom:hover img { transform: scale(1.04); }
+.group-photos > .partner-photos { grid-column: 1 / -1; margin-top: 0; }
