@@ -1,5 +1,5 @@
 // Shared helpers for the shop, seller desk and admin desk.
-import { t, lang } from "/i18n.js";
+import { t, lang, locale } from "/i18n.js";
 export { t };
 export const $ = (s, root = document) => root.querySelector(s);
 
@@ -79,7 +79,7 @@ for (const drop of document.querySelectorAll(".navdrop")) {
 
 export const rp =(n) => "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(n || 0));
 export const when = (time) =>
-  new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(time));
+  new Intl.DateTimeFormat(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(time));
 
 
 export function leafSvg() {
@@ -195,7 +195,7 @@ export function contactButtons(stall, message, { directions = true, order = null
     else if (b.tagName === "BUTTON") onTap("order");
   } : null },
     tel ? el("a", { class: "btn ghost", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, icon("phone"), t("contact.call")) : null,
-    wa && order && lang === "en" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
+    wa && order && lang !== "id" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
     : wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
     dir ? el("a", { class: "btn ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, icon("navigation"), t("contact.directions")) : null,
     stall.instagram ? el("a", { class: "btn ghost", href: instagramLink(stall.instagram), target: "_blank", rel: "noopener", "aria-label": t("contact.instagramLabel", { name }) }, icon("instagram"), "Instagram") : null);

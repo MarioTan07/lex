@@ -1,7 +1,7 @@
 // Step-by-step order helper: asks what and how many, when to pick up, any requests and a name,
 // then opens WhatsApp with the order written out. The seller always gets it in Indonesian.
 import { $, el, rp, t, api, waNumber } from "/common.js";
-import { lang, tIn } from "/i18n.js";
+import { lang, tIn, langInfo } from "/i18n.js";
 
 // Ready-made requests (text keys). Not spicy and extra spicy can't both be picked.
 const REQUESTS = ["req.sauceSeparate", "req.notSpicy", "req.extraSpicy", "req.extraKrupuk"];
@@ -17,7 +17,7 @@ function slots(day) {
 const hhmm = (m, sep = ":") => String(Math.floor(m / 60)).padStart(2, "0") + sep + String(m % 60).padStart(2, "0");
 
 let o = null;           // the order being put together
-const translated = new Map(); // English note → { id, back }, so going back and forth doesn't translate again
+const translated = new Map(); // language + note → { id, back }, so going back and forth doesn't translate again
 
 const dialog = $("#order");
 dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); }); // tap outside the box
@@ -66,7 +66,7 @@ function message(l, note) {
     tIn(l, "msg.pickup", { when }),
     reqs.length ? tIn(l, "msg.requests", { list: reqs.join(", ") }) : null,
     note ? tIn(l, "msg.note", { note }) : null,
-    note && l === "id" && note !== o.note ? tIn(l, "msg.noteOriginal", { note: o.note }) : null,
+    note && l === "id" && note !== o.note ? tIn(l, "msg.noteOriginal", { note: o.note, language: langInfo().idName }) : null,
     tIn(l, "msg.name", { name: o.name }),
     "",
     tIn(l, "msg.thanks"),
@@ -182,7 +182,7 @@ function readyStep(box) {
   const preview = el("pre", { class: "order-message" });
   const send = el("a", { class: "btn", target: "_blank", rel: "noopener" }, t("order.send"));
   const status = el("p", { class: "muted small" });
-  const meaning = lang === "en" ? el("details", { class: "order-meaning" }, el("summary", { text: t("order.meaning") }), el("pre", { class: "order-message", text: message("en", o.note) })) : null;
+  const meaning = lang !== "id" ? el("details", { class: "order-meaning" }, el("summary", { text: t("order.meaning") }), el("pre", { class: "order-message", text: message(lang, o.note) })) : null;
   box.append(preview, ...(meaning ? [meaning, el("p", { class: "muted small", text: t("order.sentInId") })] : []), status);
   nav(box, { extra: send });
 
@@ -194,21 +194,22 @@ function readyStep(box) {
     send.href = "https://wa.me/" + wa + "?text=" + encodeURIComponent(text);
     send.removeAttribute("aria-disabled");
   };
-  // Indonesian buyers' notes go as written; English notes are translated first.
+  // Indonesian buyers' notes go as written; others are translated into Indonesian first, and back to check.
   if (!o.note || lang === "id") return fill(o.note);
   const showBack = (b) => {
     back.replaceChildren(el("strong", { text: t("order.backTitle") }), " “" + b + "”", el("br"), el("span", { class: "muted small", text: t("order.backHint") }));
   };
-  if (translated.has(o.note)) { const tr = translated.get(o.note); showBack(tr.back); return fill(tr.id); }
+  const mt = langInfo().mt, key = lang + "|" + o.note;
+  if (translated.has(key)) { const tr = translated.get(key); showBack(tr.back); return fill(tr.id); }
   send.setAttribute("aria-disabled", "true");
   send.addEventListener("click", (e) => { if (send.getAttribute("aria-disabled")) e.preventDefault(); });
   preview.textContent = t("order.translating");
   const note = o.note, current = o;
   const tr = (text, from, to) => api("/api/translate", { method: "POST", body: { text, from, to } }).then((r) => r.text);
-  tr(note, "en", "id")
+  tr(note, mt, "id")
     .then(async (id) => {
-      const b = await tr(id, "id", "en").catch(() => null);
-      if (b) translated.set(note, { id, back: b });
+      const b = await tr(id, "id", mt).catch(() => null);
+      if (b) translated.set(key, { id, back: b });
       if (o === current && o.step === 4 && b) showBack(b);
       return id;
     })

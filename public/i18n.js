@@ -3,7 +3,32 @@
 // scripts build (messages, buttons drawn in JavaScript), which has no HTML to come from.
 // In the HTML, data-i18n="key" marks an element's text, data-i18n-html="key" its markup,
 // and data-i18n-attr="placeholder:key; aria-label:key" its attributes.
-const LANGS = ["id", "en"];
+// Other languages (public pages only) are in public/lang/<code>.json, loaded when picked; text missing
+// there shows in English. Seller and admin pages offer Indonesian and English only.
+
+// The languages in the switch, sorted by English name. locale formats dates and numbers; idName names the
+// language in Indonesian (in messages to sellers); mt is the code the translation service uses.
+export const LANGUAGES = [
+  { code: "ar", name: "Arabic", native: "العربية", locale: "ar-u-nu-latn", dir: "rtl", idName: "bahasa Arab", mt: "ar" },
+  { code: "my", name: "Burmese", native: "မြန်မာ", locale: "my-MM", idName: "bahasa Myanmar", mt: "my" },
+  { code: "zh", name: "Chinese", native: "简体中文", locale: "zh-CN", idName: "bahasa Mandarin", mt: "zh-CN" },
+  { code: "en", name: "English", native: "English", locale: "en-GB", idName: "bahasa Inggris", mt: "en" },
+  { code: "fil", name: "Filipino", native: "Filipino", locale: "fil-PH", idName: "bahasa Filipina", mt: "tl" },
+  { code: "fr", name: "French", native: "Français", locale: "fr-FR", idName: "bahasa Prancis", mt: "fr" },
+  { code: "hi", name: "Hindi", native: "हिन्दी", locale: "hi-IN-u-nu-latn", idName: "bahasa Hindi", mt: "hi" },
+  { code: "id", name: "Indonesian", native: "Bahasa Indonesia", locale: "id-ID", idName: "bahasa Indonesia", mt: "id" },
+  { code: "ja", name: "Japanese", native: "日本語", locale: "ja-JP", idName: "bahasa Jepang", mt: "ja" },
+  { code: "km", name: "Khmer", native: "ខ្មែរ", locale: "km-KH", idName: "bahasa Khmer", mt: "km" },
+  { code: "ko", name: "Korean", native: "한국어", locale: "ko-KR", idName: "bahasa Korea", mt: "ko" },
+  { code: "lo", name: "Lao", native: "ລາວ", locale: "lo-LA", idName: "bahasa Laos", mt: "lo" },
+  { code: "ms", name: "Malay", native: "Bahasa Melayu", locale: "ms-MY", idName: "bahasa Melayu", mt: "ms" },
+  { code: "es", name: "Spanish", native: "Español", locale: "es-ES", idName: "bahasa Spanyol", mt: "es" },
+  { code: "th", name: "Thai", native: "ไทย", locale: "th-TH-u-ca-gregory", idName: "bahasa Thailand", mt: "th" },
+  { code: "vi", name: "Vietnamese", native: "Tiếng Việt", locale: "vi-VN", idName: "bahasa Vietnam", mt: "vi" },
+];
+// The seller and admin pages aren't translated beyond English.
+const DESK = document.body?.classList.contains("desk-page");
+const LANGS = DESK ? ["id", "en"] : LANGUAGES.map((l) => l.code);
 
 const TEXT = {
   id: {
@@ -116,7 +141,7 @@ const TEXT = {
     "msg.tomorrow": "besok jam {time}",
     "msg.requests": "Permintaan: {list}",
     "msg.note": "Catatan: {note}",
-    "msg.noteOriginal": "(Asli dalam bahasa Inggris: {note})",
+    "msg.noteOriginal": "(Aslinya dalam {language}: {note})",
     "order.backTitle": "Diterjemahkan kembali, penjual membaca:",
     "order.backHint": "Kalau artinya tidak sesuai, ketuk Kembali dan tulis dengan kata-kata yang lebih sederhana.",
     "msg.name": "Atas nama: {name}",
@@ -562,7 +587,7 @@ const TEXT = {
     "msg.tomorrow": "tomorrow at {time}",
     "msg.requests": "Requests: {list}",
     "msg.note": "Note: {note}",
-    "msg.noteOriginal": "(Original in English: {note})",
+    "msg.noteOriginal": "(Original in {language}: {note})",
     "order.backTitle": "Translated back, the seller reads:",
     "order.backHint": "If that's not what you meant, tap Back and reword it in simpler words. Your original note is included too.",
     "msg.name": "Name: {name}",
@@ -1198,24 +1223,45 @@ const TEXT = {
   },
 };
 
-// The site is written in Indonesian and always opens in Indonesian. English is only shown after
-// the visitor picks EN, and that choice is remembered in this browser.
+// The site opens in Indonesian, or in the visitor's phone language when that's one of the other
+// languages here (not English: many Indonesian phones are set to English). A picked language is remembered.
 // The admin page always opens in Indonesian. Its ID/EN switch works for that visit only and doesn't
 // change the language remembered for the rest of the site.
 const ADMIN_PAGE = /^\/(pengelola|admin)(\.html)?\/?$/.test(location.pathname);
 function pickLang() {
   if (ADMIN_PAGE) return "id";
-  try { const saved = localStorage.getItem("ks-lang-v2"); if (LANGS.includes(saved)) return saved; } catch {}
+  let saved = null;
+  try { saved = localStorage.getItem("ks-lang-v2"); } catch {}
+  if (saved) return LANGS.includes(saved) ? saved : "en";
+  for (const want of navigator.languages || []) {
+    const base = want.toLowerCase().split("-")[0], code = base === "tl" ? "fil" : base;
+    if (code === "id" || code === "en") break;
+    if (LANGS.includes(code)) return code;
+  }
   return "id";
+}
+// Loads a language's text file once; false if it can't be loaded.
+async function loadLang(code) {
+  if (TEXT[code]) return true;
+  try {
+    const r = await fetch(`/lang/${code}.json`);
+    if (!r.ok) return false;
+    TEXT[code] = await r.json();
+    return true;
+  } catch { return false; }
 }
 
 export let lang = pickLang();
+if (!(await loadLang(lang))) lang = "en";
+export const langInfo = (code = lang) => LANGUAGES.find((l) => l.code === code) || LANGUAGES.find((l) => l.code === "en");
+// For Intl date and number formatting in the page's (or a given) language.
+export const locale = (code = lang) => langInfo(code).locale;
 
 export function t(key, vars = {}) { return tIn(lang, key, vars); }
 
 // Text in a set language regardless of the page's, e.g. the Indonesian WhatsApp message an English-speaking buyer sends.
 export function tIn(l, key, vars = {}) {
-  const s = TEXT[l][key] ?? TEXT.id[key] ?? key;
+  const s = (l === "id" ? TEXT.id[key] : TEXT[l]?.[key] ?? TEXT.en[key] ?? TEXT.id[key]) ?? key;
   return s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
 }
 
@@ -1246,6 +1292,7 @@ const pick = (source, key) => {
 
 export function applyI18n(root = document) {
   document.documentElement.lang = lang;
+  document.documentElement.dir = langInfo().dir || "ltr";
   root.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = pick(orig(n).text, n.dataset.i18n); });
   root.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = pick(orig(n).html, n.dataset.i18nHtml); });
   root.querySelectorAll("[data-i18n-attr]").forEach((n) => {
@@ -1255,35 +1302,40 @@ export function applyI18n(root = document) {
       if (attr && key) n.setAttribute(attr, pick(o.attrs[attr], key));
     }
   });
-  document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  document.querySelectorAll(".lang select").forEach((sel) => { sel.value = lang; });
+  document.querySelectorAll(".lang-current").forEach((n) => { n.textContent = lang.toUpperCase(); });
 }
 
 // Pages listen for "langchange" to redraw the parts they build in JavaScript.
-export function setLang(next) {
+export async function setLang(next) {
   if (!LANGS.includes(next) || next === lang) return;
+  if (!(await loadLang(next))) { applyI18n(); return; }
   lang = next;
   if (!ADMIN_PAGE) try { localStorage.setItem("ks-lang-v2", lang); } catch {}
   applyI18n();
   window.dispatchEvent(new Event("langchange"));
 }
 
+// The language switch: a globe and the current language's code over a native dropdown, which phones
+// show as their own picker. Each language is listed in its own script with its English name.
 function addSwitch() {
-  const nav = document.querySelector(".top nav");
+  const nav = document.querySelector(".top nav") || document.querySelector(".top .wrap");
   if (!nav || nav.querySelector(".lang")) return;
-  const box = document.createElement("div");
+  const box = document.createElement("label");
   box.className = "lang";
-  box.setAttribute("role", "group");
-  box.setAttribute("data-i18n-attr", "aria-label:lang.label");
-  for (const l of LANGS) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.dataset.lang = l;
-    b.lang = l;
-    b.textContent = l.toUpperCase();
-    b.title = l === "id" ? "Bahasa Indonesia" : "English";
-    b.addEventListener("click", () => setLang(l));
-    box.append(b);
+  box.innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span class="lang-current"></span><svg class="icon chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  const sel = document.createElement("select");
+  sel.setAttribute("data-i18n-attr", "aria-label:lang.label");
+  sel.setAttribute("aria-label", "Bahasa");
+  for (const l of LANGUAGES.filter((x) => LANGS.includes(x.code))) {
+    const o = document.createElement("option");
+    o.value = l.code;
+    o.lang = l.code;
+    o.textContent = l.native === l.name ? l.name : `${l.native} · ${l.name}`;
+    sel.append(o);
   }
+  sel.addEventListener("change", () => setLang(sel.value));
+  box.append(sel);
   // Pages can mark where the switch goes with <span class="lang-slot"></span>; otherwise it ends the nav.
   const slot = nav.querySelector(".lang-slot");
   if (slot) slot.replaceWith(box); else nav.append(box);

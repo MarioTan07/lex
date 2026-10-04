@@ -128,6 +128,10 @@ On `/penjual`, **Lupa kata sandi?** lets a seller reset their password with a 6-
 
 Codes are sent through [Fonnte](https://fonnte.com), an Indonesian WhatsApp gateway. Sign up, connect the WhatsApp number that should send the codes, copy the device's token, and set it as `FONNTE_TOKEN` in Vercel (Settings → Environment Variables), then redeploy. Without it, the form tells sellers to contact the admin, who can still use **Reset kata sandi** on `/pengelola`.
 
+## Languages
+
+The public pages come in 16 languages, picked from the globe dropdown in the header (sorted by English name): Arabic, Burmese, Chinese (Simplified), English, Filipino, French, Hindi, Indonesian, Japanese, Khmer, Korean, Lao, Malay, Spanish, Thai and Vietnamese. Indonesian lives in the HTML and English in `public/i18n.js` as before; every other language is a file in `public/lang/<code>.json` with the same keys as the English, loaded only when picked. Text missing from a file shows in English. Arabic switches the page to right-to-left. A first visit opens in Indonesian, or in the phone's language when it is one of the others (not English); the choice is remembered. Text that sellers and admins type (products, packages, groups, partners) exists in Indonesian and English only, so other languages show the English. Buyers writing an order note in any of these languages get it translated into Indonesian for the seller, with a translation back so they can check it. The seller and admin pages offer Indonesian and English only.
+
 ## Shop pages and posters
 
 Every shop has its own page at `/lapak?id=<shop id>`: its details (address, opening hours, map, contact buttons), its posters and ads, and all of its products with search and categories. Shop names on product cards, in the product window and the comparison list, and the shop cards on `/lokasi` link to it. The home catalog still lists every product.

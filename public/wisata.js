@@ -1,16 +1,16 @@
 // Packages page (/wisata): tours, experiences and homestays the admins list, each with a "sign up / ask" helper that opens WhatsApp.
 // The message to the host is always in Indonesian; English visitors also see what it says.
 import { $, el, t, rp, icon, api, leafSvg, waNumber, telNumber } from "/common.js";
-import { lang, tIn } from "/i18n.js";
+import { lang, locale, tIn } from "/i18n.js";
 
 let listings = [];
 let site = null;
 
-const pick = (l, field) => (lang === "en" && l[field + "En"]) || l[field];
+const pick = (l, field) => (lang !== "id" && l[field + "En"]) || l[field];
 const timed = (l) => l.kind !== "homestay"; // tours and experiences: per person, with a length and a schedule
 const phoneFor = (l) => (timed(l) ? site?.tourPhone : site?.homestayPhone);
 const anchor = { tour: "tur-", experience: "pengalaman-", homestay: "homestay-" };
-const num = (n) => new Intl.NumberFormat(lang === "id" ? "id-ID" : "en-GB", { maximumFractionDigits: 1 }).format(n);
+const num = (n) => new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 }).format(n);
 
 // ---------- cards ----------
 function photos(l) {
@@ -42,7 +42,7 @@ function groupText(l) {
 // "2026-10-18T08:00" → "Sabtu, 18 Oktober 2026 · 08.00" in the given language.
 function dateText(stamp, l2 = lang) {
   const [d, time] = stamp.split("T");
-  const day = new Date(d + "T12:00:00").toLocaleDateString(l2 === "id" ? "id-ID" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const day = new Date(d + "T12:00:00").toLocaleDateString(locale(l2), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   return time ? day + " · " + (l2 === "id" ? time.replace(":", ".") : time) : day;
 }
 function scheduleLine(l) {
@@ -139,7 +139,7 @@ function drawBooking() {
   form.append(field("book-name", t("order.nameLabel"), el("input", { type: "text", id: "book-name", maxlength: "40", autocomplete: "name", value: booking.name, oninput: (e) => { booking.name = e.target.value.trim(); update(); } })));
   if (tour && s?.mode === "request" && s.noticeDays) form.append(el("p", { class: "muted small", text: t("wisata.onRequestNotice", { n: s.noticeDays }) }));
   const preview = el("pre", { class: "order-message" });
-  const meaning = lang === "en" ? el("details", { class: "order-meaning" }, el("summary", { text: t("order.meaning") }), el("pre", { class: "order-message", id: "book-meaning" })) : null;
+  const meaning = lang !== "id" ? el("details", { class: "order-meaning" }, el("summary", { text: t("order.meaning") }), el("pre", { class: "order-message", id: "book-meaning" })) : null;
   const send = el("a", { class: "btn", target: "_blank", rel: "noopener" }, icon("message"), t("order.send"));
   const warn = el("p", { class: "formerr", hidden: true });
   form.append(el("p", { class: "small", text: t("book.preview") }), preview, meaning, warn, el("div", { class: "order-nav" }, send));
@@ -147,7 +147,7 @@ function drawBooking() {
     const phone = phoneFor(l);
     const text = message("id");
     preview.textContent = text;
-    if (meaning) meaning.querySelector("pre").textContent = message("en");
+    if (meaning) meaning.querySelector("pre").textContent = message(lang);
     const missing = !booking.date ? t("book.needDate") : !booking.name ? t("book.needName") : "";
     warn.textContent = missing; warn.hidden = !missing;
     send.setAttribute("aria-disabled", String(!!missing));

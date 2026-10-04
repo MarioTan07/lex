@@ -2,13 +2,14 @@
 import { el, icon } from "/common.js";
 import { lang } from "/i18n.js";
 
-export const pick = (x, field) => (lang === "en" && x[field + "En"]) || x[field];
-const caption = (p) => (lang === "en" && p.captionEn) || p.caption;
+// Content is written in Indonesian and English; every language other than Indonesian shows the English.
+export const pick = (x, field) => (lang !== "id" && x[field + "En"]) || x[field];
+const caption = (p) => (lang !== "id" && p.captionEn) || p.caption;
 
 // Intro texts: blank lines separate paragraphs. Replaces the page's built-in text once the saved one arrives.
 export function introText(box, t) {
   if (!box || !t) return;
-  const paras = ((lang === "en" && t.en) || t.id).split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+  const paras = ((lang !== "id" && t.en) || t.id).split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
   if (box.tagName === "P") { box.removeAttribute("data-i18n"); box.textContent = paras.join(" "); return; }
   box.replaceChildren(...paras.map((x) => el("p", { text: x })));
 }

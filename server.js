@@ -312,6 +312,8 @@ const MESSAGES = {
 function requestLang(req) {
   const asked = req.get("x-lang");
   if (asked in MESSAGES) return asked;
+  // The site's other languages get messages in English.
+  if (asked) return "en";
   return req.acceptsLanguages("id", "en") === "en" ? "en" : "id";
 }
 function translate(lang, key, vars = {}) {
@@ -817,7 +819,9 @@ async function translateLong(textIn, from, to) {
 app.post("/api/translate", async (req, res) => {
   const note = text(req.body.text, 200, { required: true, label: "label.field" });
   const from = req.body.from, to = req.body.to;
-  if (!(from === "en" && to === "id") && !(from === "id" && to === "en")) return res.json({ text: note });
+  // Buyers' notes go from the buyer's language into Indonesian, and back again so they can check them.
+  const TRANSLATE_LANGS = ["ar", "my", "zh-CN", "en", "tl", "fr", "hi", "ja", "km", "ko", "lo", "ms", "es", "th", "vi"];
+  if (!(TRANSLATE_LANGS.includes(from) && to === "id") && !(from === "id" && TRANSLATE_LANGS.includes(to))) return res.json({ text: note });
   if (translations.has(from + to + "|" + note)) return res.json({ text: translations.get(from + to + "|" + note) });
   await limit("translate:" + clientIp(req), 30, HOUR, "translateBusy");
   const out = await machineTranslate(note, from, to);

@@ -1,5 +1,5 @@
 import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, bigOrderLine } from "/common.js";
-import { lang } from "/i18n.js";
+import { lang, locale } from "/i18n.js";
 import { openOrder } from "/order.js";
 
 let products = [];
@@ -238,7 +238,7 @@ function renderCompare() {
     || a.q.price - b.q.price
     || a.q.stallName.localeCompare(b.q.stallName));
 
-  const kmFmt = new Intl.NumberFormat(lang === "id" ? "id-ID" : "en-GB", { maximumFractionDigits: 1 });
+  const kmFmt = new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 });
   // Under 1 km, show metres rounded to 50 m; otherwise km with one decimal.
   const distText = (d) => d < 1 ? t("compare.distanceM", { m: Math.max(50, Math.round(d * 20) * 50) }) : t("compare.distance", { km: kmFmt.format(d) });
   const list = $("#compareList"); list.replaceChildren();
