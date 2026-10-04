@@ -121,7 +121,7 @@ const MESSAGES = {
     "label.field": "Kolom ini",
     "label.email": "Email",
     "label.sellerName": "Nama penjual",
-    "label.shopName": "Nama lapak",
+    "label.shopName": "Nama toko",
     "label.contactNumber": "Nomor kontak",
     "label.product": "Nama produk",
     "label.pauseNote": "Catatan untuk pembeli",
@@ -159,9 +159,9 @@ const MESSAGES = {
     hoursInvalid: "Jam buka tidak valid. Isi jam buka dan tutup untuk setiap hari yang buka.",
     categoryInvalid: "Kategori tidak dikenal.",
     instagramInvalid: "Isi nama akun Instagram, misalnya @kampoengsemanggi, atau tautan profilnya.",
-    "label.shopAddress": "Alamat lapak",
+    "label.shopAddress": "Alamat toko",
     "label.homeAddress": "Alamat rumah",
-    "place.shop": "lapak",
+    "place.shop": "toko",
     "place.home": "rumah",
     pinPair: "Isi lintang dan bujur untuk titik {place}, atau kosongkan keduanya.",
     pinInvalid: "Titik peta {place} bukan lokasi yang valid.",
@@ -180,10 +180,10 @@ const MESSAGES = {
     loginWrong: "Nomor HP/email dan kata sandi tidak cocok.",
     phoneInvalid: "Masukkan nomor HP yang valid, misalnya 0812 3456 7890.",
     phoneTaken: "Sudah ada akun dengan nomor HP ini.",
-    profileIncomplete: "Lengkapi data lapak Anda dulu.",
+    profileIncomplete: "Lengkapi data toko Anda dulu.",
     "label.loginPhone": "Nomor HP",
     "label.posterCaption": "Keterangan poster",
-    maxPosters: "Satu lapak bisa memasang maksimal 10 poster. Hapus yang lama dulu.",
+    maxPosters: "Satu toko bisa memasang maksimal 10 poster. Hapus yang lama dulu.",
     posterImage: "Pilih gambar untuk poster.",
     noPoster: "Poster itu tidak ditemukan.",
     resetUnavailable: "Reset lewat WhatsApp belum aktif. Hubungi admin Kampoeng Semanggi untuk mengatur ulang kata sandi.",
@@ -196,8 +196,8 @@ const MESSAGES = {
     adminAccount: "Ini akun admin. Masuk di /pengelola.",
     sellerAccount: "Ini akun penjual. Masuk di /penjual.",
     currentWrong: "Kata sandi Anda saat ini salah.",
-    notYourProduct: "Produk itu bukan milik lapak Anda.",
-    maxProducts: "Satu lapak bisa memajang maksimal 200 produk.",
+    notYourProduct: "Produk itu bukan milik toko Anda.",
+    maxProducts: "Satu toko bisa memajang maksimal 200 produk.",
     unknownSellerStatus: "Status penjual tidak dikenal.",
     noSeller: "Tidak ada penjual dengan id itu.",
     noProduct: "Tidak ada produk dengan id itu.",
@@ -935,6 +935,7 @@ async function aboutTexts() {
 // The starting content goes in once (fixed ids, so two servers starting together don't add it twice).
 async function seedAbout() {
   if (!(await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.about'"))) await seedAboutFirst();
+  await renameStallCaptions();
   // Partners added to the starting content later go in once each, at the end of the list, unless one with
   // that name is already there (an admin may have added it, or another server instance just did).
   for (const p of ABOUT_SEED.partners.filter((x) => x.addedLater)) {
@@ -947,6 +948,20 @@ async function seedAbout() {
       ["INSERT OR IGNORE INTO settings (key, value) VALUES (?, '1')", flag],
     ]);
   }
+}
+// "Lapak" became "toko" across the site. Two starting photo captions already in the database are updated once,
+// only if an admin hasn't changed them.
+async function renameStallCaptions() {
+  if (await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.fix.toko'")) return;
+  const renamed = { "Penjual semanggi menyambut pembeli di lapaknya.": "Penjual semanggi menyambut pembeli di tokonya.", "Lapak pecel semanggi dengan kerupuk puli yang besar.": "Toko pecel semanggi dengan kerupuk puli yang besar." };
+  const writes = [];
+  for (const g of await db.all("SELECT id, photos FROM people_groups")) {
+    const photos = jsonList(g.photos);
+    if (!photos.some((p) => renamed[p.caption])) continue;
+    writes.push(["UPDATE people_groups SET photos = ? WHERE id = ?", JSON.stringify(photos.map((p) => (renamed[p.caption] ? { ...p, caption: renamed[p.caption] } : p))), g.id]);
+  }
+  writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES ('seeded.fix.toko', '1')"]);
+  await db.batch(writes);
 }
 async function seedAboutFirst() {
   const now = Date.now(), writes = [];

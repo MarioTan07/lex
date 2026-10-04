@@ -40,7 +40,7 @@
   <section class="auth" id="authView" hidden>
     <form class="panel" id="loginForm">
       <p class="eyebrow" data-i18n="seller.eyebrow">Penjual</p>
-      <h2 data-i18n="seller.signInTitle">Masuk ke lapak Anda</h2>
+      <h2 data-i18n="seller.signInTitle">Masuk ke toko Anda</h2>
       <div class="field"><label for="l-email" data-i18n="seller.loginLabel">Nomor HP atau email</label><input type="text" id="l-email" autocomplete="username" inputmode="email" placeholder="0812 3456 7890" required></div>
       <div class="field"><label for="l-pass" data-i18n="common.password">Kata sandi</label><input type="password" id="l-pass" autocomplete="current-password" required></div>
       <p class="formerr" id="loginErr" hidden></p>
@@ -69,7 +69,7 @@
     <div class="panel">
       <p class="eyebrow" data-i18n="seller.newEyebrow">Penjual baru?</p>
       <h2 data-i18n="seller.askTitle">Minta akun ke admin</h2>
-      <p class="muted" data-i18n="seller.askText">Akun penjual dibuat oleh admin Kampoeng Semanggi. Admin akan memberi Anda nomor HP untuk masuk dan kata sandi awal. Saat pertama kali masuk, Anda mengisi data lapak, lalu bisa mengganti kata sandi.</p>
+      <p class="muted" data-i18n="seller.askText">Akun penjual dibuat oleh admin Kampoeng Semanggi. Admin akan memberi Anda nomor HP untuk masuk dan kata sandi awal. Saat pertama kali masuk, Anda mengisi data toko, lalu bisa mengganti kata sandi.</p>
     </div>
   </section>
 
@@ -77,8 +77,8 @@
   <section class="desk setup" id="setupView" hidden>
     <div class="setup-head">
       <p class="eyebrow" data-i18n="setup.eyebrow">Langkah terakhir</p>
-      <h1 data-i18n="setup.title">Lengkapi data lapak Anda</h1>
-      <p class="lede" data-i18n="setup.lede">Isi data ini sekali saja. Setelah disimpan, lapak Anda tampil di website dan Anda bisa mulai menambahkan produk.</p>
+      <h1 data-i18n="setup.title">Lengkapi data toko Anda</h1>
+      <p class="lede" data-i18n="setup.lede">Isi data ini sekali saja. Setelah disimpan, toko Anda tampil di website dan Anda bisa mulai menambahkan produk.</p>
     </div>
     <div id="setupSlot"></div>
   </section>
@@ -87,21 +87,21 @@
   <section class="desk" id="deskView" hidden>
     <div class="desk-head">
       <div>
-        <p class="eyebrow" data-i18n="seller.yourShop">Lapak Anda</p>
+        <p class="eyebrow" data-i18n="seller.yourShop">Toko Anda</p>
         <h1 style="font-size:var(--step-2)" id="stallTitle"></h1>
       </div>
       <span class="pill" id="statusPill"></span>
     </div>
 
-    <p class="muted" data-i18n="seller.howBuyersOrder">Pembeli menelepon atau mengirim WhatsApp ke nomor kontak Anda untuk memesan, lalu mengambil pesanan di lapak Anda.</p>
+    <p class="muted" data-i18n="seller.howBuyersOrder">Pembeli menelepon atau mengirim WhatsApp ke nomor kontak Anda untuk memesan, lalu mengambil pesanan di toko Anda.</p>
 
     <form class="panel" id="pauseForm">
-      <h3 data-i18n="pause.title">Status lapak</h3>
+      <h3 data-i18n="pause.title">Status toko</h3>
       <p id="pauseState"></p>
       <div class="field" id="pauseNoteField">
         <label for="pause-note" data-i18n="pause.noteLabel">Catatan untuk pembeli</label>
         <input type="text" id="pause-note" maxlength="120" data-i18n-attr="placeholder:pause.notePlaceholder" placeholder="mis. Libur Lebaran, buka lagi 15 Okt">
-        <span class="hint" data-i18n="pause.noteHint">Wajib diisi. Pembeli melihat catatan ini selama lapak Anda tutup.</span>
+        <span class="hint" data-i18n="pause.noteHint">Wajib diisi. Pembeli melihat catatan ini selama toko Anda tutup.</span>
       </div>
       <p class="formerr" id="pauseErr" hidden></p>
       <div><button class="btn" type="submit" id="pauseBtn"></button></div>
@@ -109,7 +109,7 @@
 
     <section class="panel" id="statsPanel">
       <div class="desk-head">
-        <h3 data-i18n="sstats.title">Statistik lapak</h3>
+        <h3 data-i18n="sstats.title">Statistik toko</h3>
         <div class="chips" role="group" id="statsRange">
           <button type="button" data-range="week" aria-pressed="true" data-i18n="sstats.week">7 hari terakhir</button>
           <button type="button" data-range="month" aria-pressed="false" data-i18n="sstats.month">30 hari terakhir</button>
@@ -149,7 +149,7 @@
             <span class="hint" data-i18n="product.categoryHint">Pembeli bisa menyaring katalog berdasarkan kategori.</span></div>
           <div class="field"><label for="p-desc" data-i18n="product.description">Deskripsi</label><textarea id="p-desc" maxlength="240" data-i18n-attr="placeholder:product.descriptionPlaceholder" placeholder="Dengan krupuk puli dan bumbu ekstra."></textarea></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn" type="submit" id="saveProductBtn">Tambahkan ke lapak</button>
+            <button class="btn" type="submit" id="saveProductBtn">Tambahkan ke toko</button>
             <button class="btn ghost" type="button" id="cancelEditBtn" hidden data-i18n="common.cancelEdit">Batal ubah</button>
           </div>
         </form>
@@ -161,7 +161,7 @@
 
         <form class="panel" id="posterForm">
           <h3 data-i18n="posters.sellerTitle">Poster &amp; iklan</h3>
-          <p class="muted small" data-i18n="posters.sellerHint">Pasang poster promo, menu, atau pengumuman. Poster tampil di halaman lapak Anda. Maksimal 10 poster.</p>
+          <p class="muted small" data-i18n="posters.sellerHint">Pasang poster promo, menu, atau pengumuman. Poster tampil di halaman toko Anda. Maksimal 10 poster.</p>
           <div class="drop">
             <img id="po-preview" alt="" hidden>
             <div class="field" style="flex:1;min-width:180px"><label for="po-image" data-i18n="posters.image">Gambar poster</label><input type="file" id="po-image" accept="image/*"></div>
@@ -170,7 +170,7 @@
           <p class="formerr" id="posterErr" hidden></p>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
             <button class="btn" type="submit" id="posterBtn" data-i18n="posters.add">Pasang poster</button>
-            <a class="small" id="myShopLink" href="/lokasi" data-i18n="posters.viewShop">Lihat halaman lapak saya</a>
+            <a class="small" id="myShopLink" href="/lokasi" data-i18n="posters.viewShop">Lihat halaman toko saya</a>
           </div>
           <div class="poster-mine" id="myPosters"></div>
         </form>
@@ -178,11 +178,11 @@
 
       <div class="stack">
         <form class="panel" id="profileForm">
-          <h3 data-i18n="profile.title">Data lapak</h3>
+          <h3 data-i18n="profile.title">Data toko</h3>
           <div class="field"><label for="s-name" data-i18n="common.yourName">Nama Anda</label><input type="text" id="s-name" required maxlength="60"></div>
-          <div class="field"><label for="s-stall" data-i18n="common.shopNameOptional">Nama lapak (opsional)</label><input type="text" id="s-stall" maxlength="60"><span class="hint" data-i18n="common.shopNameHint">Kosongkan kalau tidak punya. Nama Anda yang tampil.</span></div>
-          <div class="field"><label for="s-phone" data-i18n="common.contactNumber">Nomor kontak</label><input type="tel" id="s-phone" required maxlength="24"><span class="hint" data-i18n="seller.contactHint">Ditampilkan ke pembeli bersama peta lapak Anda dan di pesanan mereka.</span></div>
-          <div class="field"><label for="s-ig" data-i18n="common.instagram">Instagram (opsional)</label><input type="text" id="s-ig" maxlength="120" autocomplete="off" placeholder="@semanggibusri"><span class="hint" data-i18n="common.instagramHint">Nama akun atau tautan profil. Pembeli melihat tombol Instagram di lapak Anda.</span></div>
+          <div class="field"><label for="s-stall" data-i18n="common.shopNameOptional">Nama toko (opsional)</label><input type="text" id="s-stall" maxlength="60"><span class="hint" data-i18n="common.shopNameHint">Kosongkan kalau tidak punya. Nama Anda yang tampil.</span></div>
+          <div class="field"><label for="s-phone" data-i18n="common.contactNumber">Nomor kontak</label><input type="tel" id="s-phone" required maxlength="24"><span class="hint" data-i18n="seller.contactHint">Ditampilkan ke pembeli bersama peta toko Anda dan di pesanan mereka.</span></div>
+          <div class="field"><label for="s-ig" data-i18n="common.instagram">Instagram (opsional)</label><input type="text" id="s-ig" maxlength="120" autocomplete="off" placeholder="@semanggibusri"><span class="hint" data-i18n="common.instagramHint">Nama akun atau tautan profil. Pembeli melihat tombol Instagram di toko Anda.</span></div>
           <label class="check"><input type="checkbox" id="s-fromhome"> <span data-i18n="common.fromHome">Juga jualan dari rumah</span></label>
           <p class="hint muted small" data-i18n="common.fromHomeHint">Alamat rumah tidak pernah ditampilkan di website. Pembeli diberi tahu bahwa penjual akan mengirim alamat rumah lewat WhatsApp setelah mereka memesan, jadi kirimkan alamat ke pembeli saat mereka menghubungi.</p>
           <div id="s-hours"></div>

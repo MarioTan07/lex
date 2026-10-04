@@ -16,14 +16,14 @@ export default {
           "src": "/warga-foto/penjual-2.jpg",
           "w": 1100,
           "h": 825,
-          "caption": "Penjual semanggi menyambut pembeli di lapaknya.",
+          "caption": "Penjual semanggi menyambut pembeli di tokonya.",
           "captionEn": "Semanggi sellers welcoming buyers at their stall."
         },
         {
           "src": "/warga-foto/penjual-1.jpg",
           "w": 1100,
           "h": 825,
-          "caption": "Lapak pecel semanggi dengan kerupuk puli yang besar.",
+          "caption": "Toko pecel semanggi dengan kerupuk puli yang besar.",
           "captionEn": "A pecel semanggi stall with big puli crackers."
         }
       ]
@@ -464,7 +464,7 @@ export default {
   ],
   "texts": {
     "peopleIntro": {
-      "id": "Kampoeng Semanggi adalah warga RW 03 Kendung, Kelurahan Sememi. Lebih dari 120 perajin, perempuan maupun laki-laki, masih membuat pecel semanggi dan olahannya, meneruskan resep yang diwariskan sejak tahun 1960-an.\n\nSebagian berangkat sejak dini hari untuk berjualan di penjuru Surabaya. Yang lain melayani pembeli dari lapak atau langsung dari rumah.",
+      "id": "Kampoeng Semanggi adalah warga RW 03 Kendung, Kelurahan Sememi. Lebih dari 120 perajin, perempuan maupun laki-laki, masih membuat pecel semanggi dan olahannya, meneruskan resep yang diwariskan sejak tahun 1960-an.\n\nSebagian berangkat sejak dini hari untuk berjualan di penjuru Surabaya. Yang lain melayani pembeli dari toko atau langsung dari rumah.",
       "en": "Kampoeng Semanggi is the people of RW 03 Kendung, Sememi. More than 120 makers, women and men alike, still make pecel semanggi and other semanggi foods, carrying on recipes handed down since the 1960s.\n\nSome set off before dawn to sell across Surabaya. Others serve buyers from their stall or straight from home."
     },
     "collabIntro": {
