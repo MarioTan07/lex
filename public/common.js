@@ -402,6 +402,36 @@ export function locationEditor(prefix, kind, hintKey) {
 }
 
 // Two-tap confirm for destructive buttons.
+// A confirmation window for actions that can't be undone. Stays open until the person chooses;
+// resolves true only when they press the confirm button. Cancel has the focus, so Enter doesn't delete by accident.
+export function confirmBox({ title, text, confirm, cancel = t("confirm.cancel") }) {
+  return new Promise((resolve) => {
+    const yes = el("button", { type: "button", class: "btn danger" }, confirm);
+    const no = el("button", { type: "button", class: "btn ghost" }, cancel);
+    const d = el("dialog", { class: "confirm", "aria-labelledby": "confirmTitle", "aria-describedby": "confirmText" },
+      el("h2", { id: "confirmTitle", text: title }),
+      el("p", { id: "confirmText", text }),
+      el("div", { class: "confirm-actions" }, no, yes));
+    // Every way out ends here once: the buttons, tapping outside the box, Escape, or the window closing.
+    let done = false;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      if (d.open) d.close();
+      d.remove();
+      resolve(ok);
+    };
+    yes.addEventListener("click", () => finish(true));
+    no.addEventListener("click", () => finish(false));
+    d.addEventListener("click", (e) => { if (e.target === d) finish(false); }); // tap outside the box = cancel
+    d.addEventListener("cancel", (e) => { e.preventDefault(); finish(false); }); // Escape = cancel
+    d.addEventListener("close", () => finish(false));
+    document.body.append(d);
+    d.showModal();
+    no.focus();
+  });
+}
+
 export function confirmTap(btn, label, action) {
   if (btn.dataset.armed) { delete btn.dataset.armed; return action(); }
   btn.dataset.armed = "1";

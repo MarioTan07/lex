@@ -1,4 +1,4 @@
-import { $, el, rp, when, t, api, toast, confirmTap, locationEditor, mapLink } from "/common.js";
+import { $, el, rp, when, t, api, toast, confirmTap, confirmBox, locationEditor, mapLink } from "/common.js";
 
 let me = null;
 
@@ -198,7 +198,10 @@ function renderSellers() {
         el("button", { class: "btn small ghost", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.resetConfirm"), () => resetPassword(s)) }, t("admin.resetPassword")),
         s.status === "suspended" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, t("admin.reactivate")) : null,
         s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.suspendConfirm"), () => setSeller(s, "suspended")) }, t("admin.suspend")) : null,
-        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteShopConfirm"), () => deleteSeller(s)) }, t("admin.deleteShop"))))));
+        el("button", { class: "btn small warn", onclick: async () => {
+          const ok = await confirmBox({ title: t("admin.deleteShopTitle", { stall: shopName(s) || s.loginPhone || s.email }), text: t("admin.deleteShopText"), confirm: t("admin.deleteShop") });
+          if (ok) deleteSeller(s);
+        } }, t("admin.deleteShop"))))));
   }
 }
 // Permanent: removes the seller's account, products and photos. Suspend is the reversible option.
