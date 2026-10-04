@@ -1,6 +1,7 @@
 // Starting content for Our People (groups) and Collaborations (partners), and their intro texts.
 // It is put in the database once, the first time the server starts with these tables; after that admins
-// edit it under Warga & Mitra in /pengelola. The texts are used until an admin saves their own.
+// edit it under Warga & Mitra in /pengelola. A partner with addedLater was added after the first release:
+// it's also put in once on sites that already had the starting content (see seedAbout in server.js). The texts are used until an admin saves their own.
 export default {
   "groups": [
     {
@@ -426,6 +427,37 @@ export default {
           "h": 825,
           "caption": "Mahasiswa KKN bekerja bersama di rumah warga.",
           "captionEn": "Students working together at a resident's home."
+        }
+      ]
+    },
+    {
+      "addedLater": "bank-jatim",
+      "years": "",
+      "name": "Bank Jatim",
+      "nameEn": "Bank Jatim",
+      "body": "Warga Kampoeng Semanggi ikut bazar dan pameran UKM dari Bank Jatim untuk memperkenalkan dan menjual olahan semanggi buatan mereka.",
+      "bodyEn": "Kampoeng Semanggi residents took part in Bank Jatim's small-business bazaar and exhibition to show and sell their semanggi products.",
+      "photos": [
+        {
+          "src": "/kerja-sama-foto/bank-jatim-1.jpg",
+          "w": 519,
+          "h": 692,
+          "caption": "Olahan semanggi warga di stan bazar UKM Bank Jatim.",
+          "captionEn": "Residents' semanggi products at the Bank Jatim small-business bazaar."
+        },
+        {
+          "src": "/kerja-sama-foto/bank-jatim-2.jpg",
+          "w": 373,
+          "h": 497,
+          "caption": "Warga Kampoeng Semanggi di stan mereka.",
+          "captionEn": "Kampoeng Semanggi residents at their stand."
+        },
+        {
+          "src": "/kerja-sama-foto/bank-jatim-3.jpg",
+          "w": 802,
+          "h": 601,
+          "caption": "Deretan stan bazar dan pameran UKM Bank Jatim.",
+          "captionEn": "The row of stands at the Bank Jatim bazaar and exhibition."
         }
       ]
     }

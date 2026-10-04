@@ -934,11 +934,25 @@ async function aboutTexts() {
 }
 // The starting content goes in once (fixed ids, so two servers starting together don't add it twice).
 async function seedAbout() {
-  if (await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.about'")) return;
+  if (!(await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.about'"))) await seedAboutFirst();
+  // Partners added to the starting content later go in once each, at the end of the list, unless one with
+  // that name is already there (an admin may have added it, or another server instance just did).
+  for (const p of ABOUT_SEED.partners.filter((x) => x.addedLater)) {
+    const flag = "seeded.partner." + p.addedLater;
+    if (await db.one("SELECT 1 AS x FROM settings WHERE key = ?", flag)) continue;
+    await db.batch([
+      [`INSERT INTO partners (position, years, name, name_en, body, body_en, photos, created_at)
+        SELECT pos, ?, ?, ?, ?, ?, ?, ? FROM (SELECT COALESCE(MAX(position), 0) + 1 AS pos FROM partners) WHERE NOT EXISTS (SELECT 1 FROM partners WHERE name = ?)`,
+        p.years, p.name, p.nameEn, p.body, p.bodyEn, JSON.stringify(p.photos.map((x) => ({ ...x, auto: false }))), Date.now(), p.name],
+      ["INSERT OR IGNORE INTO settings (key, value) VALUES (?, '1')", flag],
+    ]);
+  }
+}
+async function seedAboutFirst() {
   const now = Date.now(), writes = [];
   ABOUT_SEED.groups.forEach((g, i) => writes.push(["INSERT OR IGNORE INTO people_groups (id, position, name, name_en, body, body_en, icon, show_sellers, photos, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     i + 1, i + 1, g.name, g.nameEn, g.body, g.bodyEn, g.icon, g.showSellers ? 1 : 0, JSON.stringify(g.photos.map((p) => ({ ...p, auto: false }))), now]));
-  ABOUT_SEED.partners.forEach((p, i) => writes.push(["INSERT OR IGNORE INTO partners (id, position, years, name, name_en, body, body_en, photos, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  ABOUT_SEED.partners.filter((p) => !p.addedLater).forEach((p, i) => writes.push(["INSERT OR IGNORE INTO partners (id, position, years, name, name_en, body, body_en, photos, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     i + 1, i + 1, p.years, p.name, p.nameEn, p.body, p.bodyEn, JSON.stringify(p.photos.map((x) => ({ ...x, auto: false }))), now]));
   writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES ('seeded.about', '1')"]);
   await db.batch(writes);
