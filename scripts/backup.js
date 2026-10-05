@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 // Values pasted into GitHub secrets sometimes carry a space, line break or quotes; drop them.
 for (const k of ["TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN", "BACKUP_PASSWORD"]) {
-  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^(["'])(.*)$/, "$2");
+  if (process.env[k]) process.env[k] = process.env[k].trim().replace(/^(["'])(.*)\1$/, "$2");
 }
 if (!process.env.TURSO_DATABASE_URL) {
   console.error("TURSO_DATABASE_URL isn't set. Put it and TURSO_AUTH_TOKEN in the .env file (see .env.example).");
