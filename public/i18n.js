@@ -697,6 +697,7 @@ const TEXT = {
     "admin.heading": "Shops and products",
     "admin.refresh": "Refresh",
     "help.button": "Help",
+    "help.needHelp": "Need help?",
     "stats.approved": "Live shops",
     "stats.products": "Products listed",
     "admin.sections": "Admin sections",

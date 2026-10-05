@@ -684,7 +684,7 @@ dialog.confirm p { color: var(--muted); line-height: 1.6; margin-block: 10px 22p
 @media (min-width: 901px) { [dir="rtl"] .navdrop-list { left: auto; right: 0; } }
 [dir="rtl"] .top nav .tabs-main .navdrop-list a { text-align: right; }
 /* ---------- admin help: Help panel, "?" buttons and the guided tour ---------- */
-.desk-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.desk-acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .help-q { display: inline-grid; place-items: center; width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 1.5px solid currentColor; background: transparent; color: var(--leaf); font: 700 12px/1 inherit; font-family: inherit; cursor: pointer; flex: none; }
 button.help-q:hover { background: var(--leaf); color: var(--on-leaf); border-color: var(--leaf); }
 .help-headwrap { display: inline-flex; align-items: center; gap: 8px; }

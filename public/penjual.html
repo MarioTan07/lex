@@ -46,6 +46,7 @@
       <p class="formerr" id="loginErr" hidden></p>
       <button class="btn" type="submit" data-i18n="common.signIn">Masuk</button>
       <button class="linkish" type="button" id="forgotBtn" data-i18n="reset.link">Lupa kata sandi?</button>
+      <button class="linkish help-open" type="button" data-help-topic="masuk" data-i18n="help.needHelp">Butuh bantuan?</button>
     </form>
     <form class="panel" id="resetForm" hidden>
       <p class="eyebrow" data-i18n="reset.eyebrow">Lupa kata sandi</p>
@@ -90,7 +91,10 @@
         <p class="eyebrow" data-i18n="seller.yourShop">Toko Anda</p>
         <h1 style="font-size:var(--step-2)" id="stallTitle"></h1>
       </div>
-      <span class="pill" id="statusPill"></span>
+      <div class="desk-acts">
+        <span class="pill" id="statusPill"></span>
+        <button class="btn ghost small" type="button" id="helpBtn"><span class="help-q" aria-hidden="true">?</span> <span data-i18n="help.button">Bantuan</span></button>
+      </div>
     </div>
 
     <p class="muted" data-i18n="seller.howBuyersOrder">Pembeli menelepon atau mengirim WhatsApp ke nomor kontak Anda untuk memesan, lalu mengambil pesanan di toko Anda.</p>
@@ -255,5 +259,6 @@
 </main>
 
 <script type="module" src="/seller.js"></script>
+<script type="module" src="/seller-help.js"></script>
 </body>
 </html>
