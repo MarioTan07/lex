@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "인도네시아 전역",
 "delivery.nRegions": "{n}개 주",
 "delivery.moreCountries": "외 {n}개국",
-"delivery.chip": "배달 가능"
+"delivery.chip": "배달 가능",
+"order.qHow": "직접 가져가시나요, 아니면 배달을 원하시나요?",
+"order.howPickup": "직접 가져갈게요",
+"order.howDeliver": "배달 요청",
+"order.areaLabel": "어디로 배달할까요?",
+"order.areaPlaceholder": "예: Benowo, Surabaya",
+"order.deliverHint": "배달비와 시간은 WhatsApp에서 판매자와 직접 정합니다.",
+"order.deliverWhen": "언제요?",
+"order.answerDeliver": "{area}(으)로 배달, {when}",
+"msg.deliver": "배달 부탁드려요: {area} ({when})",
+"msg.deliverCost": "배달비가 얼마인지 알려 주시겠어요?",
+"msg.dayToday": "오늘",
+"msg.dayTomorrow": "내일"
 }

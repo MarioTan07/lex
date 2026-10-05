@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "ទូទាំងឥណ្ឌូនេស៊ី",
 "delivery.nRegions": "{n} ខេត្ត",
 "delivery.moreCountries": "ប្រទេស {n} ទៀត",
-"delivery.chip": "មានដឹកជញ្ជូន"
+"delivery.chip": "មានដឹកជញ្ជូន",
+"order.qHow": "អ្នកមកយកផ្ទាល់ ឬចង់ឱ្យដឹកជូន?",
+"order.howPickup": "ខ្ញុំមកយកផ្ទាល់",
+"order.howDeliver": "សុំឱ្យដឹកជូន",
+"order.areaLabel": "ដឹកទៅណា?",
+"order.areaPlaceholder": "ឧ. Benowo, Surabaya",
+"order.deliverHint": "តម្លៃ និងពេលវេលាដឹកជញ្ជូន ត្រូវព្រមព្រៀងផ្ទាល់ជាមួយអ្នកលក់តាម WhatsApp។",
+"order.deliverWhen": "ពេលណា?",
+"order.answerDeliver": "ដឹកទៅ {area}, {when}",
+"msg.deliver": "សូមដឹកទៅ៖ {area} ({when})",
+"msg.deliverCost": "សូមប្រាប់តម្លៃដឹកជញ្ជូន។",
+"msg.dayToday": "ថ្ងៃនេះ",
+"msg.dayTomorrow": "ថ្ងៃស្អែក"
 }

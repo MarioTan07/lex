@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "toàn Indonesia",
 "delivery.nRegions": "{n} tỉnh",
 "delivery.moreCountries": "{n} nước khác",
-"delivery.chip": "Có giao hàng"
+"delivery.chip": "Có giao hàng",
+"order.qHow": "Bạn tự đến lấy hay muốn giao tận nơi?",
+"order.howPickup": "Tự đến lấy",
+"order.howDeliver": "Yêu cầu giao hàng",
+"order.areaLabel": "Giao đến đâu?",
+"order.areaPlaceholder": "vd. Benowo, Surabaya",
+"order.deliverHint": "Phí và thời gian giao hàng sẽ thỏa thuận trực tiếp với người bán qua WhatsApp.",
+"order.deliverWhen": "Khi nào?",
+"order.answerDeliver": "Giao đến {area}, {when}",
+"msg.deliver": "Vui lòng giao đến: {area} ({when})",
+"msg.deliverCost": "Cho tôi biết phí giao hàng nhé?",
+"msg.dayToday": "hôm nay",
+"msg.dayTomorrow": "ngày mai"
 }

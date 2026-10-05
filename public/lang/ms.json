@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "seluruh Indonesia",
 "delivery.nRegions": "{n} wilayah",
 "delivery.moreCountries": "{n} negara lagi",
-"delivery.chip": "Ada penghantaran"
+"delivery.chip": "Ada penghantaran",
+"order.qHow": "Anda ambil sendiri atau mahu dihantar?",
+"order.howPickup": "Ambil sendiri",
+"order.howDeliver": "Minta dihantar",
+"order.areaLabel": "Hantar ke mana?",
+"order.areaPlaceholder": "cth. Benowo, Surabaya",
+"order.deliverHint": "Kos dan masa penghantaran dipersetujui terus dengan penjual melalui WhatsApp.",
+"order.deliverWhen": "Bila?",
+"order.answerDeliver": "Hantar ke {area}, {when}",
+"msg.deliver": "Sila hantar ke: {area} ({when})",
+"msg.deliverCost": "Boleh beritahu kos penghantaran?",
+"msg.dayToday": "hari ini",
+"msg.dayTomorrow": "esok"
 }

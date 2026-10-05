@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "toda Indonesia",
 "delivery.nRegions": "{n} provincias",
 "delivery.moreCountries": "{n} países más",
-"delivery.chip": "Con entrega"
+"delivery.chip": "Con entrega",
+"order.qHow": "¿Lo recogerás tú o prefieres que te lo entreguen?",
+"order.howPickup": "Lo recojo yo",
+"order.howDeliver": "Pedir entrega",
+"order.areaLabel": "¿Dónde lo entregamos?",
+"order.areaPlaceholder": "p. ej. Benowo, Surabaya",
+"order.deliverHint": "El costo y la hora de entrega se acuerdan directamente con el vendedor por WhatsApp.",
+"order.deliverWhen": "¿Cuándo?",
+"order.answerDeliver": "Entrega en {area}, {when}",
+"msg.deliver": "Por favor, entregar en: {area} ({when})",
+"msg.deliverCost": "¿Me podría decir el costo de envío?",
+"msg.dayToday": "hoy",
+"msg.dayTomorrow": "mañana"
 }

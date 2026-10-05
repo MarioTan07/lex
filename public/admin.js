@@ -1,4 +1,4 @@
-import { $, el, rp, when, t, api, toast, confirmTap, confirmBox, locationEditor, mapLink } from "/common.js";
+import { $, el, rp, when, t, api, toast, confirmBox, locationEditor, mapLink } from "/common.js";
 
 let me = null;
 
@@ -46,9 +46,10 @@ async function loadPosters() {
       el("td", {}, el("a", { href: "/lapak?id=" + p.sellerId, target: "_blank", rel: "noopener", text: p.stallName })),
       el("td", { text: p.caption || "—" }),
       el("td", { class: "small", text: when(p.createdAt) }),
-      el("td", {}, el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), async () => {
+      el("td", {}, el("button", { class: "btn small warn", onclick: async () => {
+        if (!(await confirmBox({ title: t("del.posterTitle"), text: t("del.adminPosterText", { stall: p.stallName }), confirm: t("admin.delete") }))) return;
         try { await api("/api/admin/posters/" + p.id, { method: "DELETE" }); toast(t("posters.removed")); loadPosters(); } catch (e) { handle(e); }
-      }) }, t("admin.delete")))));
+      } }, t("admin.delete")))));
   }
 }
 $("#refreshBtn").addEventListener("click", refreshAll);
@@ -195,9 +196,13 @@ function renderSellers() {
           el("span", { class: "pill paused", text: t("pause.badge") }), el("div", { class: "muted", text: s.pauseNote })) : null),
       el("td", {}, el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => editSeller(s) }, t("common.edit")),
-        el("button", { class: "btn small ghost", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.resetConfirm"), () => resetPassword(s)) }, t("admin.resetPassword")),
+        el("button", { class: "btn small ghost", onclick: async () => {
+          if (await confirmBox({ title: t("admin.resetTitle", { stall: shopName(s) || s.loginPhone || s.email }), text: t("admin.resetText"), confirm: t("admin.resetPassword"), danger: false })) resetPassword(s);
+        } }, t("admin.resetPassword")),
         s.status === "suspended" ? el("button", { class: "btn small", onclick: () => setSeller(s, "approved") }, t("admin.reactivate")) : null,
-        s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.suspendConfirm"), () => setSeller(s, "suspended")) }, t("admin.suspend")) : null,
+        s.status !== "suspended" ? el("button", { class: "btn small warn", onclick: async () => {
+          if (await confirmBox({ title: t("admin.suspendTitle", { stall: shopName(s) || s.loginPhone || s.email }), text: t("admin.suspendText"), confirm: t("admin.suspend") })) setSeller(s, "suspended");
+        } }, t("admin.suspend")) : null,
         el("button", { class: "btn small warn", onclick: async () => {
           const ok = await confirmBox({ title: t("admin.deleteShopTitle", { stall: shopName(s) || s.loginPhone || s.email }), text: t("admin.deleteShopText"), confirm: t("admin.deleteShop") });
           if (ok) deleteSeller(s);
@@ -234,7 +239,9 @@ async function loadProducts() {
       el("td", {}, el("span", { class: "pill " + state[0], text: state[1] })),
       el("td", {}, el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => setHidden(p, !p.hidden) }, t(p.hidden ? "admin.showProduct" : "admin.hideProduct")),
-        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => deleteProduct(p)) }, t("admin.delete"))))));
+        el("button", { class: "btn small warn", onclick: async () => {
+          if (await confirmBox({ title: t("del.title", { name: p.name }), text: t("del.adminProductText", { stall: p.stallName }), confirm: t("admin.delete") })) deleteProduct(p);
+        } }, t("admin.delete"))))));
   }
 }
 async function setHidden(p, hidden) {

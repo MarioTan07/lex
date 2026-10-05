@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "印度尼西亚全境",
 "delivery.nRegions": "{n}个省",
 "delivery.moreCountries": "另外{n}个国家",
-"delivery.chip": "可送货"
+"delivery.chip": "可送货",
+"order.qHow": "您自己来取，还是需要送货？",
+"order.howPickup": "我自己来取",
+"order.howDeliver": "请求送货",
+"order.areaLabel": "送到哪里？",
+"order.areaPlaceholder": "例如 Benowo, Surabaya",
+"order.deliverHint": "运费和送货时间请通过 WhatsApp 直接与卖家商定。",
+"order.deliverWhen": "什么时候？",
+"order.answerDeliver": "送到{area}，{when}",
+"msg.deliver": "请送到：{area}（{when}）",
+"msg.deliverCost": "请问运费是多少？",
+"msg.dayToday": "今天",
+"msg.dayTomorrow": "明天"
 }

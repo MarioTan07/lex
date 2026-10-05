@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "インドネシア全土",
 "delivery.nRegions": "{n}州",
 "delivery.moreCountries": "ほか{n}か国",
-"delivery.chip": "配達あり"
+"delivery.chip": "配達あり",
+"order.qHow": "ご自分で受け取りますか、それとも配達をご希望ですか？",
+"order.howPickup": "自分で受け取る",
+"order.howDeliver": "配達を頼む",
+"order.areaLabel": "配達先はどこですか？",
+"order.areaPlaceholder": "例：Benowo, Surabaya",
+"order.deliverHint": "配達料と時間は、WhatsAppで販売者と直接相談して決めます。",
+"order.deliverWhen": "いつ？",
+"order.answerDeliver": "{area}へ配達、{when}",
+"msg.deliver": "配達先：{area}（{when}）",
+"msg.deliverCost": "配達料を教えていただけますか？",
+"msg.dayToday": "今日",
+"msg.dayTomorrow": "明日"
 }

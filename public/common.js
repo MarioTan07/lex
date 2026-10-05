@@ -426,12 +426,11 @@ export function locationEditor(prefix, kind, hintKey) {
   };
 }
 
-// Two-tap confirm for destructive buttons.
 // A confirmation window for actions that can't be undone. Stays open until the person chooses;
 // resolves true only when they press the confirm button. Cancel has the focus, so Enter doesn't delete by accident.
-export function confirmBox({ title, text, confirm, cancel = t("confirm.cancel") }) {
+export function confirmBox({ title, text, confirm, cancel = t("confirm.cancel"), danger = true }) {
   return new Promise((resolve) => {
-    const yes = el("button", { type: "button", class: "btn danger" }, confirm);
+    const yes = el("button", { type: "button", class: danger ? "btn danger" : "btn" }, confirm);
     const no = el("button", { type: "button", class: "btn ghost" }, cancel);
     const d = el("dialog", { class: "confirm", "aria-labelledby": "confirmTitle", "aria-describedby": "confirmText" },
       el("h2", { id: "confirmTitle", text: title }),
@@ -455,14 +454,6 @@ export function confirmBox({ title, text, confirm, cancel = t("confirm.cancel") 
     d.showModal();
     no.focus();
   });
-}
-
-export function confirmTap(btn, label, action) {
-  if (btn.dataset.armed) { delete btn.dataset.armed; return action(); }
-  btn.dataset.armed = "1";
-  const orig = btn.textContent;
-  btn.textContent = label;
-  setTimeout(() => { if (btn.isConnected && btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = orig; } }, 3000);
 }
 
 // ---------- site contacts ----------

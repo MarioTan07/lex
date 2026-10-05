@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "पूरा इंडोनेशिया",
 "delivery.nRegions": "{n} प्रांत",
 "delivery.moreCountries": "{n} और देश",
-"delivery.chip": "डिलीवरी"
+"delivery.chip": "डिलीवरी",
+"order.qHow": "आप खुद लेंगे या डिलीवरी चाहिए?",
+"order.howPickup": "मैं खुद लूँगा",
+"order.howDeliver": "डिलीवरी माँगें",
+"order.areaLabel": "कहाँ डिलीवर करें?",
+"order.areaPlaceholder": "जैसे Benowo, Surabaya",
+"order.deliverHint": "डिलीवरी का खर्च और समय विक्रेता से सीधे WhatsApp पर तय होता है।",
+"order.deliverWhen": "कब?",
+"order.answerDeliver": "{area} में डिलीवरी, {when}",
+"msg.deliver": "कृपया यहाँ डिलीवर करें: {area} ({when})",
+"msg.deliverCost": "कृपया डिलीवरी का खर्च बताइए।",
+"msg.dayToday": "आज",
+"msg.dayTomorrow": "कल"
 }

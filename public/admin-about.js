@@ -1,6 +1,6 @@
 // Admin → Warga & Mitra: the groups on Our People, the partners on Collaborations, and their intro texts.
 // Each has a name, a text and photos with captions; English left empty is machine-translated when saved.
-import { $, el, t, api, toast, shrinkPhoto, confirmTap } from "/common.js";
+import { $, el, t, api, toast, shrinkPhoto, confirmBox } from "/common.js";
 
 const ICONS = ["store", "sprout", "palette", "users", "home", "sparkles", "leaf", "heart"];
 const TEXTS = ["peopleIntro", "collabIntro", "sponsorText"];
@@ -58,7 +58,7 @@ function renderRows(k) {
       el("button", { class: "btn small ghost", type: "button", disabled: i === 0, "aria-label": t("ab.up"), onclick: () => move(k, it, -1) }, "↑"),
       el("button", { class: "btn small ghost", type: "button", disabled: i === lists[k].length - 1, "aria-label": t("ab.down"), onclick: () => move(k, it, 1) }, "↓"),
       el("button", { class: "btn small ghost", type: "button", onclick: () => openForm(k, it) }, t("common.edit")),
-      el("button", { class: "btn small warn", type: "button", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => remove(k, it)) }, t("admin.delete")))))));
+      el("button", { class: "btn small warn", type: "button", onclick: async () => { if (await confirmBox({ title: t("del.title", { name: it.name }), text: t("del.itemText"), confirm: t("admin.delete") })) remove(k, it); } }, t("admin.delete")))))));
 }
 async function move(k, it, dir) {
   try { ({ items: lists[k] } = await api(`/api/admin/${k}/${it.id}/move`, { method: "POST", body: { dir } })); renderRows(k); }

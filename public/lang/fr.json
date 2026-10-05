@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "toute l'Indonésie",
 "delivery.nRegions": "{n} provinces",
 "delivery.moreCountries": "{n} autres pays",
-"delivery.chip": "Livraison"
+"delivery.chip": "Livraison",
+"order.qHow": "Vous venez le chercher ou vous souhaitez une livraison ?",
+"order.howPickup": "Je viens le chercher",
+"order.howDeliver": "Demander une livraison",
+"order.areaLabel": "Livrer où ?",
+"order.areaPlaceholder": "p. ex. Benowo, Surabaya",
+"order.deliverHint": "Le prix et l'heure de livraison se fixent directement avec le vendeur sur WhatsApp.",
+"order.deliverWhen": "Quand ?",
+"order.answerDeliver": "Livraison à {area}, {when}",
+"msg.deliver": "Merci de livrer à : {area} ({when})",
+"msg.deliverCost": "Pouvez-vous m'indiquer les frais de livraison ?",
+"msg.dayToday": "aujourd'hui",
+"msg.dayTomorrow": "demain"
 }

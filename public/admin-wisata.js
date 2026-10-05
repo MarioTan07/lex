@@ -1,6 +1,6 @@
 // Admin → Paket: add, edit and delete tours, experiences and homestays, with photos and dates.
 // A tour is the full package and can include experiences; an experience is one activity on its own.
-import { $, el, t, rp, api, toast, shrinkPhoto, confirmTap } from "/common.js";
+import { $, el, t, rp, api, toast, shrinkPhoto, confirmBox } from "/common.js";
 import { tIn } from "/i18n.js";
 
 let listings = [];
@@ -213,7 +213,7 @@ function renderRows() {
       el("td", { class: "small", text: scheduleCell(l) }),
       el("td", {}, el("div", { class: "acts" },
         el("button", { class: "btn small ghost", type: "button", onclick: () => editListing(l) }, t("common.edit")),
-        el("button", { class: "btn small warn", type: "button", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => removeListing(l)) }, t("admin.delete"))))));
+        el("button", { class: "btn small warn", type: "button", onclick: async () => { if (await confirmBox({ title: t("del.title", { name: l.name }), text: t("del.itemText"), confirm: t("admin.delete") })) removeListing(l); } }, t("admin.delete"))))));
   }
 }
 async function removeListing(l) {

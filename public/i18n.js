@@ -113,6 +113,14 @@ const TEXT = {
     "order.today": "Hari ini",
     "order.tomorrow": "Besok",
     "order.time": "Jam ambil",
+    "order.qHow": "Mau diambil sendiri atau diantar?",
+    "order.howPickup": "Ambil sendiri",
+    "order.howDeliver": "Minta diantar",
+    "order.areaLabel": "Diantar ke mana?",
+    "order.areaPlaceholder": "mis. Benowo, Surabaya",
+    "order.deliverHint": "Ongkos kirim dan waktu antar dibicarakan langsung dengan penjual lewat WhatsApp.",
+    "order.deliverWhen": "Kapan?",
+    "order.answerDeliver": "Diantar ke {area}, {when}",
     "order.qRequests": "Ada permintaan khusus? Pilih yang sesuai, atau langsung lanjut.",
     "order.noteLabel": "Catatan lain (opsional)",
     "order.noteHint": "Ditambahkan ke pesan apa adanya.",
@@ -139,6 +147,10 @@ const TEXT = {
     "msg.asap": "secepatnya",
     "msg.today": "hari ini jam {time}",
     "msg.tomorrow": "besok jam {time}",
+    "msg.deliver": "Minta diantar ke: {area} ({when})",
+    "msg.deliverCost": "Mohon info ongkos kirimnya, ya.",
+    "msg.dayToday": "hari ini",
+    "msg.dayTomorrow": "besok",
     "msg.requests": "Permintaan: {list}",
     "msg.note": "Catatan: {note}",
     "msg.noteOriginal": "(Aslinya dalam {language}: {note})",
@@ -172,7 +184,10 @@ const TEXT = {
     "mine.markSoldOut": "Tandai habis",
     "mine.backOnSale": "Jual lagi",
     "mine.remove": "Hapus",
-    "mine.confirm": "Ketuk untuk konfirmasi",
+    "del.title": "Hapus {name}?",
+    "del.productText": "Produk ini dan fotonya hilang dari toko Anda dan dari katalog. Ini tidak bisa dibatalkan. Kalau hanya habis sementara, pakai Tandai habis.",
+    "del.posterTitle": "Hapus poster ini?",
+    "del.posterText": "Poster ini hilang dari halaman toko Anda. Ini tidak bisa dibatalkan.",
     "mine.backOnSaleToast": "{name} dijual lagi",
     "mine.soldOutToast": "{name} ditandai habis",
     "mine.removed": "{name} dihapus",
@@ -216,12 +231,13 @@ const TEXT = {
     "admin.noSellers": "Belum ada penjual. Buat akun pertama dengan formulir di atas.",
     "admin.joined": "Bergabung {date}",
     "admin.resetPassword": "Reset kata sandi",
-    "admin.resetConfirm": "Ketuk untuk reset",
+    "admin.resetTitle": "Reset kata sandi {stall}?",
+    "admin.resetText": "Kata sandi lama tidak berlaku lagi. Anda akan mendapat kata sandi baru untuk diberikan ke penjual.",
     "admin.reactivate": "Aktifkan lagi",
     "admin.suspend": "Tangguhkan",
-    "admin.suspendConfirm": "Ketuk untuk menangguhkan",
+    "admin.suspendTitle": "Tangguhkan {stall}?",
+    "admin.suspendText": "Toko disembunyikan dari website dan penjual tidak bisa masuk sampai Anda mengaktifkannya lagi. Tidak ada data yang dihapus.",
     "admin.deleteShop": "Hapus toko",
-    "admin.deleteShopConfirm": "Ketuk lagi: hapus permanen",
     "admin.deleteShopTitle": "Hapus {stall}?",
     "admin.deleteShopText": "Akun penjual, semua produk, foto, dan poster toko ini akan dihapus permanen, dan penjual tidak bisa masuk lagi. Ini tidak bisa dibatalkan. Kalau hanya ingin menyembunyikan toko sementara, pakai Tangguhkan.",
     "confirm.cancel": "Batal",
@@ -235,7 +251,9 @@ const TEXT = {
     "admin.showProduct": "Tampilkan",
     "admin.hideProduct": "Sembunyikan",
     "admin.delete": "Hapus",
-    "admin.deleteConfirm": "Ketuk untuk menghapus",
+    "del.adminProductText": "Produk ini dan fotonya dihapus dari toko {stall} dan dari katalog. Ini tidak bisa dibatalkan. Untuk menyembunyikannya sementara, pakai Sembunyikan.",
+    "del.adminPosterText": "Poster ini dihapus dari halaman toko {stall}. Ini tidak bisa dibatalkan.",
+    "del.itemText": "Ini akan dihapus dari website beserta fotonya. Ini tidak bisa dibatalkan.",
     "admin.hidden": "{name} disembunyikan dari katalog",
     "admin.shown": "{name} tampil lagi di katalog",
     "admin.deleted": "{name} dihapus",
@@ -568,6 +586,14 @@ const TEXT = {
     "order.today": "Today",
     "order.tomorrow": "Tomorrow",
     "order.time": "Pickup time",
+    "order.qHow": "Will you pick it up, or would you like it delivered?",
+    "order.howPickup": "Pick up myself",
+    "order.howDeliver": "Ask for delivery",
+    "order.areaLabel": "Deliver to where?",
+    "order.areaPlaceholder": "e.g. Benowo, Surabaya",
+    "order.deliverHint": "The delivery cost and time are agreed directly with the seller on WhatsApp.",
+    "order.deliverWhen": "When?",
+    "order.answerDeliver": "Deliver to {area}, {when}",
     "order.qRequests": "Any special requests? Pick what you need, or just carry on.",
     "order.noteLabel": "Other note (optional)",
     "order.noteHint": "Write it in simple words. It's translated into Indonesian for the seller.",
@@ -594,6 +620,10 @@ const TEXT = {
     "msg.asap": "as soon as possible",
     "msg.today": "today at {time}",
     "msg.tomorrow": "tomorrow at {time}",
+    "msg.deliver": "Please deliver to: {area} ({when})",
+    "msg.deliverCost": "Could you tell me the delivery cost?",
+    "msg.dayToday": "today",
+    "msg.dayTomorrow": "tomorrow",
     "msg.requests": "Requests: {list}",
     "msg.note": "Note: {note}",
     "msg.noteOriginal": "(Original in {language}: {note})",
@@ -649,7 +679,10 @@ const TEXT = {
     "mine.markSoldOut": "Sold out",
     "mine.backOnSale": "Back on sale",
     "mine.remove": "Remove",
-    "mine.confirm": "Tap to confirm",
+    "del.title": "Delete {name}?",
+    "del.productText": "This product and its photo will disappear from your shop and the catalog. This can't be undone. If it's only out of stock for now, use Sold out.",
+    "del.posterTitle": "Delete this poster?",
+    "del.posterText": "This poster will disappear from your shop page. This can't be undone.",
     "mine.backOnSaleToast": "{name} is back on sale",
     "mine.soldOutToast": "{name} marked sold out",
     "mine.removed": "Removed {name}",
@@ -754,12 +787,13 @@ const TEXT = {
     "admin.noSellers": "No sellers yet. Create the first account with the form above.",
     "admin.joined": "Joined {date}",
     "admin.resetPassword": "Reset password",
-    "admin.resetConfirm": "Tap to reset",
+    "admin.resetTitle": "Reset {stall}'s password?",
+    "admin.resetText": "The old password stops working. You'll get a new password to give to the seller.",
     "admin.reactivate": "Reactivate",
     "admin.suspend": "Suspend",
-    "admin.suspendConfirm": "Tap to suspend",
+    "admin.suspendTitle": "Suspend {stall}?",
+    "admin.suspendText": "The shop is hidden from the website and the seller can't sign in until you reactivate it. Nothing is deleted.",
     "admin.deleteShop": "Delete shop",
-    "admin.deleteShopConfirm": "Tap again: delete for good",
     "admin.deleteShopTitle": "Delete {stall}?",
     "admin.deleteShopText": "The seller's account and all of this shop's products, photos and posters will be deleted for good, and the seller won't be able to sign in. This can't be undone. To hide the shop for a while instead, use Suspend.",
     "confirm.cancel": "Cancel",
@@ -773,7 +807,9 @@ const TEXT = {
     "admin.showProduct": "Show",
     "admin.hideProduct": "Hide",
     "admin.delete": "Delete",
-    "admin.deleteConfirm": "Tap to delete",
+    "del.adminProductText": "This product and its photo will be deleted from {stall} and the catalog. This can't be undone. To hide it for a while instead, use Hide.",
+    "del.adminPosterText": "This poster will be deleted from {stall}'s shop page. This can't be undone.",
+    "del.itemText": "This will be deleted from the website, with its photos. This can't be undone.",
     "admin.hidden": "{name} hidden from the catalog",
     "admin.shown": "{name} is back in the catalog",
     "admin.deleted": "Deleted {name}",
@@ -1253,11 +1289,10 @@ const TEXT = {
 
 // The site opens in Indonesian, or in the visitor's phone language when that's one of the other
 // languages here (not English: many Indonesian phones are set to English). A picked language is remembered.
-// The admin page always opens in Indonesian. Its ID/EN switch works for that visit only and doesn't
-// change the language remembered for the rest of the site.
-const ADMIN_PAGE = /^\/(pengelola|admin)(\.html)?\/?$/.test(location.pathname);
+// The seller and admin pages always open in Indonesian. Their ID/EN switch works for that visit only and
+// doesn't change the language remembered for the rest of the site.
 function pickLang() {
-  if (ADMIN_PAGE) return "id";
+  if (DESK) return "id";
   let saved = null;
   try { saved = localStorage.getItem("ks-lang-v2"); } catch {}
   if (saved) return LANGS.includes(saved) ? saved : "en";
@@ -1339,7 +1374,7 @@ export async function setLang(next) {
   if (!LANGS.includes(next) || next === lang) return;
   if (!(await loadLang(next))) { applyI18n(); return; }
   lang = next;
-  if (!ADMIN_PAGE) try { localStorage.setItem("ks-lang-v2", lang); } catch {}
+  if (!DESK) try { localStorage.setItem("ks-lang-v2", lang); } catch {}
   applyI18n();
   window.dispatchEvent(new Event("langchange"));
 }

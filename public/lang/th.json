@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "ทั่วอินโดนีเซีย",
 "delivery.nRegions": "{n} จังหวัด",
 "delivery.moreCountries": "อีก {n} ประเทศ",
-"delivery.chip": "มีบริการส่ง"
+"delivery.chip": "มีบริการส่ง",
+"order.qHow": "จะมารับเอง หรือให้ส่งถึงที่?",
+"order.howPickup": "มารับเอง",
+"order.howDeliver": "ขอให้ส่ง",
+"order.areaLabel": "ส่งไปที่ไหน?",
+"order.areaPlaceholder": "เช่น Benowo, Surabaya",
+"order.deliverHint": "ค่าส่งและเวลาส่ง ตกลงกับผู้ขายโดยตรงทาง WhatsApp",
+"order.deliverWhen": "เมื่อไร?",
+"order.answerDeliver": "ส่งไปที่ {area}, {when}",
+"msg.deliver": "รบกวนส่งไปที่: {area} ({when})",
+"msg.deliverCost": "ขอทราบค่าส่งด้วยค่ะ/ครับ",
+"msg.dayToday": "วันนี้",
+"msg.dayTomorrow": "พรุ่งนี้"
 }

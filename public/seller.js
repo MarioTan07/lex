@@ -1,4 +1,4 @@
-import { $, el, rp, t, api, toast, shrinkPhoto, confirmTap, locationEditor, hoursEditor } from "/common.js";
+import { $, el, rp, t, api, toast, shrinkPhoto, confirmBox, locationEditor, hoursEditor } from "/common.js";
 import { locale } from "/i18n.js";
 import { PROVINCES, sortedCountries } from "/places.js";
 
@@ -215,7 +215,9 @@ function renderProducts() {
       el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => editProduct(p) }, t("common.edit")),
         el("button", { class: "btn small ghost", onclick: () => setAvailable(p, !p.available) }, p.available ? t("mine.markSoldOut") : t("mine.backOnSale")),
-        el("button", { class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("mine.confirm"), () => removeProduct(p)) }, t("mine.remove")))));
+        el("button", { class: "btn small warn", onclick: async () => {
+          if (await confirmBox({ title: t("del.title", { name: p.name }), text: t("del.productText"), confirm: t("mine.remove") })) removeProduct(p);
+        } }, t("mine.remove")))));
   }
 }
 async function setAvailable(p, available) {
@@ -341,7 +343,9 @@ async function loadPosters() {
     box.append(el("div", { class: "poster-item" },
       el("img", { src: p.image, alt: "" }),
       el("span", { class: "small", text: p.caption || "—" }),
-      el("button", { type: "button", class: "btn small warn", onclick: (ev) => confirmTap(ev.currentTarget, t("admin.deleteConfirm"), () => removePoster(p)) }, t("admin.delete"))));
+      el("button", { type: "button", class: "btn small warn", onclick: async () => {
+        if (await confirmBox({ title: t("del.posterTitle"), text: t("del.posterText"), confirm: t("admin.delete") })) removePoster(p);
+      } }, t("admin.delete"))));
   }
 }
 async function removePoster(p) {

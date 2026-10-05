@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "كل إندونيسيا",
 "delivery.nRegions": "{n} مقاطعات",
 "delivery.moreCountries": "{n} دول أخرى",
-"delivery.chip": "يوصّل"
+"delivery.chip": "يوصّل",
+"order.qHow": "هل ستستلمه بنفسك أم تريد توصيله؟",
+"order.howPickup": "سأستلمه بنفسي",
+"order.howDeliver": "أطلب التوصيل",
+"order.areaLabel": "التوصيل إلى أين؟",
+"order.areaPlaceholder": "مثلاً: Benowo، Surabaya",
+"order.deliverHint": "تُتفق تكلفة التوصيل ووقته مباشرة مع البائع عبر واتساب.",
+"order.deliverWhen": "متى؟",
+"order.answerDeliver": "التوصيل إلى {area}، {when}",
+"msg.deliver": "يرجى التوصيل إلى: {area} ({when})",
+"msg.deliverCost": "هل يمكنك إخباري بتكلفة التوصيل؟",
+"msg.dayToday": "اليوم",
+"msg.dayTomorrow": "غدًا"
 }

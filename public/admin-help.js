@@ -52,8 +52,8 @@ const TOURS = [
   { id: "bantu", title: "Membantu penjual", time: "2 menit", steps: [
     { tab: "sellers", title: "Membantu penjual", text: "Tur ini menunjukkan tombol di setiap baris penjual: mengubah data, mengatur ulang kata sandi, menangguhkan, dan menghapus." },
     { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child .acts button:nth-child(1)", missing: NO_ROWS_SELLER, title: "Ubah", text: "Membuka data toko di formulir atas. Perbaiki, lalu tekan <b>Simpan perubahan</b>. Tekan <b>Batal ubah</b> kalau tidak jadi." },
-    { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child .acts button:nth-child(2)", missing: NO_ROWS_SELLER, title: "Reset kata sandi", text: "Untuk penjual yang lupa kata sandi. Tekan <b>dua kali</b>: tombol berubah menjadi <b>Ketuk untuk reset</b>, lalu tekan lagi dalam 3 detik.<br><br>Kata sandi baru muncul di kotak di atas. Kirim ke penjual." },
-    { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child .acts button:nth-child(3)", missing: NO_ROWS_SELLER, title: "Tangguhkan / Aktifkan lagi", text: "<b>Tangguhkan</b> (tekan dua kali) menyembunyikan toko dan produknya dari pengunjung, dan penjual tidak bisa masuk. <b>Data tidak hilang.</b><br><br>Toko yang ditangguhkan punya tombol <b>Aktifkan lagi</b>." },
+    { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child .acts button:nth-child(2)", missing: NO_ROWS_SELLER, title: "Reset kata sandi", text: "Untuk penjual yang lupa kata sandi. Setelah ditekan, muncul jendela konfirmasi: tekan <b>Reset kata sandi</b> lagi untuk melanjutkan, atau <b>Batal</b>.<br><br>Kata sandi baru muncul di kotak di atas. Kirim ke penjual." },
+    { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child .acts button:nth-child(3)", missing: NO_ROWS_SELLER, title: "Tangguhkan / Aktifkan lagi", text: "<b>Tangguhkan</b> (konfirmasi di jendela yang muncul) menyembunyikan toko dan produknya dari pengunjung, dan penjual tidak bisa masuk. <b>Data tidak hilang.</b><br><br>Toko yang ditangguhkan punya tombol <b>Aktifkan lagi</b>." },
     { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child .acts button:last-child", missing: NO_ROWS_SELLER, title: "Hapus toko ⚠️", text: "<b>Permanen.</b> Akun, semua produk, foto, dan poster toko ini hilang dan tidak bisa dikembalikan. Sebuah jendela meminta konfirmasi dulu.<br><br>Kalau ragu, pilih <b>Tangguhkan</b>." },
     { target: () => firstRow("sellerRows") && "#sellerRows tr:first-child td:nth-child(6)", missing: "Kolom ini ada di setiap baris penjual.", title: "Kolom Status", text: "<b>Aktif</b> atau <b>Ditangguhkan</b> (diatur admin).<br><b>Tutup sementara</b> diatur penjual sendiri, misalnya saat libur. Catatan penjual untuk pembeli tampil di bawahnya." },
     { title: "Selesai! ✓", text: "Ingat: penjual juga bisa mengatur ulang kata sandi sendiri: tekan <b>Lupa kata sandi?</b> di halaman masuk penjual, lalu masukkan kode dari WhatsApp." },
@@ -63,7 +63,7 @@ const TOURS = [
     { tab: "products", target: "#view-products thead", title: "Semua produk", text: "Produk dari semua toko. Penjual menambah dan mengubah produknya sendiri; admin mengawasi." },
     { target: () => document.querySelector("#productRows tr:first-child .pill") ? "#productRows tr:first-child .pill" : null, missing: "Belum ada produk, jadi labelnya belum terlihat.", title: "Keadaan produk", text: "<b>Dijual</b> = tampil dan bisa dipesan.<br><b>Habis</b> = ditandai habis oleh penjual.<br><b>Disembunyikan</b> = tidak tampil di website." },
     { target: () => firstRow("productRows") && "#productRows tr:first-child .acts button:nth-child(1)", missing: NO_ROWS_PRODUCT, title: "Sembunyikan / Tampilkan", text: "Sembunyikan produk yang tidak pantas atau salah (foto, harga, nama). Beri tahu penjualnya. Tekan <b>Tampilkan</b> untuk memunculkannya lagi." },
-    { target: () => firstRow("productRows") && "#productRows tr:first-child .acts button:nth-child(2)", missing: NO_ROWS_PRODUCT, title: "Hapus", text: "Tekan dua kali. Produk hilang <b>permanen</b>. Lebih aman pilih <b>Sembunyikan</b>." },
+    { target: () => firstRow("productRows") && "#productRows tr:first-child .acts button:nth-child(2)", missing: NO_ROWS_PRODUCT, title: "Hapus", text: "Muncul jendela konfirmasi dulu. Produk hilang <b>permanen</b>. Lebih aman pilih <b>Sembunyikan</b>." },
     { target: '#view-products h3[data-i18n="posters.adminTitle"]', title: "Poster & iklan penjual", text: "Poster yang dipasang penjual di halaman tokonya. Ketuk gambar untuk melihat ukuran penuh, nama toko untuk membuka tokonya, dan <b>Hapus</b> untuk poster yang tidak pantas." },
     { title: "Selesai! ✓", text: "Produk yang ditambahkan penjual langsung tampil. Tekan <b>Muat ulang</b> untuk melihat yang terbaru." },
   ] },
@@ -81,14 +81,14 @@ const TOURS = [
     { target: "#l-sched legend", title: "Jadwal", text: "<b>Bisa dipesan kapan saja</b>: atur berapa hari sebelumnya pengunjung harus memesan.<br><b>Tanggal tertentu</b>: tambahkan tanggal dan jam. Tanggal yang sudah lewat otomatis tidak ditampilkan." },
     { target: "#view-wisata .extra-photos", title: "Foto", text: "Maksimal 10 foto. Foto pertama menjadi foto utama." },
     { target: "#listingSubmit", title: "Simpan", text: "Menyimpan paket. <b>Dalam tur ini tombol tidak ditekan.</b>" },
-    { target: "#view-wisata thead", title: "Daftar paket", text: "Semua paket tampil di sini. Tekan <b>Ubah</b> untuk mengubah, atau <b>Hapus</b> (dua kali) untuk menghapus." },
+    { target: "#view-wisata thead", title: "Daftar paket", text: "Semua paket tampil di sini. Tekan <b>Ubah</b> untuk mengubah, atau <b>Hapus</b> (lalu konfirmasi) untuk menghapus." },
     { title: "Selesai! ✓", text: "Pesanan paket dikirim lewat WhatsApp ke <b>Nomor tur dan pengalaman</b> atau <b>Nomor homestay</b>. Isi nomornya di tab <b>Situs</b>." },
   ], before: (s) => { s.kind = $("#l-kind").value; }, end: (s) => setKind(s.kind) },
 
   { id: "warga", title: "Warga & Mitra", time: "2 menit", steps: [
     { tab: "about", target: "#aboutTexts h3", title: "Teks pembuka", text: "Teks di bagian atas halaman <b>Warga Kami</b> dan <b>Kerja Sama</b>, serta ajakan menjadi sponsor. Pisahkan paragraf dengan baris kosong, lalu tekan <b>Simpan teks</b>." },
     { target: "#ab-add-groups", title: "Kelompok warga", text: "Setiap kelompok (mis. penjual semanggi, pengrajin) tampil sebagai satu bagian di halaman <b>Warga Kami</b>." },
-    { target: () => firstRow("ab-rows-groups") && "#ab-rows-groups tr:first-child .acts", missing: "Belum ada kelompok, jadi tombolnya belum terlihat.", title: "Urutan, ubah, hapus", text: "Tombol <b>↑</b> dan <b>↓</b> mengatur urutan di website. <b>Ubah</b> membuka formulir, <b>Hapus</b> (dua kali) menghapus." },
+    { target: () => firstRow("ab-rows-groups") && "#ab-rows-groups tr:first-child .acts", missing: "Belum ada kelompok, jadi tombolnya belum terlihat.", title: "Urutan, ubah, hapus", text: "Tombol <b>↑</b> dan <b>↓</b> mengatur urutan di website. <b>Ubah</b> membuka formulir, <b>Hapus</b> (lalu konfirmasi) menghapus." },
     { target: "#ab-add-groups", do: true, skipIf: () => !$("#aboutForm").hidden, title: "Coba sendiri", text: "Ketuk <b>Tambah kelompok</b>. Formulirnya hanya dibuka, tidak disimpan." },
     { target: "#aboutForm .desk-head", title: "Formulir kelompok", text: "Isi nama, ikon, dan teks. Kolom bahasa Inggris boleh dikosongkan." },
     { target: () => ($("#aboutForm").hidden || $("#aboutForm .ab-group").hidden ? null : "#aboutForm .ab-group"), missing: "Pilihan ini muncul di formulir kelompok.", title: "Ikon dan daftar penjual", text: "Pilih ikon untuk kelompok. Centang <b>Tampilkan daftar penjual</b> untuk kelompok penjual untuk kelompok penjual: daftar penjual di website tampil otomatis di bawah kelompok ini." },
@@ -174,12 +174,12 @@ const GUIDE = [
     <p><b>Cara 2, oleh admin:</b></p>
     <ol>
       <li>Di tab <b>Penjual</b>, tekan <b>Reset kata sandi</b> di baris penjual.</li>
-      <li>Tombol berubah menjadi <b>Ketuk untuk reset</b>. Tekan lagi dalam 3 detik.</li>
+      <li>Jendela konfirmasi muncul. Tekan <b>Reset kata sandi</b> di jendela itu.</li>
       <li>Kata sandi baru muncul di kotak di atas. Kirim ke penjual. Kata sandi lama tidak bisa dipakai lagi.</li>
     </ol>
-    <p class="help-tip">Kenapa beberapa tombol harus ditekan dua kali? Supaya tidak terpencet tanpa sengaja. Kalau tidak ditekan lagi dalam 3 detik, tombol kembali seperti semula.</p>
+    <p class="help-tip">Tombol yang menghapus atau mengubah akun (Hapus, Tangguhkan, Reset kata sandi) selalu membuka jendela konfirmasi dulu, supaya tidak terpencet tanpa sengaja. Tekan <b>Batal</b> kalau ragu.</p>
     <h4>Menangguhkan toko</h4>
-    <p><b>Tangguhkan</b> (tekan dua kali) menyembunyikan toko dan semua produknya dari pengunjung, dan penjual tidak bisa masuk. <b>Data tidak hilang.</b> Pakai ini kalau penjual berhenti berjualan, melanggar aturan, atau Anda ragu. Tekan <b>Aktifkan lagi</b> untuk memulihkan toko.</p>
+    <p><b>Tangguhkan</b> (lalu konfirmasi) menyembunyikan toko dan semua produknya dari pengunjung, dan penjual tidak bisa masuk. <b>Data tidak hilang.</b> Pakai ini kalau penjual berhenti berjualan, melanggar aturan, atau Anda ragu. Tekan <b>Aktifkan lagi</b> untuk memulihkan toko.</p>
     <h4>Tutup sementara dan Ditangguhkan, apa bedanya?</h4>
     <ul>
       <li><b>Tutup sementara</b>: diatur <b>penjual sendiri</b> di halaman penjual, misalnya saat libur Lebaran. Penjual wajib menulis catatan untuk pembeli, dan catatan itu tampil di tokonya.</li>
@@ -199,14 +199,14 @@ const GUIDE = [
     <h4>Tombol</h4>
     <ul>
       <li><b>Sembunyikan</b>: untuk produk yang tidak pantas atau salah (foto, harga, nama). Beri tahu penjualnya supaya diperbaiki. <b>Tampilkan</b> memunculkannya lagi.</li>
-      <li><b>Hapus</b>: tekan dua kali. Produk hilang permanen. Biasanya <b>Sembunyikan</b> lebih aman.</li>
+      <li><b>Hapus</b>: konfirmasi di jendela yang muncul. Produk hilang permanen. Biasanya <b>Sembunyikan</b> lebih aman.</li>
     </ul>
     <h4>Poster &amp; iklan penjual</h4>
     <p>Penjual bisa memasang poster (maksimal 10 per toko) di halaman tokonya, misalnya promo atau menu. Di bagian <b>Poster &amp; iklan penjual</b>:</p>
     <ul>
       <li>Ketuk gambar untuk melihat ukuran penuh.</li>
       <li>Ketuk nama toko untuk membuka halaman toko itu.</li>
-      <li><b>Hapus</b> (dua kali) untuk poster yang tidak pantas.</li>
+      <li><b>Hapus</b> (lalu konfirmasi) untuk poster yang tidak pantas.</li>
     </ul>` },
 
   { id: "paket", title: "Paket: tur, pengalaman, homestay", body: `
@@ -246,7 +246,7 @@ const GUIDE = [
       <li><b>Tanggal tertentu</b>: pilih tanggal dan jam, lalu tekan <b>Tambah</b>. Ketuk tanggal (tanda ×) untuk menghapusnya. Tanggal yang sudah lewat otomatis tidak ditampilkan.</li>
     </ul>
     <h4>Mengubah dan menghapus</h4>
-    <p>Di daftar paket, tekan <b>Ubah</b>: formulir terisi. Tekan <b>Simpan perubahan</b> atau <b>Batal ubah</b>. <b>Hapus</b> perlu ditekan dua kali.</p>
+    <p>Di daftar paket, tekan <b>Ubah</b>: formulir terisi. Tekan <b>Simpan perubahan</b> atau <b>Batal ubah</b>. <b>Hapus</b> meminta konfirmasi dulu.</p>
     <div class="help-warn">Saat mengubah paket, menekan × pada foto yang <b>sudah tersimpan</b> langsung menghapus foto itu, tanpa menunggu Simpan.</div>
     <h4>Pemesanan paket</h4>
     <p>Pengunjung memilih tanggal dan jumlah orang, lalu pesan dikirim lewat WhatsApp ke <b>Nomor tur dan pengalaman</b> atau <b>Nomor homestay</b> di tab <b>Situs</b>. Kalau nomornya kosong, tombol pesan tidak muncul.</p>` },
@@ -266,7 +266,7 @@ const GUIDE = [
     </ol>
     <p>Maksimal 20 foto per kelompok dan 30 foto per mitra.</p>
     <h4>Urutan, ubah, hapus</h4>
-    <p>Tombol <b>↑ ↓</b> di daftar mengatur urutan di website. <b>Ubah</b> membuka formulir. <b>Hapus</b> perlu ditekan dua kali.</p>` },
+    <p>Tombol <b>↑ ↓</b> di daftar mengatur urutan di website. <b>Ubah</b> membuka formulir. <b>Hapus</b> meminta konfirmasi dulu.</p>` },
 
   { id: "situs", title: "Pengaturan situs", body: `
     <ul>
@@ -343,7 +343,7 @@ const GUIDE = [
       <dt>Terjemahan bahasa Inggris aneh</dt>
       <dd>Isi kolom bahasa Inggris sendiri lalu simpan. Teks Anda tidak akan diganti.</dd>
       <dt>Terhapus tanpa sengaja</dt>
-      <dd>Yang sudah dihapus tidak bisa dikembalikan. Karena itu tombol hapus selalu perlu dua kali tekan atau konfirmasi. Lain kali, pilih <b>Sembunyikan</b> atau <b>Tangguhkan</b> kalau ragu.</dd>
+      <dd>Yang sudah dihapus tidak bisa dikembalikan. Karena itu tombol hapus selalu meminta konfirmasi di sebuah jendela. Lain kali, pilih <b>Sembunyikan</b> atau <b>Tangguhkan</b> kalau ragu.</dd>
       <dt>Apakah tur panduan mengubah data?</dt>
       <dd>Tidak. Selama tur, tombol simpan dan hapus tidak bisa ditekan, dan formulir yang dibuka tur ditutup lagi.</dd>
     </dl>` },

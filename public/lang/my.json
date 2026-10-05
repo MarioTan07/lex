@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "အင်ဒိုနီးရှားတစ်နိုင်ငံလုံး",
 "delivery.nRegions": "ပြည်နယ် {n} ခု",
 "delivery.moreCountries": "နောက်ထပ် နိုင်ငံ {n} ခု",
-"delivery.chip": "ပို့ဆောင်ပေးသည်"
+"delivery.chip": "ပို့ဆောင်ပေးသည်",
+"order.qHow": "ကိုယ်တိုင်လာယူမလား၊ ပို့ပေးစေချင်လား?",
+"order.howPickup": "ကိုယ်တိုင်လာယူမည်",
+"order.howDeliver": "ပို့ပေးရန် တောင်းဆိုမည်",
+"order.areaLabel": "ဘယ်ကို ပို့ရမလဲ?",
+"order.areaPlaceholder": "ဥပမာ Benowo, Surabaya",
+"order.deliverHint": "ပို့ခနှင့် ပို့ချိန်ကို ရောင်းသူနှင့် WhatsApp တွင် တိုက်ရိုက် ညှိပါ။",
+"order.deliverWhen": "ဘယ်အချိန်လဲ?",
+"order.answerDeliver": "{area} သို့ ပို့ရန်၊ {when}",
+"msg.deliver": "ကျေးဇူးပြု၍ ပို့ပေးပါ- {area} ({when})",
+"msg.deliverCost": "ပို့ခ ဘယ်လောက်လဲ ပြောပေးပါ။",
+"msg.dayToday": "ယနေ့",
+"msg.dayTomorrow": "မနက်ဖြန်"
 }

@@ -362,5 +362,17 @@
 "delivery.allIndonesia": "buong Indonesia",
 "delivery.nRegions": "{n} lalawigan",
 "delivery.moreCountries": "{n} pang bansa",
-"delivery.chip": "May delivery"
+"delivery.chip": "May delivery",
+"order.qHow": "Kukunin mo ba, o gusto mong i-deliver?",
+"order.howPickup": "Kukunin ko",
+"order.howDeliver": "Magpa-deliver",
+"order.areaLabel": "Saan ide-deliver?",
+"order.areaPlaceholder": "hal. Benowo, Surabaya",
+"order.deliverHint": "Ang bayad at oras ng delivery ay pag-uusapan mismo ninyo ng nagbebenta sa WhatsApp.",
+"order.deliverWhen": "Kailan?",
+"order.answerDeliver": "I-deliver sa {area}, {when}",
+"msg.deliver": "Pakihatid sa: {area} ({when})",
+"msg.deliverCost": "Magkano po ang delivery fee?",
+"msg.dayToday": "ngayon",
+"msg.dayTomorrow": "bukas"
 }
