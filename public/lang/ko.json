@@ -273,9 +273,6 @@
 "photos.open": "{name}을(를) 파는 모든 가게 보기 (사진 {n}/{total})",
 "photos.prev": "이전 사진",
 "photos.next": "다음 사진",
-"big.label1": "대량 주문 가능 · 1일 전 주문",
-"big.labelN": "대량 주문 가능 · {days}일 전 주문",
-"big.chip": "대량 주문",
 "wisata.priceAsk": "가격 문의",
 "wisata.free": "무료",
 "wisata.perPerson": "1인당",
@@ -374,5 +371,10 @@
 "msg.deliver": "배달 부탁드려요: {area} ({when})",
 "msg.deliverCost": "배달비가 얼마인지 알려 주시겠어요?",
 "msg.dayToday": "오늘",
-"msg.dayTomorrow": "내일"
+"msg.dayTomorrow": "내일",
+"ahead.hour1": "최소 1시간 전에 주문하세요",
+"ahead.hours": "최소 {n}시간 전에 주문하세요",
+"ahead.day1": "최소 1일 전에 주문하세요",
+"ahead.days": "최소 {n}일 전에 주문하세요",
+"msg.onDate": "{date} {time}"
 }

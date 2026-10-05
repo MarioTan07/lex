@@ -15,9 +15,6 @@ $("#s-home").replaceWith(homeLoc.node);
 const hoursEd = hoursEditor("s-hours");
 $("#s-hours").replaceWith(hoursEd.node);
 
-// Large orders: the notice and note only matter when the box is ticked.
-const syncBig = () => { $("#s-big-fields").hidden = !$("#s-big").checked; };
-$("#s-big").addEventListener("change", syncBig);
 
 // ---------- pickup only or delivery: countries (Indonesia first), then provinces when Indonesia is ticked ----------
 const deliv = { countries: new Set(), regions: new Set() };
@@ -187,8 +184,7 @@ function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
   $("#s-ig").value = me.instagram ? "@" + me.instagram : ""; $("#s-fromhome").checked = me.fromHome;
   shopLoc.set(me.shop); homeLoc.set(me.home); hoursEd.set(me.hours);
-  $("#s-big").checked = !!me.bigOrders; $("#s-big-days").value = String(me.bigOrders?.days || 2); $("#s-big-note").value = me.bigOrders?.note || "";
-  syncBig();
+  $("#s-ahead").value = String(me.orderAhead || 0);
   setDeliv(me.delivery);
 }
 
@@ -301,7 +297,7 @@ $("#profileForm").addEventListener("submit", async (e) => {
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
     const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(),
-      bigOrders: $("#s-big").checked ? { days: Number($("#s-big-days").value), note: $("#s-big-note").value } : null, delivery: getDeliv(), shop: shopLoc.get(), home: homeLoc.get() };
+      orderAhead: Number($("#s-ahead").value), delivery: getDeliv(), shop: shopLoc.get(), home: homeLoc.get() };
     const firstTime = !me.profileDone;
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     if (firstTime) { toast(t("setup.done")); start(); window.scrollTo(0, 0); return; }

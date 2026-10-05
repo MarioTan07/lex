@@ -179,7 +179,10 @@ const ADDED_USER_COLUMNS = {
   // 0 until a seller created with only a phone number fills in their details at first sign-in.
   // Sellers who existed before this was added already have their details, so they start at 1.
   profile_done: "INTEGER NOT NULL DEFAULT 1",
+  // No longer used: large orders were replaced by order_ahead. Kept so old databases keep their columns.
   big_order_days: "INTEGER NOT NULL DEFAULT 0", big_order_note: "TEXT NOT NULL DEFAULT ''",
+  // How long before pickup buyers must order, in minutes (0 = any time).
+  order_ahead: "INTEGER NOT NULL DEFAULT 0",
   // Pickup only or delivery, as JSON: {"mode":"pickup"} or {"mode":"delivery","countries":["ID","SG"],"regions":["Jawa Timur"]}.
   // regions are Indonesian provinces, only when Indonesia is a country. Empty = the seller hasn't said.
   delivery: "TEXT NOT NULL DEFAULT ''",

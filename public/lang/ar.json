@@ -273,9 +273,6 @@
 "photos.open": "عرض كل المتاجر التي تبيع {name} (الصورة {n} من {total})",
 "photos.prev": "الصورة السابقة",
 "photos.next": "الصورة التالية",
-"big.label1": "يقبل الطلبات الكبيرة · اطلب قبل يوم",
-"big.labelN": "يقبل الطلبات الكبيرة · اطلب قبل {days} أيام",
-"big.chip": "طلبات كبيرة",
 "wisata.priceAsk": "اسأل عن السعر",
 "wisata.free": "مجاني",
 "wisata.perPerson": "للشخص",
@@ -374,5 +371,10 @@
 "msg.deliver": "يرجى التوصيل إلى: {area} ({when})",
 "msg.deliverCost": "هل يمكنك إخباري بتكلفة التوصيل؟",
 "msg.dayToday": "اليوم",
-"msg.dayTomorrow": "غدًا"
+"msg.dayTomorrow": "غدًا",
+"ahead.hour1": "اطلب قبل ساعة على الأقل",
+"ahead.hours": "اطلب قبل {n} ساعات على الأقل",
+"ahead.day1": "اطلب قبل يوم على الأقل",
+"ahead.days": "اطلب قبل {n} أيام على الأقل",
+"msg.onDate": "{date} الساعة {time}"
 }

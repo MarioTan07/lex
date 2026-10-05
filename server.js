@@ -157,7 +157,7 @@ const MESSAGES = {
     "label.sponsorEmail": "Email sponsor",
     tooManyPhotos: "Satu tur, pengalaman, atau homestay bisa punya maksimal 10 foto.",
     noPhoto: "Foto itu tidak ditemukan.",
-    bigOrderDays: "Pilih berapa hari sebelumnya pesanan besar harus dipesan.",
+    orderAhead: "Pilih berapa lama sebelumnya pembeli harus memesan.",
     deliveryInvalid: "Pilihan pengiriman tidak valid. Muat ulang halaman lalu coba lagi.",
     deliveryCountries: "Pilih minimal satu negara tujuan pengiriman.",
     deliveryRegions: "Pilih minimal satu provinsi di Indonesia yang Anda layani.",
@@ -256,7 +256,7 @@ const MESSAGES = {
     "label.sponsorEmail": "Sponsor email",
     tooManyPhotos: "A tour, experience or homestay can have at most 10 photos.",
     noPhoto: "That photo wasn't found.",
-    bigOrderDays: "Choose how many days ahead large orders must be placed.",
+    orderAhead: "Choose how long ahead buyers must order.",
     deliveryInvalid: "That delivery choice isn't valid. Reload the page and try again.",
     deliveryCountries: "Choose at least one country you deliver to.",
     deliveryRegions: "Choose at least one Indonesian province you deliver to.",
@@ -428,7 +428,7 @@ function publicUser(u) {
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
     paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home, hours: hoursOut(u),
-    bigOrders: u.big_order_days ? { days: u.big_order_days, note: u.big_order_note || "" } : null,
+    orderAhead: u.order_ahead || 0,
     delivery: deliveryOut(u),
   };
 }
@@ -455,12 +455,12 @@ function hours(v) {
   }
   return DAYS.some((d) => out[d]) ? JSON.stringify(out) : "";
 }
-// Large orders (events, arisan, hajatan): days of notice needed (0 = doesn't take them) and an optional note.
-function bigOrders(v) {
-  if (!v) return { big_order_days: 0, big_order_note: "" };
-  const days = Number(v.days);
-  if (!Number.isInteger(days) || days < 1 || days > 30) throw bad("bigOrderDays");
-  return { big_order_days: days, big_order_note: text(v.note, 80) };
+// How long before pickup buyers must order, in minutes: one of the choices on the seller page (0 = any time).
+const ORDER_AHEAD = [0, 60, 180, 360, 1440, 2880, 4320, 7200, 10080, 20160, 43200];
+function orderAhead(v) {
+  const n = Number(v || 0);
+  if (!ORDER_AHEAD.includes(n)) throw bad("orderAhead");
+  return n;
 }
 // Pickup only, or delivery to chosen countries (and Indonesian provinces when Indonesia is one of them).
 const COUNTRY_SET = new Set(COUNTRIES), PROVINCE_SET = new Set(PROVINCES);
@@ -510,9 +510,9 @@ function sellerFields(body) {
     phone: text(body.phone, 24, { required: true, label: "label.contactNumber" }),
     instagram: instagram(body.instagram),
     from_home: body.fromHome ? 1 : 0,
-    // The admin form doesn't edit hours or big orders, so they only change when sent.
+    // The admin form doesn't edit hours, order-ahead time or delivery, so they only change when sent.
     ...(body.hours !== undefined ? { hours: hours(body.hours) } : {}),
-    ...(body.bigOrders !== undefined ? bigOrders(body.bigOrders) : {}),
+    ...(body.orderAhead !== undefined ? { order_ahead: orderAhead(body.orderAhead) } : {}),
     ...(body.delivery !== undefined ? { delivery: delivery(body.delivery) } : {}),
     ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
     ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
@@ -770,7 +770,7 @@ app.get("/api/stalls", async (_req, res) => {
   const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' AND profile_done = 1 ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
-    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, bigOrders: p.bigOrders, delivery: p.delivery, paused: p.paused, pauseNote: p.pauseNote };
+    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, orderAhead: p.orderAhead, delivery: p.delivery, paused: p.paused, pauseNote: p.pauseNote };
   }) });
 });
 

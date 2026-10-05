@@ -273,9 +273,6 @@
 "photos.open": "ดูทุกร้านที่ขาย {name} (รูปที่ {n} จาก {total})",
 "photos.prev": "รูปก่อนหน้า",
 "photos.next": "รูปถัดไป",
-"big.label1": "รับออเดอร์จำนวนมาก · สั่งล่วงหน้า 1 วัน",
-"big.labelN": "รับออเดอร์จำนวนมาก · สั่งล่วงหน้า {days} วัน",
-"big.chip": "ออเดอร์จำนวนมาก",
 "wisata.priceAsk": "สอบถามราคา",
 "wisata.free": "ฟรี",
 "wisata.perPerson": "ต่อคน",
@@ -374,5 +371,10 @@
 "msg.deliver": "รบกวนส่งไปที่: {area} ({when})",
 "msg.deliverCost": "ขอทราบค่าส่งด้วยค่ะ/ครับ",
 "msg.dayToday": "วันนี้",
-"msg.dayTomorrow": "พรุ่งนี้"
+"msg.dayTomorrow": "พรุ่งนี้",
+"ahead.hour1": "สั่งล่วงหน้าอย่างน้อย 1 ชั่วโมง",
+"ahead.hours": "สั่งล่วงหน้าอย่างน้อย {n} ชั่วโมง",
+"ahead.day1": "สั่งล่วงหน้าอย่างน้อย 1 วัน",
+"ahead.days": "สั่งล่วงหน้าอย่างน้อย {n} วัน",
+"msg.onDate": "{date} เวลา {time}"
 }

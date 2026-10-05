@@ -273,9 +273,6 @@
 "photos.open": "查看所有出售 {name} 的店铺（第 {n} 张，共 {total} 张）",
 "photos.prev": "上一张",
 "photos.next": "下一张",
-"big.label1": "接受大量订单 · 请提前 1 天预订",
-"big.labelN": "接受大量订单 · 请提前 {days} 天预订",
-"big.chip": "大量订单",
 "wisata.priceAsk": "价格请咨询",
 "wisata.free": "免费",
 "wisata.perPerson": "每人",
@@ -374,5 +371,10 @@
 "msg.deliver": "请送到：{area}（{when}）",
 "msg.deliverCost": "请问运费是多少？",
 "msg.dayToday": "今天",
-"msg.dayTomorrow": "明天"
+"msg.dayTomorrow": "明天",
+"ahead.hour1": "请至少提前1小时下单",
+"ahead.hours": "请至少提前{n}小时下单",
+"ahead.day1": "请至少提前1天下单",
+"ahead.days": "请至少提前{n}天下单",
+"msg.onDate": "{date} {time}"
 }

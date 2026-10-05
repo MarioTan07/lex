@@ -273,9 +273,6 @@
 "photos.open": "Voir toutes les boutiques qui vendent {name} (photo {n} sur {total})",
 "photos.prev": "Photo précédente",
 "photos.next": "Photo suivante",
-"big.label1": "Accepte les grosses commandes · commander 1 jour à l'avance",
-"big.labelN": "Accepte les grosses commandes · commander {days} jours à l'avance",
-"big.chip": "Grosses commandes",
 "wisata.priceAsk": "Prix sur demande",
 "wisata.free": "Gratuit",
 "wisata.perPerson": "par personne",
@@ -374,5 +371,10 @@
 "msg.deliver": "Merci de livrer à : {area} ({when})",
 "msg.deliverCost": "Pouvez-vous m'indiquer les frais de livraison ?",
 "msg.dayToday": "aujourd'hui",
-"msg.dayTomorrow": "demain"
+"msg.dayTomorrow": "demain",
+"ahead.hour1": "Commandez au moins 1 heure à l'avance",
+"ahead.hours": "Commandez au moins {n} heures à l'avance",
+"ahead.day1": "Commandez au moins 1 jour à l'avance",
+"ahead.days": "Commandez au moins {n} jours à l'avance",
+"msg.onDate": "{date} à {time}"
 }

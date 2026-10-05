@@ -273,9 +273,6 @@
 "photos.open": "មើលហាងទាំងអស់ដែលលក់ {name} (រូបថតទី {n} នៃ {total})",
 "photos.prev": "រូបថតមុន",
 "photos.next": "រូបថតបន្ទាប់",
-"big.label1": "ទទួលការកុម្ម៉ង់ច្រើន · កុម្ម៉ង់មុន ១ ថ្ងៃ",
-"big.labelN": "ទទួលការកុម្ម៉ង់ច្រើន · កុម្ម៉ង់មុន {days} ថ្ងៃ",
-"big.chip": "ការកុម្ម៉ង់ច្រើន",
 "wisata.priceAsk": "សួរតម្លៃ",
 "wisata.free": "ឥតគិតថ្លៃ",
 "wisata.perPerson": "ក្នុងម្នាក់",
@@ -374,5 +371,10 @@
 "msg.deliver": "សូមដឹកទៅ៖ {area} ({when})",
 "msg.deliverCost": "សូមប្រាប់តម្លៃដឹកជញ្ជូន។",
 "msg.dayToday": "ថ្ងៃនេះ",
-"msg.dayTomorrow": "ថ្ងៃស្អែក"
+"msg.dayTomorrow": "ថ្ងៃស្អែក",
+"ahead.hour1": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ 1 ម៉ោង",
+"ahead.hours": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ {n} ម៉ោង",
+"ahead.day1": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ 1 ថ្ងៃ",
+"ahead.days": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ {n} ថ្ងៃ",
+"msg.onDate": "{date} ម៉ោង {time}"
 }

@@ -273,9 +273,6 @@
 "photos.open": "Ver todas las tiendas que venden {name} (foto {n} de {total})",
 "photos.prev": "Foto anterior",
 "photos.next": "Foto siguiente",
-"big.label1": "Acepta pedidos grandes · pide con 1 día de antelación",
-"big.labelN": "Acepta pedidos grandes · pide con {days} días de antelación",
-"big.chip": "Pedidos grandes",
 "wisata.priceAsk": "Consultar precio",
 "wisata.free": "Gratis",
 "wisata.perPerson": "por persona",
@@ -374,5 +371,10 @@
 "msg.deliver": "Por favor, entregar en: {area} ({when})",
 "msg.deliverCost": "¿Me podría decir el costo de envío?",
 "msg.dayToday": "hoy",
-"msg.dayTomorrow": "mañana"
+"msg.dayTomorrow": "mañana",
+"ahead.hour1": "Pide con al menos 1 hora de antelación",
+"ahead.hours": "Pide con al menos {n} horas de antelación",
+"ahead.day1": "Pide con al menos 1 día de antelación",
+"ahead.days": "Pide con al menos {n} días de antelación",
+"msg.onDate": "{date} a las {time}"
 }

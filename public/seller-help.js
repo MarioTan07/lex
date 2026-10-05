@@ -109,9 +109,9 @@ const TOURS = [
       text: { id: "Centang hari buka dan isi jam buka dan tutup (waktu Surabaya). Pembeli melihat apakah toko sedang buka.", en: "Tick the days you're open and fill in the opening and closing times (Surabaya time). Buyers see whether you're open right now." } },
     { target: "fieldset.hours-edit > div:last-child button", title: { id: "Pakai jam Senin untuk semua hari", en: "Use Monday's hours for all days" },
       text: { id: "Isi Senin dulu, lalu tekan tombol ini: semua hari ikut sama. Ubah hari yang berbeda sesudahnya.", en: "Fill in Monday first, then press this: every day gets the same hours. Change any days that differ afterwards." } },
-    { target: "fieldset.big-edit legend", title: { id: "Pesanan besar", en: "Large orders" },
-      text: { id: "Centang kalau Anda menerima pesanan besar (acara, arisan, hajatan). Pilih paling lambat berapa hari sebelumnya pembeli harus memesan, dan tambahkan catatan, mis. <i>minimal 50 porsi</i>.",
-        en: "Tick this if you take large orders (events, arisan, celebrations). Choose how many days ahead buyers must order, and add a note, e.g. <i>at least 50 portions</i>." } },
+    { target: "fieldset.ahead-edit legend", title: { id: "Pesan sebelumnya", en: "Order ahead" },
+      text: { id: "Pilih paling lambat berapa lama sebelumnya pembeli harus memesan, dari <b>1 jam</b> sampai <b>sebulan</b>. Pembeli melihatnya, mis. <i>Pesan minimal 3 jam sebelumnya</i>, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.",
+        en: "Choose how long ahead buyers must order, from <b>1 hour</b> to <b>a month</b>. Buyers see it, e.g. <i>Order at least 3 hours ahead</i>, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead." } },
     { target: "fieldset.deliv-edit legend", title: { id: "Ambil sendiri atau diantar", en: "Pickup or delivery" },
       text: { id: "<b>Ambil sendiri saja</b>: pembeli datang ke toko.<br><b>Bisa diantar / dikirim</b>: pilih negara dan provinsi tujuan. Pembeli lalu bisa meminta diantar, dan Anda membicarakan ongkos kirim lewat WhatsApp.",
         en: "<b>Pickup only</b>: buyers come to your shop.<br><b>Delivers / ships</b>: choose the countries and provinces you deliver to. Buyers can then ask for delivery, and you agree the delivery cost on WhatsApp." } },
@@ -319,8 +319,8 @@ const GUIDE = [
       <li>Biarkan semua kosong kalau tidak ingin menampilkan jam buka.</li>
     </ol>
     <p>Pembeli melihat apakah toko sedang buka, mis. <i>Buka · tutup jam 15.00</i>.</p>
-    <h4>Pesanan besar</h4>
-    <p>Centang <b>Terima pesanan besar</b> kalau Anda melayani acara, arisan, atau hajatan. Pilih <b>Pesan paling lambat</b> (mis. H-3) dan tambahkan catatan, mis. <i>minimal 50 porsi</i>.</p>
+    <h4>Pesan sebelumnya</h4>
+    <p>Di <b>Pembeli harus pesan paling lambat</b>, pilih berapa lama sebelumnya pembeli harus memesan (mis. <i>3 jam sebelumnya</i> atau <i>H-1</i>). Pembeli melihatnya di toko Anda, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.</p>
     <h4>Ambil sendiri atau diantar</h4>
     <ul>
       <li><b>Ambil sendiri saja</b>: pembeli datang ke toko.</li>
@@ -345,8 +345,8 @@ const GUIDE = [
       <li>Leave them all empty if you don't want to show opening hours.</li>
     </ol>
     <p>Buyers see whether you're open now, e.g. <i>Open · closes at 15:00</i>.</p>
-    <h4>Large orders</h4>
-    <p>Tick <b>Take large orders</b> if you cater for events, arisan or celebrations. Choose <b>Order at least</b> (e.g. 3 days ahead) and add a note, e.g. <i>at least 50 portions</i>.</p>
+    <h4>Order ahead</h4>
+    <p>Under <b>Buyers must order at least</b>, choose how long ahead buyers must order (e.g. <i>3 hours ahead</i> or <i>1 day ahead</i>). Buyers see it on your shop, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead.</p>
     <h4>Pickup or delivery</h4>
     <ul>
       <li><b>Pickup only</b>: buyers come to your shop.</li>
@@ -511,7 +511,7 @@ const GUIDE = [
       <dt>Ditangguhkan</dt><dd>Admin menyembunyikan toko; Anda tidak bisa masuk.</dd>
       <dt>Disembunyikan admin</dt><dd>Satu produk disembunyikan oleh admin.</dd>
       <dt>Titik peta</dt><dd>Letak toko di Google Maps, supaya pembeli bisa menemukan jalan.</dd>
-      <dt>Pesanan besar</dt><dd>Pesanan untuk acara, dipesan beberapa hari sebelumnya.</dd>
+      <dt>Pesan sebelumnya</dt><dd>Berapa lama sebelumnya pembeli harus memesan, mis. 3 jam atau H-1.</dd>
     </dl>`,
     en: `
     <dl class="help-qa">
@@ -522,7 +522,7 @@ const GUIDE = [
       <dt>Suspended</dt><dd>The admin has hidden the shop; you can't sign in.</dd>
       <dt>Hidden by admin</dt><dd>One product hidden by the admin.</dd>
       <dt>Map pin</dt><dd>Your shop's spot on Google Maps, so buyers can find their way.</dd>
-      <dt>Large order</dt><dd>An order for an event, placed some days ahead.</dd>
+      <dt>Order ahead</dt><dd>How long ahead buyers must order, e.g. 3 hours or 1 day.</dd>
     </dl>` } },
 ];
 

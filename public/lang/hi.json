@@ -273,9 +273,6 @@
 "photos.open": "{name} बेचने वाली सभी दुकानें देखें (फ़ोटो {n}/{total})",
 "photos.prev": "पिछली फ़ोटो",
 "photos.next": "अगली फ़ोटो",
-"big.label1": "बड़े ऑर्डर लेते हैं · 1 दिन पहले ऑर्डर करें",
-"big.labelN": "बड़े ऑर्डर लेते हैं · {days} दिन पहले ऑर्डर करें",
-"big.chip": "बड़े ऑर्डर",
 "wisata.priceAsk": "कीमत पूछें",
 "wisata.free": "मुफ़्त",
 "wisata.perPerson": "प्रति व्यक्ति",
@@ -374,5 +371,10 @@
 "msg.deliver": "कृपया यहाँ डिलीवर करें: {area} ({when})",
 "msg.deliverCost": "कृपया डिलीवरी का खर्च बताइए।",
 "msg.dayToday": "आज",
-"msg.dayTomorrow": "कल"
+"msg.dayTomorrow": "कल",
+"ahead.hour1": "कम से कम 1 घंटा पहले ऑर्डर करें",
+"ahead.hours": "कम से कम {n} घंटे पहले ऑर्डर करें",
+"ahead.day1": "कम से कम 1 दिन पहले ऑर्डर करें",
+"ahead.days": "कम से कम {n} दिन पहले ऑर्डर करें",
+"msg.onDate": "{date}, {time} बजे"
 }

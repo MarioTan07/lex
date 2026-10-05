@@ -273,9 +273,6 @@
 "photos.open": "ເບິ່ງທຸກຮ້ານທີ່ຂາຍ {name} (ຮູບທີ {n} ຈາກ {total})",
 "photos.prev": "ຮູບກ່ອນໜ້າ",
 "photos.next": "ຮູບຕໍ່ໄປ",
-"big.label1": "ຮັບອໍເດີຈຳນວນຫຼາຍ · ສັ່ງລ່ວງໜ້າ 1 ມື້",
-"big.labelN": "ຮັບອໍເດີຈຳນວນຫຼາຍ · ສັ່ງລ່ວງໜ້າ {days} ມື້",
-"big.chip": "ອໍເດີຈຳນວນຫຼາຍ",
 "wisata.priceAsk": "ສອບຖາມລາຄາ",
 "wisata.free": "ຟຣີ",
 "wisata.perPerson": "ຕໍ່ຄົນ",
@@ -374,5 +371,10 @@
 "msg.deliver": "ກະລຸນາສົ່ງໄປ: {area} ({when})",
 "msg.deliverCost": "ກະລຸນາບອກຄ່າສົ່ງແດ່.",
 "msg.dayToday": "ມື້ນີ້",
-"msg.dayTomorrow": "ມື້ອື່ນ"
+"msg.dayTomorrow": "ມື້ອື່ນ",
+"ahead.hour1": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ 1 ຊົ່ວໂມງ",
+"ahead.hours": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ {n} ຊົ່ວໂມງ",
+"ahead.day1": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ 1 ມື້",
+"ahead.days": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ {n} ມື້",
+"msg.onDate": "{date} ເວລາ {time}"
 }

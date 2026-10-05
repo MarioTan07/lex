@@ -273,9 +273,6 @@
 "photos.open": "Xem mọi cửa hàng bán {name} (ảnh {n}/{total})",
 "photos.prev": "Ảnh trước",
 "photos.next": "Ảnh tiếp",
-"big.label1": "Nhận đơn lớn · đặt trước 1 ngày",
-"big.labelN": "Nhận đơn lớn · đặt trước {days} ngày",
-"big.chip": "Đơn lớn",
 "wisata.priceAsk": "Liên hệ để biết giá",
 "wisata.free": "Miễn phí",
 "wisata.perPerson": "mỗi người",
@@ -374,5 +371,10 @@
 "msg.deliver": "Vui lòng giao đến: {area} ({when})",
 "msg.deliverCost": "Cho tôi biết phí giao hàng nhé?",
 "msg.dayToday": "hôm nay",
-"msg.dayTomorrow": "ngày mai"
+"msg.dayTomorrow": "ngày mai",
+"ahead.hour1": "Đặt trước ít nhất 1 giờ",
+"ahead.hours": "Đặt trước ít nhất {n} giờ",
+"ahead.day1": "Đặt trước ít nhất 1 ngày",
+"ahead.days": "Đặt trước ít nhất {n} ngày",
+"msg.onDate": "{date} lúc {time}"
 }

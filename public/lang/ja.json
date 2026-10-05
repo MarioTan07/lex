@@ -273,9 +273,6 @@
 "photos.open": "{name} を売っているお店をすべて見る（写真 {n}/{total}）",
 "photos.prev": "前の写真",
 "photos.next": "次の写真",
-"big.label1": "大口注文可 · 1日前までに注文",
-"big.labelN": "大口注文可 · {days}日前までに注文",
-"big.chip": "大口注文",
 "wisata.priceAsk": "価格はお問い合わせください",
 "wisata.free": "無料",
 "wisata.perPerson": "1人あたり",
@@ -374,5 +371,10 @@
 "msg.deliver": "配達先：{area}（{when}）",
 "msg.deliverCost": "配達料を教えていただけますか？",
 "msg.dayToday": "今日",
-"msg.dayTomorrow": "明日"
+"msg.dayTomorrow": "明日",
+"ahead.hour1": "1時間前までにご注文ください",
+"ahead.hours": "{n}時間前までにご注文ください",
+"ahead.day1": "1日前までにご注文ください",
+"ahead.days": "{n}日前までにご注文ください",
+"msg.onDate": "{date} {time}"
 }

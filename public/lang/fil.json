@@ -273,9 +273,6 @@
 "photos.open": "Tingnan ang lahat ng tindahang nagbebenta ng {name} (larawan {n} ng {total})",
 "photos.prev": "Nakaraang larawan",
 "photos.next": "Susunod na larawan",
-"big.label1": "Tumatanggap ng malalaking order · umorder 1 araw bago",
-"big.labelN": "Tumatanggap ng malalaking order · umorder {days} araw bago",
-"big.chip": "Malalaking order",
 "wisata.priceAsk": "Itanong ang presyo",
 "wisata.free": "Libre",
 "wisata.perPerson": "bawat tao",
@@ -374,5 +371,10 @@
 "msg.deliver": "Pakihatid sa: {area} ({when})",
 "msg.deliverCost": "Magkano po ang delivery fee?",
 "msg.dayToday": "ngayon",
-"msg.dayTomorrow": "bukas"
+"msg.dayTomorrow": "bukas",
+"ahead.hour1": "Umorder nang hindi bababa sa 1 oras bago",
+"ahead.hours": "Umorder nang hindi bababa sa {n} oras bago",
+"ahead.day1": "Umorder nang hindi bababa sa 1 araw bago",
+"ahead.days": "Umorder nang hindi bababa sa {n} araw bago",
+"msg.onDate": "{date} nang {time}"
 }

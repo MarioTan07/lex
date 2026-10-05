@@ -310,11 +310,15 @@ export function favButton(kind, id, name, onChange) {
 export function tap(productId, kind = "view") {
   fetch("/api/tap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId, kind }), keepalive: true }).catch(() => {});
 }
-// "Takes large orders · order 2 days ahead · min. 50 portions" for sellers who take them.
-export function bigOrderLine(stall) {
-  const b = stall && stall.bigOrders;
-  if (!b) return null;
-  return el("p", { class: "big-order" }, icon("calendar"), t(b.days === 1 ? "big.label1" : "big.labelN", { days: b.days }) + (b.note ? " · " + b.note : ""));
+// "Order at least 3 hours ahead" / "Order at least 2 days ahead", for sellers who need notice.
+export function aheadText(mins) {
+  if (!mins) return "";
+  if (mins < 1440) return mins === 60 ? t("ahead.hour1") : t("ahead.hours", { n: mins / 60 });
+  return mins === 1440 ? t("ahead.day1") : t("ahead.days", { n: mins / 1440 });
+}
+export function aheadLine(stall) {
+  const text = aheadText(stall && stall.orderAhead);
+  return text ? el("p", { class: "big-order" }, icon("calendar"), text) : null;
 }
 // "Pickup only", or "Delivers to Indonesia (Jawa Timur, Bali) and Singapore". Cards use the short form
 // (up to four places, or three and a count of the rest); the shop page and product window list every place.

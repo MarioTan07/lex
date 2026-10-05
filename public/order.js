@@ -2,19 +2,37 @@
 // then opens WhatsApp with the order written out. The seller always gets it in Indonesian.
 // For shops that deliver, the buyer can instead ask for delivery to an area; the cost and time are
 // then agreed with the seller on WhatsApp, so the message asks for the delivery cost.
-import { $, el, rp, t, api, waNumber, deliveryLine } from "/common.js";
-import { lang, tIn, langInfo } from "/i18n.js";
+import { $, el, rp, t, api, waNumber, deliveryLine, aheadLine } from "/common.js";
+import { lang, tIn, langInfo, locale } from "/i18n.js";
 
 // Ready-made requests (text keys). Not spicy and extra spicy can't both be picked.
 const REQUESTS = ["req.sauceSeparate", "req.notSpicy", "req.extraSpicy", "req.extraKrupuk"];
 const CLASHES = { "req.notSpicy": "req.extraSpicy", "req.extraSpicy": "req.notSpicy" };
 
-// Pickup times every half hour from 07.00 to 21.00; today's list starts at least 30 minutes from now.
-function slots(day) {
+// Pickup times every half hour from 07.00 to 21.00, `offset` days from today. The earliest is 30 minutes
+// from now, or later when the seller needs notice (orderAhead, in minutes).
+const ahead = () => Math.max(30, o.stall.orderAhead || 0);
+function slots(offset) {
+  const now = new Date(), earliest = now.getTime() + ahead() * 60000;
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset).getTime();
   const out = [];
-  const now = new Date(), earliest = now.getHours() * 60 + now.getMinutes() + 30;
-  for (let m = 7 * 60; m <= 21 * 60; m += 30) if (day !== "today" || m >= earliest) out.push(m);
+  for (let m = 7 * 60; m <= 21 * 60; m += 30) if (day + m * 60000 >= earliest) out.push(m);
   return out;
+}
+// The days a buyer can choose: "as soon as possible" when no notice is needed, then the first days that
+// still have pickup times (two, or three when the seller needs notice).
+function dayChoices() {
+  const out = o.stall.orderAhead ? [] : ["asap"];
+  const want = o.stall.orderAhead ? 3 : 2;
+  for (let d = 0, found = 0; d < 60 && found < want; d++) if (slots(d).length) { out.push(d); found++; }
+  return out;
+}
+// A day's name: today / tomorrow, or a date such as "Thu 8 Oct" (long: "Thursday, 8 October").
+function dayName(offset, l, long = false) {
+  if (offset === 0) return long ? null : tIn(l, "order.today");
+  if (offset === 1) return long ? null : tIn(l, "order.tomorrow");
+  const now = new Date(), d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+  return new Intl.DateTimeFormat(locale(l), long ? { weekday: "long", day: "numeric", month: "long" } : { weekday: "short", day: "numeric", month: "short" }).format(d);
 }
 const hhmm = (m, sep = ":") => String(Math.floor(m / 60)).padStart(2, "0") + sep + String(m % 60).padStart(2, "0");
 
@@ -37,8 +55,8 @@ export function openOrder(stall, menu, firstId) {
 
 const chosen = () => o.menu.filter((p) => o.qty.get(p.id) > 0);
 const delivers = () => o.stall.delivery?.mode === "delivery";
-// "secepatnya" / "hari ini" / "besok", for delivery (no pickup time).
-const dayWord = (l) => tIn(l, { asap: "msg.asap", today: "msg.dayToday", tomorrow: "msg.dayTomorrow" }[o.day]);
+// "secepatnya" / "hari ini" / "besok" / "Kamis, 8 Oktober", for delivery (no pickup time).
+const dayWord = (l) => o.day === "asap" ? tIn(l, "msg.asap") : o.day === 0 ? tIn(l, "msg.dayToday") : o.day === 1 ? tIn(l, "msg.dayTomorrow") : dayName(o.day, l, true);
 const total = () => chosen().reduce((sum, p) => sum + p.price * o.qty.get(p.id), 0);
 
 // ---------- the WhatsApp message ----------
@@ -61,8 +79,9 @@ function itemLine(p, l) {
   return "• " + what + " (" + rp(p.price * n) + ")";
 }
 function message(l, note) {
-  const when = o.day === "asap" ? tIn(l, "msg.asap")
-    : tIn(l, o.day === "today" ? "msg.today" : "msg.tomorrow", { time: hhmm(o.time, l === "id" ? "." : ":") });
+  const time = hhmm(o.time, l === "id" ? "." : ":");
+  const when = o.day === "asap" ? tIn(l, "msg.asap") : o.day === 0 ? tIn(l, "msg.today", { time })
+    : o.day === 1 ? tIn(l, "msg.tomorrow", { time }) : tIn(l, "msg.onDate", { date: dayName(o.day, l, true), time });
   const reqs = [...o.reqs].map((k) => tIn(l, k).toLowerCase());
   return [
     tIn(l, "msg.hello", { stall: o.stall.stallName }),
@@ -85,7 +104,8 @@ const STEPS = [
   { q: "order.qItems", answer: () => chosen().map((p) => `${o.qty.get(p.id)} × ${p.name}`).join(", "), controls: itemsStep },
   { q: () => delivers() ? "order.qHow" : "order.qPickup", controls: pickupStep,
     answer: () => o.how === "deliver" ? t("order.answerDeliver", { area: o.area, when: dayWord(lang) })
-      : (delivers() ? t("order.howPickup") + ", " : "") + (o.day === "asap" ? t("order.asap") : t(o.day === "today" ? "order.pickupToday" : "order.pickupTomorrow", { time: hhmm(o.time) })) },
+      : (delivers() ? t("order.howPickup") + ", " : "") + (o.day === "asap" ? t("order.asap") : o.day === 0 ? t("order.pickupToday", { time: hhmm(o.time) })
+        : o.day === 1 ? t("order.pickupTomorrow", { time: hhmm(o.time) }) : t("order.pickupOn", { date: dayName(o.day, lang), time: hhmm(o.time) })) },
   { q: "order.qRequests", answer: () => [...[...o.reqs].map((k) => t(k)), o.note ? "“" + o.note + "”" : null].filter(Boolean).join(", ") || t("order.noRequests"), controls: requestsStep },
   { q: "order.qName", answer: () => o.name, controls: nameStep },
   { q: "order.qReady", controls: readyStep },
@@ -143,8 +163,8 @@ function itemsStep(box) {
 }
 
 function pickupStep(box) {
-  const today = slots("today");
-  const days = [["asap", "order.asap"], ["today", "order.today"], ["tomorrow", "order.tomorrow"]];
+  const days = dayChoices();
+  if (o.day != null && !days.includes(o.day)) o.day = null;
   const draw = () => {
     box.replaceChildren();
     // Shops that deliver: first pick up or delivery.
@@ -152,32 +172,34 @@ function pickupStep(box) {
       box.append(el("div", { class: "chips" }, ...[["pickup", "order.howPickup"], ["deliver", "order.howDeliver"]].map(([h, key]) => el("button", {
         type: "button", "aria-pressed": String(o.how === h), text: t(key),
         // Today's pickup times may have run out; delivery today can still be asked for.
-        onclick: () => { o.how = h; if (h === "pickup" && o.day === "today" && !today.length) o.day = null; draw(); },
+        onclick: () => { o.how = h; draw(); },
       }))));
       if (!o.how) return nav(box, { next: () => go(2), canNext: false });
     }
     const deliver = o.how === "deliver";
     if (deliver) {
       const area = el("input", { type: "text", id: "order-area", maxlength: "80", autocomplete: "address-level2", placeholder: t("order.areaPlaceholder"),
-        oninput: (e) => { o.area = e.target.value.trim(); const b = box.querySelector(".order-nav .btn:not(.ghost)"); if (b) b.disabled = !(o.day && o.area); } });
+        oninput: (e) => { o.area = e.target.value.trim(); const b = box.querySelector(".order-nav .btn:not(.ghost)"); if (b) b.disabled = !(o.day != null && o.area); } });
       area.value = o.area;
       box.append(deliveryLine(o.stall, { full: true }) || "",
         el("div", { class: "field" }, el("label", { for: "order-area", text: t("order.areaLabel") }), area,
           el("span", { class: "hint", text: t("order.deliverHint") })),
         el("p", { class: "small", style: "font-weight:600", text: t("order.deliverWhen") }));
     }
-    box.append(el("div", { class: "chips" }, ...days.map(([d, key]) => el("button", {
-      type: "button", "aria-pressed": String(o.day === d), disabled: !deliver && d === "today" && !today.length,
+    const notice = aheadLine(o.stall);
+    if (notice) box.append(notice);
+    box.append(el("div", { class: "chips" }, ...days.map((d) => el("button", {
+      type: "button", "aria-pressed": String(o.day === d),
       onclick: () => { o.day = d; if (d !== "asap" && !slots(d).includes(o.time)) o.time = slots(d)[0]; draw(); },
-      text: t(key),
+      text: d === "asap" ? t("order.asap") : dayName(d, lang),
     }))));
-    if (deliver) return nav(box, { next: () => go(2), canNext: !!(o.day && o.area) });
-    if (o.day === "today" || o.day === "tomorrow") {
+    if (deliver) return nav(box, { next: () => go(2), canNext: !!(o.day != null && o.area) });
+    if (typeof o.day === "number") {
       const sel = el("select", { id: "order-time", onchange: (e) => { o.time = Number(e.target.value); } },
         ...slots(o.day).map((m) => el("option", { value: String(m), selected: m === o.time, text: hhmm(m) })));
       box.append(el("div", { class: "field" }, el("label", { for: "order-time", text: t("order.time") }), sel));
     }
-    nav(box, { next: () => go(2), canNext: !!o.day });
+    nav(box, { next: () => go(2), canNext: o.day != null });
   };
   draw();
 }

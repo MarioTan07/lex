@@ -212,22 +212,23 @@
           <div id="s-hours"></div>
         </div>
         <div class="stack">
-          <fieldset class="loc big-edit">
-            <legend data-i18n="big.legend">Pesanan besar</legend>
-            <label class="check"><input type="checkbox" id="s-big"> <span data-i18n="big.accept">Terima pesanan besar (acara, arisan, hajatan)</span></label>
-            <div class="row2" id="s-big-fields">
-              <div class="field"><label for="s-big-days" data-i18n="big.days">Pesan paling lambat</label>
-                <select id="s-big-days">
-                  <option value="1" data-i18n="big.d1">H-1 (sehari sebelumnya)</option>
-                  <option value="2" data-i18n="big.d2">H-2 (2 hari sebelumnya)</option>
-                  <option value="3" data-i18n="big.d3">H-3 (3 hari sebelumnya)</option>
-                  <option value="5" data-i18n="big.d5">H-5 (5 hari sebelumnya)</option>
-                  <option value="7" data-i18n="big.d7">H-7 (seminggu sebelumnya)</option>
-                  <option value="14" data-i18n="big.d14">H-14 (2 minggu sebelumnya)</option>
-                  <option value="30" data-i18n="big.d30">H-30 (sebulan sebelumnya)</option>
-                </select></div>
-              <div class="field"><label for="s-big-note" data-i18n="big.note">Catatan (opsional)</label><input type="text" id="s-big-note" maxlength="80" data-i18n-attr="placeholder:big.notePlaceholder" placeholder="mis. minimal 50 porsi"></div>
-        </div>
+          <fieldset class="loc ahead-edit">
+            <legend data-i18n="ahead.legend">Pesan sebelumnya</legend>
+            <div class="field"><label for="s-ahead" data-i18n="ahead.label">Pembeli harus pesan paling lambat</label>
+              <select id="s-ahead">
+                <option value="0" data-i18n="ahead.o0">Bisa langsung, tidak perlu pesan dulu</option>
+                <option value="60" data-i18n="ahead.o60">1 jam sebelumnya</option>
+                <option value="180" data-i18n="ahead.o180">3 jam sebelumnya</option>
+                <option value="360" data-i18n="ahead.o360">6 jam sebelumnya</option>
+                <option value="1440" data-i18n="ahead.o1440">H-1 (sehari sebelumnya)</option>
+                <option value="2880" data-i18n="ahead.o2880">H-2 (2 hari sebelumnya)</option>
+                <option value="4320" data-i18n="ahead.o4320">H-3 (3 hari sebelumnya)</option>
+                <option value="7200" data-i18n="ahead.o7200">H-5 (5 hari sebelumnya)</option>
+                <option value="10080" data-i18n="ahead.o10080">H-7 (seminggu sebelumnya)</option>
+                <option value="20160" data-i18n="ahead.o20160">H-14 (2 minggu sebelumnya)</option>
+                <option value="43200" data-i18n="ahead.o43200">H-30 (sebulan sebelumnya)</option>
+              </select>
+              <span class="hint" data-i18n="ahead.hint">Ditampilkan ke pembeli. Jam ambil di formulir pesanan juga menyesuaikan.</span></div>
           </fieldset>
           <fieldset class="loc deliv-edit">
             <legend data-i18n="deliv.legend">Ambil sendiri atau diantar</legend>

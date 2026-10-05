@@ -273,9 +273,6 @@
 "photos.open": "Lihat semua kedai yang menjual {name} (foto {n} daripada {total})",
 "photos.prev": "Foto sebelumnya",
 "photos.next": "Foto seterusnya",
-"big.label1": "Terima pesanan besar · pesan 1 hari lebih awal",
-"big.labelN": "Terima pesanan besar · pesan {days} hari lebih awal",
-"big.chip": "Pesanan besar",
 "wisata.priceAsk": "Tanya harga",
 "wisata.free": "Percuma",
 "wisata.perPerson": "seorang",
@@ -374,5 +371,10 @@
 "msg.deliver": "Sila hantar ke: {area} ({when})",
 "msg.deliverCost": "Boleh beritahu kos penghantaran?",
 "msg.dayToday": "hari ini",
-"msg.dayTomorrow": "esok"
+"msg.dayTomorrow": "esok",
+"ahead.hour1": "Pesan sekurang-kurangnya 1 jam lebih awal",
+"ahead.hours": "Pesan sekurang-kurangnya {n} jam lebih awal",
+"ahead.day1": "Pesan sekurang-kurangnya sehari lebih awal",
+"ahead.days": "Pesan sekurang-kurangnya {n} hari lebih awal",
+"msg.onDate": "{date} pukul {time}"
 }
