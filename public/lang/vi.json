@@ -378,5 +378,10 @@
 "ahead.days": "Đặt trước ít nhất {n} ngày",
 "msg.onDate": "{date} lúc {time}",
 "size.from": "từ {price}",
-"size.count": "{n} cỡ"
+"size.count": "{n} cỡ",
+"ahead.bigHour1": "Đơn từ {items} món trở lên: đặt trước ít nhất 1 giờ",
+"ahead.bigHours": "Đơn từ {items} món trở lên: đặt trước ít nhất {n} giờ",
+"ahead.bigDay1": "Đơn từ {items} món trở lên: đặt trước ít nhất 1 ngày",
+"ahead.bigDays": "Đơn từ {items} món trở lên: đặt trước ít nhất {n} ngày",
+"order.bigNote": "Đơn của bạn có {n} món nên là đơn lớn."
 }

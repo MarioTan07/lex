@@ -378,5 +378,10 @@
 "ahead.days": "Umorder nang hindi bababa sa {n} araw bago",
 "msg.onDate": "{date} nang {time}",
 "size.from": "mula {price}",
-"size.count": "{n} laki"
+"size.count": "{n} laki",
+"ahead.bigHour1": "Order na {items} o higit pa: umorder nang hindi bababa sa 1 oras bago",
+"ahead.bigHours": "Order na {items} o higit pa: umorder nang hindi bababa sa {n} oras bago",
+"ahead.bigDay1": "Order na {items} o higit pa: umorder nang hindi bababa sa 1 araw bago",
+"ahead.bigDays": "Order na {items} o higit pa: umorder nang hindi bababa sa {n} araw bago",
+"order.bigNote": "May {n} piraso ang order mo, kaya malaking order ito."
 }

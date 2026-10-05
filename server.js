@@ -159,6 +159,7 @@ const MESSAGES = {
     tooManyPhotos: "Satu tur, pengalaman, atau homestay bisa punya maksimal 10 foto.",
     noPhoto: "Foto itu tidak ditemukan.",
     orderAhead: "Pilih berapa lama sebelumnya pembeli harus memesan.",
+    bigOrder: "Untuk pesanan besar, isi jumlah 2 sampai 10000 buah dan pilih waktu yang lebih lama dari pesanan biasa.",
     deliveryInvalid: "Pilihan pengiriman tidak valid. Muat ulang halaman lalu coba lagi.",
     deliveryCountries: "Pilih minimal satu negara tujuan pengiriman.",
     deliveryRegions: "Pilih minimal satu provinsi di Indonesia yang Anda layani.",
@@ -261,6 +262,7 @@ const MESSAGES = {
     tooManyPhotos: "A tour, experience or homestay can have at most 10 photos.",
     noPhoto: "That photo wasn't found.",
     orderAhead: "Choose how long ahead buyers must order.",
+    bigOrder: "For big orders, enter 2 to 10000 pieces and choose a longer time than for normal orders.",
     deliveryInvalid: "That delivery choice isn't valid. Reload the page and try again.",
     deliveryCountries: "Choose at least one country you deliver to.",
     deliveryRegions: "Choose at least one Indonesian province you deliver to.",
@@ -435,6 +437,7 @@ function publicUser(u) {
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
     paused: !!u.paused, pauseNote: u.pause_note || "", instagram: u.instagram || "", fromHome: !!u.from_home, hours: hoursOut(u),
     orderAhead: u.order_ahead || 0,
+    bigOrder: u.big_items ? { items: u.big_items, ahead: u.big_ahead } : null,
     delivery: deliveryOut(u),
   };
 }
@@ -467,6 +470,14 @@ function orderAhead(v) {
   const n = Number(v || 0);
   if (!ORDER_AHEAD.includes(n)) throw bad("orderAhead");
   return n;
+}
+// Big orders, or null: from `items` pieces in one order, buyers must order `ahead` minutes ahead,
+// which must be longer than the notice for normal orders.
+function bigOrder(v, normal) {
+  if (!v) return { big_items: 0, big_ahead: 0 };
+  const items = Number(v.items), ahead = Number(v.ahead);
+  if (!Number.isInteger(items) || items < 2 || items > 10000 || !ORDER_AHEAD.includes(ahead) || ahead <= normal) throw bad("bigOrder");
+  return { big_items: items, big_ahead: ahead };
 }
 // Pickup only, or delivery to chosen countries (and Indonesian provinces when Indonesia is one of them).
 const COUNTRY_SET = new Set(COUNTRIES), PROVINCE_SET = new Set(PROVINCES);
@@ -519,6 +530,7 @@ function sellerFields(body) {
     // The admin form doesn't edit hours, order-ahead time or delivery, so they only change when sent.
     ...(body.hours !== undefined ? { hours: hours(body.hours) } : {}),
     ...(body.orderAhead !== undefined ? { order_ahead: orderAhead(body.orderAhead) } : {}),
+    ...(body.bigOrder !== undefined ? bigOrder(body.bigOrder, body.orderAhead !== undefined ? orderAhead(body.orderAhead) : 0) : {}),
     ...(body.delivery !== undefined ? { delivery: delivery(body.delivery) } : {}),
     ...Object.fromEntries(Object.entries(location(body.shop, "shop")).map(([k, v]) => ["shop_" + k, v])),
     ...Object.fromEntries(Object.entries(location(body.home, "home")).map(([k, v]) => ["home_" + k, v])),
@@ -782,7 +794,7 @@ app.get("/api/stalls", async (_req, res) => {
   const rows = await db.all("SELECT * FROM users WHERE role = 'seller' AND status = 'approved' AND profile_done = 1 ORDER BY COALESCE(NULLIF(stall_name, ''), name) COLLATE NOCASE");
   res.json({ stalls: rows.map((u) => {
     const p = publicUser(u);
-    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, orderAhead: p.orderAhead, delivery: p.delivery, paused: p.paused, pauseNote: p.pauseNote };
+    return { id: u.id, stallName: shopName(u), phone: u.phone, shop: p.shop, fromHome: p.fromHome, instagram: p.instagram, hours: p.hours, orderAhead: p.orderAhead, bigOrder: p.bigOrder, delivery: p.delivery, paused: p.paused, pauseNote: p.pauseNote };
   }) });
 });
 

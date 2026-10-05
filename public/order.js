@@ -2,7 +2,7 @@
 // then opens WhatsApp with the order written out. The seller always gets it in Indonesian.
 // For shops that deliver, the buyer can instead ask for delivery to an area; the cost and time are
 // then agreed with the seller on WhatsApp, so the message asks for the delivery cost.
-import { $, el, rp, t, api, waNumber, deliveryLine, aheadLine, sizesOf } from "/common.js";
+import { $, el, rp, t, api, waNumber, deliveryLine, aheadLine, bigAheadLine, sizesOf } from "/common.js";
 import { lang, tIn, langInfo, locale } from "/i18n.js";
 
 // Ready-made requests (text keys). Not spicy and extra spicy can't both be picked.
@@ -10,8 +10,9 @@ const REQUESTS = ["req.sauceSeparate", "req.notSpicy", "req.extraSpicy", "req.ex
 const CLASHES = { "req.notSpicy": "req.extraSpicy", "req.extraSpicy": "req.notSpicy" };
 
 // Pickup times every half hour from 07.00 to 21.00, `offset` days from today. The earliest is 30 minutes
-// from now, or later when the seller needs notice (orderAhead, in minutes).
-const ahead = () => Math.max(30, o.stall.orderAhead || 0);
+// from now, or later when the seller needs notice (orderAhead, in minutes; bigOrder.ahead for big orders).
+const notice = () => (isBig() ? o.stall.bigOrder.ahead : o.stall.orderAhead) || 0;
+const ahead = () => Math.max(30, notice());
 function slots(offset) {
   const now = new Date(), earliest = now.getTime() + ahead() * 60000;
   const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset).getTime();
@@ -22,8 +23,8 @@ function slots(offset) {
 // The days a buyer can choose: "as soon as possible" when no notice is needed, then the first days that
 // still have pickup times (two, or three when the seller needs notice).
 function dayChoices() {
-  const out = o.stall.orderAhead ? [] : ["asap"];
-  const want = o.stall.orderAhead ? 3 : 2;
+  const out = notice() ? [] : ["asap"];
+  const want = notice() ? 3 : 2;
   for (let d = 0, found = 0; d < 60 && found < want; d++) if (slots(d).length) { out.push(d); found++; }
   return out;
 }
@@ -67,6 +68,13 @@ const delivers = () => o.stall.delivery?.mode === "delivery";
 // "secepatnya" / "hari ini" / "besok" / "Kamis, 8 Oktober", for delivery (no pickup time).
 const dayWord = (l) => o.day === "asap" ? tIn(l, "msg.asap") : o.day === 0 ? tIn(l, "msg.dayToday") : o.day === 1 ? tIn(l, "msg.dayTomorrow") : dayName(o.day, l, true);
 const total = () => chosen().reduce((sum, p) => sum + p.price * o.qty.get(p.key), 0);
+// Pieces in the order: a pack counts as its pieces ("kotak isi 10" with 10 pieces counts 10).
+const pieceCount = () => chosen().reduce((sum, p) => {
+  const count = COUNT_UNIT.exec(p.unit || "");
+  return sum + o.qty.get(p.key) * (p.pieces || (count ? Number(count[1]) : 0) || 1);
+}, 0);
+// A big order needs the seller's longer notice.
+const isBig = () => !!o.stall.bigOrder && pieceCount() >= o.stall.bigOrder.items;
 
 // ---------- the WhatsApp message ----------
 // "2 bungkus Peyek semanggi" reads well, but a "Dijual per" that is just a count ("1", "65", "isi 12", "10 buah")
@@ -148,15 +156,17 @@ function nav(box, { next, canNext = true, extra } = {}) {
 function itemsStep(box) {
   const totalLine = el("p", { class: "order-total" });
   const nextBtn = () => box.querySelector(".order-nav .btn:not(.ghost)");
+  const bigLine = el("div");
   const refresh = () => {
     totalLine.replaceChildren(el("span", { text: t("order.total") }), el("strong", { text: rp(total()) }));
+    bigLine.replaceChildren(isBig() ? bigAheadLine(o.stall) : "");
     const b = nextBtn(); if (b) b.disabled = !chosen().length;
   };
   const list = el("div", { class: "order-items" });
   for (const p of o.menu) {
     const count = el("output", { text: String(o.qty.get(p.key) || 0) });
     const change = (d) => {
-      const n = Math.max(0, Math.min(99, (o.qty.get(p.key) || 0) + d));
+      const n = Math.max(0, Math.min(999, (o.qty.get(p.key) || 0) + d));
       o.qty.set(p.key, n); count.textContent = String(n); refresh();
     };
     list.append(el("div", { class: "order-item" },
@@ -166,7 +176,7 @@ function itemsStep(box) {
         count,
         el("button", { type: "button", "aria-label": t("order.more", { name: label(p) }), onclick: () => change(1), text: "+" }))));
   }
-  box.append(list, totalLine);
+  box.append(list, totalLine, bigLine);
   nav(box, { next: () => go(1), canNext: chosen().length > 0 });
   refresh();
 }
@@ -174,6 +184,7 @@ function itemsStep(box) {
 function pickupStep(box) {
   const days = dayChoices();
   if (o.day != null && !days.includes(o.day)) o.day = null;
+  if (typeof o.day === "number" && !slots(o.day).includes(o.time)) o.time = slots(o.day)[0];
   const draw = () => {
     box.replaceChildren();
     // Shops that deliver: first pick up or delivery.
@@ -195,8 +206,9 @@ function pickupStep(box) {
           el("span", { class: "hint", text: t("order.deliverHint") })),
         el("p", { class: "small", style: "font-weight:600", text: t("order.deliverWhen") }));
     }
-    const notice = aheadLine(o.stall);
-    if (notice) box.append(notice);
+    // Big orders show why the days start later; other orders show the seller's normal notice.
+    if (isBig()) box.append(el("p", { class: "small", text: t("order.bigNote", { n: pieceCount() }) }), bigAheadLine(o.stall));
+    else box.append(...(aheadLine(o.stall, { big: false }) || []));
     box.append(el("div", { class: "chips" }, ...days.map((d) => el("button", {
       type: "button", "aria-pressed": String(o.day === d),
       onclick: () => { o.day = d; if (d !== "asap" && !slots(d).includes(o.time)) o.time = slots(d)[0]; draw(); },

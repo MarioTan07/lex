@@ -378,5 +378,10 @@
 "ahead.days": "请至少提前{n}天下单",
 "msg.onDate": "{date} {time}",
 "size.from": "{price} 起",
-"size.count": "{n} 种规格"
+"size.count": "{n} 种规格",
+"ahead.bigHour1": "{items} 件或以上的订单：请至少提前 1 小时预订",
+"ahead.bigHours": "{items} 件或以上的订单：请至少提前 {n} 小时预订",
+"ahead.bigDay1": "{items} 件或以上的订单：请至少提前 1 天预订",
+"ahead.bigDays": "{items} 件或以上的订单：请至少提前 {n} 天预订",
+"order.bigNote": "您的订单共 {n} 件，属于大额订单。"
 }

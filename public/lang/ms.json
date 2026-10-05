@@ -378,5 +378,10 @@
 "ahead.days": "Pesan sekurang-kurangnya {n} hari lebih awal",
 "msg.onDate": "{date} pukul {time}",
 "size.from": "dari {price}",
-"size.count": "{n} saiz"
+"size.count": "{n} saiz",
+"ahead.bigHour1": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya 1 jam lebih awal",
+"ahead.bigHours": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya {n} jam lebih awal",
+"ahead.bigDay1": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya 1 hari lebih awal",
+"ahead.bigDays": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya {n} hari lebih awal",
+"order.bigNote": "Pesanan anda ada {n} item, jadi ia pesanan besar."
 }

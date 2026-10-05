@@ -183,6 +183,8 @@ const ADDED_USER_COLUMNS = {
   big_order_days: "INTEGER NOT NULL DEFAULT 0", big_order_note: "TEXT NOT NULL DEFAULT ''",
   // How long before pickup buyers must order, in minutes (0 = any time).
   order_ahead: "INTEGER NOT NULL DEFAULT 0",
+  // Big orders: from big_items pieces in one order, buyers must order big_ahead minutes ahead instead (0 = no separate rule).
+  big_items: "INTEGER NOT NULL DEFAULT 0", big_ahead: "INTEGER NOT NULL DEFAULT 0",
   // Pickup only or delivery, as JSON: {"mode":"pickup"} or {"mode":"delivery","countries":["ID","SG"],"regions":["Jawa Timur"]}.
   // regions are Indonesian provinces, only when Indonesia is a country. Empty = the seller hasn't said.
   delivery: "TEXT NOT NULL DEFAULT ''",

@@ -326,15 +326,23 @@ export function tap(productId, kind = "view") {
   fetch("/api/tap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId, kind }), keepalive: true }).catch(() => {});
 }
 // "Order at least 3 hours ahead" / "Order at least 2 days ahead", for sellers who need notice.
-export function aheadText(mins) {
+// With `items`, the rule for big orders: "Orders of 50 or more: order at least 2 days ahead".
+export function aheadText(mins, items) {
   if (!mins) return "";
-  if (mins < 1440) return mins === 60 ? t("ahead.hour1") : t("ahead.hours", { n: mins / 60 });
-  return mins === 1440 ? t("ahead.day1") : t("ahead.days", { n: mins / 1440 });
+  const big = items ? "ahead.big" : "ahead.";
+  const key = mins < 1440 ? (mins === 60 ? "hour1" : "hours") : (mins === 1440 ? "day1" : "days");
+  const name = items ? big + key[0].toUpperCase() + key.slice(1) : big + key;
+  return t(name, { n: mins < 1440 ? mins / 60 : mins / 1440, items });
 }
-export function aheadLine(stall) {
-  const text = aheadText(stall && stall.orderAhead);
-  return text ? el("p", { class: "big-order" }, icon("calendar"), text) : null;
+const aheadP = (text) => el("p", { class: "big-order" }, icon("calendar"), text);
+// The seller's notice for normal orders and, if they set one, for big orders.
+export function aheadLine(stall, { big = true } = {}) {
+  const normal = aheadText(stall && stall.orderAhead), b = big && stall && stall.bigOrder;
+  const lines = [normal ? aheadP(normal) : null, b ? aheadP(aheadText(b.ahead, b.items)) : null].filter(Boolean);
+  return lines.length ? lines : null;
 }
+// Just the big-order line, for the order helper when the basket has reached it.
+export const bigAheadLine = (stall) => (stall && stall.bigOrder ? aheadP(aheadText(stall.bigOrder.ahead, stall.bigOrder.items)) : null);
 // "Pickup only", or "Delivers to Indonesia (Jawa Timur, Bali) and Singapore". Cards use the short form
 // (up to four places, or three and a count of the rest); the shop page and product window list every place.
 export function deliveryLine(stall, { full = false } = {}) {

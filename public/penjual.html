@@ -235,6 +235,25 @@
                 <option value="43200" data-i18n="ahead.o43200">H-30 (sebulan sebelumnya)</option>
               </select>
               <span class="hint" data-i18n="ahead.hint">Ditampilkan ke pembeli. Jam ambil di formulir pesanan juga menyesuaikan.</span></div>
+            <label class="check"><input type="checkbox" id="s-big"> <span data-i18n="ahead.bigAccept">Pesanan besar perlu waktu lebih lama</span></label>
+            <div class="row2" id="s-big-fields" hidden>
+              <div class="field"><label for="s-big-items" data-i18n="ahead.bigItems">Pesanan besar mulai dari (jumlah buah)</label>
+                <input type="number" id="s-big-items" min="2" max="10000" step="1" inputmode="numeric" placeholder="50"></div>
+              <div class="field"><label for="s-big-ahead" data-i18n="ahead.bigLabel">Pesanan besar harus dipesan paling lambat</label>
+                <select id="s-big-ahead">
+                  <option value="60" data-i18n="ahead.o60">1 jam sebelumnya</option>
+                  <option value="180" data-i18n="ahead.o180">3 jam sebelumnya</option>
+                  <option value="360" data-i18n="ahead.o360">6 jam sebelumnya</option>
+                  <option value="1440" data-i18n="ahead.o1440">H-1 (sehari sebelumnya)</option>
+                  <option value="2880" data-i18n="ahead.o2880" selected>H-2 (2 hari sebelumnya)</option>
+                  <option value="4320" data-i18n="ahead.o4320">H-3 (3 hari sebelumnya)</option>
+                  <option value="7200" data-i18n="ahead.o7200">H-5 (5 hari sebelumnya)</option>
+                  <option value="10080" data-i18n="ahead.o10080">H-7 (seminggu sebelumnya)</option>
+                  <option value="20160" data-i18n="ahead.o20160">H-14 (2 minggu sebelumnya)</option>
+                  <option value="43200" data-i18n="ahead.o43200">H-30 (sebulan sebelumnya)</option>
+                </select></div>
+            </div>
+            <p class="muted small" id="s-big-hint" hidden data-i18n="ahead.bigHint">Dihitung dari semua produk dalam satu pesanan. Kemasan berisi beberapa buah (mis. kotak isi 10) dihitung sesuai isinya.</p>
           </fieldset>
           <fieldset class="loc deliv-edit">
             <legend data-i18n="deliv.legend">Ambil sendiri atau diantar</legend>

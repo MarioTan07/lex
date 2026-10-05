@@ -185,8 +185,20 @@ function fillProfile() {
   $("#s-ig").value = me.instagram ? "@" + me.instagram : ""; $("#s-fromhome").checked = me.fromHome;
   shopLoc.set(me.shop); homeLoc.set(me.home); hoursEd.set(me.hours);
   $("#s-ahead").value = String(me.orderAhead || 0);
+  $("#s-big").checked = !!me.bigOrder;
+  $("#s-big-items").value = me.bigOrder ? String(me.bigOrder.items) : "";
+  $("#s-big-ahead").value = String(me.bigOrder?.ahead || 2880);
+  syncBig();
   setDeliv(me.delivery);
 }
+
+// Big orders: the number of pieces and the longer notice show once the box is ticked.
+function syncBig() {
+  const on = $("#s-big").checked;
+  $("#s-big-fields").hidden = !on; $("#s-big-hint").hidden = !on;
+  $("#s-big-items").required = on;
+}
+$("#s-big").addEventListener("change", syncBig);
 
 // Session expired or account suspended mid-visit.
 function handle(err) {
@@ -345,7 +357,8 @@ $("#profileForm").addEventListener("submit", async (e) => {
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
     const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(),
-      orderAhead: Number($("#s-ahead").value), delivery: getDeliv(), shop: shopLoc.get(), home: homeLoc.get() };
+      orderAhead: Number($("#s-ahead").value), delivery: getDeliv(),
+      bigOrder: $("#s-big").checked ? { items: Number($("#s-big-items").value), ahead: Number($("#s-big-ahead").value) } : null, shop: shopLoc.get(), home: homeLoc.get() };
     const firstTime = !me.profileDone;
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     if (firstTime) { toast(t("setup.done")); start(); window.scrollTo(0, 0); return; }

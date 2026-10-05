@@ -378,5 +378,10 @@
 "ahead.days": "Commandez au moins {n} jours à l'avance",
 "msg.onDate": "{date} à {time}",
 "size.from": "à partir de {price}",
-"size.count": "{n} formats"
+"size.count": "{n} formats",
+"ahead.bigHour1": "Commandes de {items} articles ou plus : commandez au moins 1 heure à l'avance",
+"ahead.bigHours": "Commandes de {items} articles ou plus : commandez au moins {n} heures à l'avance",
+"ahead.bigDay1": "Commandes de {items} articles ou plus : commandez au moins 1 jour à l'avance",
+"ahead.bigDays": "Commandes de {items} articles ou plus : commandez au moins {n} jours à l'avance",
+"order.bigNote": "Votre commande compte {n} articles : c'est une grosse commande."
 }

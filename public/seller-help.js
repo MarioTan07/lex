@@ -113,8 +113,8 @@ const TOURS = [
     { target: "fieldset.hours-edit > div:last-child button", title: { id: "Pakai jam Senin untuk semua hari", en: "Use Monday's hours for all days" },
       text: { id: "Isi Senin dulu, lalu tekan tombol ini: semua hari ikut sama. Ubah hari yang berbeda sesudahnya.", en: "Fill in Monday first, then press this: every day gets the same hours. Change any days that differ afterwards." } },
     { target: "fieldset.ahead-edit legend", title: { id: "Pesan sebelumnya", en: "Order ahead" },
-      text: { id: "Pilih paling lambat berapa lama sebelumnya pembeli harus memesan, dari <b>1 jam</b> sampai <b>sebulan</b>. Pembeli melihatnya, mis. <i>Pesan minimal 3 jam sebelumnya</i>, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.",
-        en: "Choose how long ahead buyers must order, from <b>1 hour</b> to <b>a month</b>. Buyers see it, e.g. <i>Order at least 3 hours ahead</i>, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead." } },
+      text: { id: "Pilih paling lambat berapa lama sebelumnya pembeli harus memesan, dari <b>1 jam</b> sampai <b>sebulan</b>. Pembeli melihatnya, mis. <i>Pesan minimal 3 jam sebelumnya</i>, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.<br><br>Pesanan besar butuh waktu lebih lama? Centang <b>Pesanan besar perlu waktu lebih lama</b>, isi mulai berapa buah (mis. 50), dan pilih waktunya (mis. H-2).",
+        en: "Choose how long ahead buyers must order, from <b>1 hour</b> to <b>a month</b>. Buyers see it, e.g. <i>Order at least 3 hours ahead</i>, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead.<br><br>Big orders need longer? Tick <b>Big orders need more notice</b>, enter from how many items (e.g. 50), and choose the time (e.g. 2 days ahead)." } },
     { target: "fieldset.deliv-edit legend", title: { id: "Ambil sendiri atau diantar", en: "Pickup or delivery" },
       text: { id: "<b>Ambil sendiri saja</b>: pembeli datang ke toko.<br><b>Bisa diantar / dikirim</b>: pilih negara dan provinsi tujuan. Pembeli lalu bisa meminta diantar, dan Anda membicarakan ongkos kirim lewat WhatsApp.",
         en: "<b>Pickup only</b>: buyers come to your shop.<br><b>Delivers / ships</b>: choose the countries and provinces you deliver to. Buyers can then ask for delivery, and you agree the delivery cost on WhatsApp." } },
@@ -344,6 +344,12 @@ const GUIDE = [
     <p>Pembeli melihat apakah toko sedang buka, mis. <i>Buka · tutup jam 15.00</i>.</p>
     <h4>Pesan sebelumnya</h4>
     <p>Di <b>Pembeli harus pesan paling lambat</b>, pilih berapa lama sebelumnya pembeli harus memesan (mis. <i>3 jam sebelumnya</i> atau <i>H-1</i>). Pembeli melihatnya di toko Anda, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.</p>
+    <p>Pesanan besar butuh waktu lebih lama? Centang <b>Pesanan besar perlu waktu lebih lama</b>, lalu isi:</p>
+    <ul>
+      <li><b>Pesanan besar mulai dari</b>: jumlah buah, mis. 50. Dihitung dari semua produk dalam satu pesanan; kemasan seperti <i>kotak isi 10</i> dihitung 10.</li>
+      <li><b>Pesanan besar harus dipesan paling lambat</b>: mis. H-2. Harus lebih lama dari pesanan biasa.</li>
+    </ul>
+    <p>Pembeli melihat mis. <i>Pesanan 50 buah atau lebih: pesan minimal 2 hari sebelumnya</i>. Kalau pesanan mereka mencapai jumlah itu, formulir pesanan hanya menawarkan hari dan jam setelahnya.</p>
     <h4>Ambil sendiri atau diantar</h4>
     <ul>
       <li><b>Ambil sendiri saja</b>: pembeli datang ke toko.</li>
@@ -370,6 +376,12 @@ const GUIDE = [
     <p>Buyers see whether you're open now, e.g. <i>Open · closes at 15:00</i>.</p>
     <h4>Order ahead</h4>
     <p>Under <b>Buyers must order at least</b>, choose how long ahead buyers must order (e.g. <i>3 hours ahead</i> or <i>1 day ahead</i>). Buyers see it on your shop, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead.</p>
+    <p>Big orders need longer? Tick <b>Big orders need more notice</b>, then fill in:</p>
+    <ul>
+      <li><b>A big order starts from</b>: the number of items, e.g. 50. It's counted across every product in one order; a pack such as a <i>box of 10</i> counts as 10.</li>
+      <li><b>Big orders must be placed at least</b>: e.g. 2 days ahead. It must be longer than for normal orders.</li>
+    </ul>
+    <p>Buyers see e.g. <i>Orders of 50 or more: order at least 2 days ahead</i>. When their order reaches that number, the order form only offers days and times after that.</p>
     <h4>Pickup or delivery</h4>
     <ul>
       <li><b>Pickup only</b>: buyers come to your shop.</li>

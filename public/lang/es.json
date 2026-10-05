@@ -378,5 +378,10 @@
 "ahead.days": "Pide con al menos {n} días de antelación",
 "msg.onDate": "{date} a las {time}",
 "size.from": "desde {price}",
-"size.count": "{n} tamaños"
+"size.count": "{n} tamaños",
+"ahead.bigHour1": "Pedidos de {items} o más: pide con al menos 1 hora de antelación",
+"ahead.bigHours": "Pedidos de {items} o más: pide con al menos {n} horas de antelación",
+"ahead.bigDay1": "Pedidos de {items} o más: pide con al menos 1 día de antelación",
+"ahead.bigDays": "Pedidos de {items} o más: pide con al menos {n} días de antelación",
+"order.bigNote": "Tu pedido tiene {n} unidades, así que es un pedido grande."
 }

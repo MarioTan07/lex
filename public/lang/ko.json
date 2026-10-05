@@ -378,5 +378,10 @@
 "ahead.days": "최소 {n}일 전에 주문하세요",
 "msg.onDate": "{date} {time}",
 "size.from": "{price}부터",
-"size.count": "{n}가지 크기"
+"size.count": "{n}가지 크기",
+"ahead.bigHour1": "{items}개 이상 주문: 최소 1시간 전에 주문하세요",
+"ahead.bigHours": "{items}개 이상 주문: 최소 {n}시간 전에 주문하세요",
+"ahead.bigDay1": "{items}개 이상 주문: 최소 1일 전에 주문하세요",
+"ahead.bigDays": "{items}개 이상 주문: 최소 {n}일 전에 주문하세요",
+"order.bigNote": "주문이 {n}개라서 대량 주문에 해당합니다."
 }
