@@ -545,8 +545,14 @@ dialog.book { width: min(560px, calc(100% - 24px)); }
 @media (max-width: 520px) {
   .row2 { grid-template-columns: 1fr; }
   .pincuk li { grid-template-columns: 1fr; gap: 2px; }
-  .top nav .actions .btn { display: none; }
-  .brand b { font-size: 1.1rem; }
+  /* Phones: the logo row keeps the For Sellers button, made compact. The shop name goes on two
+     lines and the button text may wrap, so long translations still fit next to the language switch. */
+  .top .wrap { column-gap: 10px; }
+  .brand { gap: 8px; min-width: 0; }
+  .brand img { width: 34px; height: 34px; }
+  .brand b { display: grid; font-size: 1rem; line-height: 1.05; }
+  .top nav .actions { gap: 6px; }
+  .top nav .actions .btn { padding: 6px 11px; font-size: 12px; line-height: 1.15; text-align: center; white-space: normal; max-width: 104px; min-height: 32px; }
   .pick { left: 12px; right: 12px; bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
