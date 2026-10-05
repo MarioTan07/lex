@@ -36,11 +36,15 @@ function drawCountries() {
 }
 function drawRegions() {
   tickList($("#s-regions"), PROVINCES.map((p) => ({ value: p, name: p })), deliv.regions, syncDeliv);
+  filterRegions();
 }
-function filterCountries() {
-  const q = $("#s-country-find").value.trim().toLowerCase();
-  for (const l of $("#s-countries").children) l.hidden = !!q && !l.dataset.name.includes(q);
+// Show only the countries / provinces whose name contains what's typed in the search box above the list.
+function filterList(find, list) {
+  const q = $(find).value.trim().toLowerCase();
+  for (const l of $(list).children) l.hidden = !!q && !l.dataset.name.includes(q);
 }
+const filterCountries = () => filterList("#s-country-find", "#s-countries");
+const filterRegions = () => filterList("#s-region-find", "#s-regions");
 function syncDeliv() {
   $("#s-deliv-fields").hidden = delivMode() !== "delivery";
   $("#s-regions-field").hidden = !deliv.countries.has("ID");
@@ -64,6 +68,7 @@ function getDeliv() {
 }
 document.querySelectorAll('input[name="s-deliv"]').forEach((r) => r.addEventListener("change", syncDeliv));
 $("#s-country-find").addEventListener("input", filterCountries);
+$("#s-region-find").addEventListener("input", filterRegions);
 $("#s-regions-all").addEventListener("click", () => { PROVINCES.forEach((p) => deliv.regions.add(p)); drawRegions(); syncDeliv(); });
 $("#s-regions-none").addEventListener("click", () => { deliv.regions.clear(); drawRegions(); syncDeliv(); });
 window.addEventListener("langchange", () => { drawCountries(); syncDeliv(); });

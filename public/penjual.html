@@ -159,6 +159,9 @@
           <div id="myProducts"></div>
         </div>
 
+      </div>
+
+      <div class="stack">
         <form class="panel" id="posterForm">
           <h3 data-i18n="posters.sellerTitle">Poster &amp; iklan</h3>
           <p class="muted small" data-i18n="posters.sellerHint">Pasang poster promo, menu, atau pengumuman. Poster tampil di halaman toko Anda. Maksimal 10 poster.</p>
@@ -174,11 +177,23 @@
           </div>
           <div class="poster-mine" id="myPosters"></div>
         </form>
-      </div>
 
-      <div class="stack">
-        <form class="panel" id="profileForm">
-          <h3 data-i18n="profile.title">Data toko</h3>
+        <form class="panel" id="passwordForm">
+          <input type="text" id="pw-user" name="username" autocomplete="username" hidden>
+          <h3 data-i18n="common.changePassword">Ganti kata sandi</h3>
+          <div class="field"><label for="pw-cur" data-i18n="common.currentPassword">Kata sandi saat ini</label><input type="password" id="pw-cur" autocomplete="current-password" required></div>
+          <div class="field"><label for="pw-new" data-i18n="common.newPassword">Kata sandi baru</label><input type="password" id="pw-new" autocomplete="new-password" required minlength="8"></div>
+          <div class="field"><label for="pw-confirm" data-i18n="common.confirmPassword">Konfirmasi kata sandi baru</label><input type="password" id="pw-confirm" autocomplete="new-password" required minlength="8"></div>
+          <p class="formerr" id="pw-err" hidden></p>
+          <button class="btn ghost" type="submit" data-i18n="common.changePassword">Ganti kata sandi</button>
+        </form>
+      </div>
+    </div>
+
+    <form class="panel" id="profileForm">
+      <h3 data-i18n="profile.title">Data toko</h3>
+      <div class="profile-cols">
+        <div class="stack">
           <div class="field"><label for="s-name" data-i18n="common.yourName">Nama Anda</label><input type="text" id="s-name" required maxlength="60"></div>
           <div class="field"><label for="s-stall" data-i18n="common.shopNameOptional">Nama toko (opsional)</label><input type="text" id="s-stall" maxlength="60"><span class="hint" data-i18n="common.shopNameHint">Kosongkan kalau tidak punya. Nama Anda yang tampil.</span></div>
           <div class="field"><label for="s-phone" data-i18n="common.contactNumber">Nomor kontak</label><input type="tel" id="s-phone" required maxlength="24"><span class="hint" data-i18n="seller.contactHint">Ditampilkan ke pembeli bersama peta toko Anda dan di pesanan mereka.</span></div>
@@ -186,6 +201,8 @@
           <label class="check"><input type="checkbox" id="s-fromhome"> <span data-i18n="common.fromHome">Juga jualan dari rumah</span></label>
           <p class="hint muted small" data-i18n="common.fromHomeHint">Alamat rumah tidak pernah ditampilkan di website. Pembeli diberi tahu bahwa penjual akan mengirim alamat rumah lewat WhatsApp setelah mereka memesan, jadi kirimkan alamat ke pembeli saat mereka menghubungi.</p>
           <div id="s-hours"></div>
+        </div>
+        <div class="stack">
           <fieldset class="loc big-edit">
             <legend data-i18n="big.legend">Pesanan besar</legend>
             <label class="check"><input type="checkbox" id="s-big"> <span data-i18n="big.accept">Terima pesanan besar (acara, arisan, hajatan)</span></label>
@@ -200,7 +217,7 @@
                   <option value="14" data-i18n="big.d14">H-14 (2 minggu sebelumnya)</option>
                 </select></div>
               <div class="field"><label for="s-big-note" data-i18n="big.note">Catatan (opsional)</label><input type="text" id="s-big-note" maxlength="80" data-i18n-attr="placeholder:big.notePlaceholder" placeholder="mis. minimal 50 porsi"></div>
-            </div>
+        </div>
           </fieldset>
           <fieldset class="loc deliv-edit">
             <legend data-i18n="deliv.legend">Ambil sendiri atau diantar</legend>
@@ -219,28 +236,21 @@
                   <button type="button" class="btn small ghost" id="s-regions-all" data-i18n="deliv.selectAll">Pilih semua</button>
                   <button type="button" class="btn small ghost" id="s-regions-none" data-i18n="deliv.clearAll">Hapus semua</button>
                 </div>
+                <input type="search" id="s-region-find" autocomplete="off" data-i18n-attr="placeholder:deliv.regionFind;aria-label:deliv.regionFind" placeholder="Cari provinsi" aria-label="Cari provinsi">
                 <div class="pick-list" id="s-regions" role="group" aria-labelledby="s-regions-label"></div>
                 <span class="hint" id="s-regions-chosen"></span>
               </div>
             </div>
           </fieldset>
-          <div id="s-shop"></div>
-          <div id="s-home"></div>
-          <p class="formerr" id="profileErr" hidden></p>
-          <button class="btn" type="submit" data-i18n="profile.save">Simpan data</button>
-        </form>
-
-        <form class="panel" id="passwordForm">
-          <input type="text" id="pw-user" name="username" autocomplete="username" hidden>
-          <h3 data-i18n="common.changePassword">Ganti kata sandi</h3>
-          <div class="field"><label for="pw-cur" data-i18n="common.currentPassword">Kata sandi saat ini</label><input type="password" id="pw-cur" autocomplete="current-password" required></div>
-          <div class="field"><label for="pw-new" data-i18n="common.newPassword">Kata sandi baru</label><input type="password" id="pw-new" autocomplete="new-password" required minlength="8"></div>
-          <div class="field"><label for="pw-confirm" data-i18n="common.confirmPassword">Konfirmasi kata sandi baru</label><input type="password" id="pw-confirm" autocomplete="new-password" required minlength="8"></div>
-          <p class="formerr" id="pw-err" hidden></p>
-          <button class="btn ghost" type="submit" data-i18n="common.changePassword">Ganti kata sandi</button>
-        </form>
+        </div>
       </div>
-    </div>
+      <div class="profile-cols">
+        <div id="s-shop"></div>
+        <div id="s-home"></div>
+      </div>
+      <p class="formerr" id="profileErr" hidden></p>
+      <button class="btn" type="submit" data-i18n="profile.save">Simpan data</button>
+    </form>
   </section>
 </main>
 

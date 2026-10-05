@@ -943,6 +943,7 @@ const TEXT = {
     "deliv.countries": "Countries you deliver to",
     "deliv.countryFind": "Search for a country",
     "deliv.regions": "Provinces in Indonesia",
+    "deliv.regionFind": "Search for a province",
     "deliv.selectAll": "Select all",
     "deliv.clearAll": "Clear all",
     "sstats.views": "Viewed",
