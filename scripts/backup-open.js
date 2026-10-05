@@ -5,7 +5,8 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 
 const src = process.argv[2];
-const password = process.env.BACKUP_PASSWORD;
+// Trimmed the same way as when the backup was made.
+const password = process.env.BACKUP_PASSWORD?.trim().replace(/^(["'])(.*)$/, "$2");
 if (!src || !src.endsWith(".enc")) { console.error("Give the .enc file: npm run backup:open -- backups/<date>/semanggi.db.enc"); process.exit(1); }
 if (!password) { console.error("BACKUP_PASSWORD isn't set. Put it in the .env file."); process.exit(1); }
 const buf = fs.readFileSync(src);
