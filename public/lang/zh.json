@@ -376,5 +376,7 @@
 "ahead.hours": "请至少提前{n}小时下单",
 "ahead.day1": "请至少提前1天下单",
 "ahead.days": "请至少提前{n}天下单",
-"msg.onDate": "{date} {time}"
+"msg.onDate": "{date} {time}",
+"size.from": "{price} 起",
+"size.count": "{n} 种规格"
 }

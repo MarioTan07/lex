@@ -1,4 +1,4 @@
-import { $, el, rp, when, t, api, toast, confirmBox, locationEditor, mapLink } from "/common.js";
+import { $, el, rp, when, t, api, toast, confirmBox, locationEditor, mapLink, sizesOf } from "/common.js";
 
 let me = null;
 
@@ -239,7 +239,8 @@ async function loadProducts() {
       el("td", {}, p.photo ? el("img", { src: p.photo, alt: "" }) : el("img", { alt: "" })),
       el("td", {}, el("strong", { text: p.name }), p.description ? el("div", { class: "muted small", text: p.description }) : null),
       el("td", { text: p.stallName }),
-      el("td", { class: "num" }, rp(p.price), p.unit ? el("div", { class: "muted small", text: t("admin.perUnit", { unit: p.unit }) }) : null),
+      el("td", { class: "num" }, ...sizesOf(p).map((s, i) => el("div", { class: i ? "small" : "" }, rp(s.price),
+        s.unit ? el("div", { class: "muted small", text: t("admin.perUnit", { unit: s.unit }) + (s.out ? " · " + t("size.outShort") : "") }) : null))),
       el("td", {}, el("span", { class: "pill " + state[0], text: state[1] })),
       el("td", {}, el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => setHidden(p, !p.hidden) }, t(p.hidden ? "admin.showProduct" : "admin.hideProduct")),

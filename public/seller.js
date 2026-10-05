@@ -1,4 +1,4 @@
-import { $, el, rp, t, api, toast, shrinkPhoto, confirmBox, locationEditor, hoursEditor } from "/common.js";
+import { $, el, rp, t, api, toast, shrinkPhoto, confirmBox, locationEditor, hoursEditor, sizesOf, priceTag } from "/common.js";
 import { locale } from "/i18n.js";
 import { PROVINCES, sortedCountries } from "/places.js";
 
@@ -207,8 +207,9 @@ function renderProducts() {
       p.photo ? el("img", { src: p.photo, alt: "" }) : el("div", { class: "ph" }),
       el("div", {},
         el("div", { style: "font-weight:600" }, p.name, p.hidden ? el("span", { class: "pill hidden", style: "margin-left:8px", text: t("mine.hiddenByAdmin") }) : null),
-        el("div", { class: "price", style: "font-size:.875rem" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null,
-          p.available ? null : el("small", { text: t("mine.soldOut") }))),
+        el("div", { style: "font-size:.875rem" }, priceTag(p),
+          p.available ? null : el("small", { class: "price", text: t("mine.soldOut") })),
+        sizesOf(p).length > 1 ? el("div", { class: "muted small", text: sizesOf(p).map((s) => s.unit + (s.out ? " (" + t("size.outShort") + ")" : "")).join(" · ") }) : null),
       el("div", { class: "acts" },
         el("button", { class: "btn small ghost", onclick: () => editProduct(p) }, t("common.edit")),
         el("button", { class: "btn small ghost", onclick: () => setAvailable(p, !p.available) }, p.available ? t("mine.markSoldOut") : t("mine.backOnSale")),
@@ -235,6 +236,9 @@ function editProduct(p) {
   labelProductForm();
   $("#cancelEditBtn").hidden = false;
   $("#p-name").value = p.name; $("#p-price").value = p.price; $("#p-unit").value = p.unit; $("#p-pieces").value = p.pieces ?? ""; $("#p-desc").value = p.description; $("#p-category").value = p.category || "";
+  const [first, ...more] = sizesOf(p);
+  $("#p-out").checked = !!first.out;
+  $("#p-sizes").replaceChildren(); more.forEach(addSizeRow); labelSizes();
   pendingPhoto = null; $("#p-photo").value = "";
   $("#p-preview").src = p.photo || ""; $("#p-preview").hidden = !p.photo;
   $("#productForm").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -242,11 +246,55 @@ function editProduct(p) {
 function resetProductForm() {
   editingId = null; pendingPhoto = null;
   $("#productForm").reset();
+  $("#p-sizes").replaceChildren(); labelSizes();
   $("#p-preview").hidden = true;
   labelProductForm();
   $("#cancelEditBtn").hidden = true;
 }
 $("#cancelEditBtn").addEventListener("click", resetProductForm);
+
+// ---------- sizes: the same product in other packagings, each with its own price ----------
+// The first packaging is the price, "Dijual per" and pieces fields above; these rows are the others (up to 4 more).
+const sizeRows = () => [...$("#p-sizes").children];
+let sizeSeq = 0;
+function addSizeRow(s = {}) {
+  if (sizeRows().length >= 4) return;
+  const id = "sz" + ++sizeSeq;
+  const field = (key, input) => el("div", { class: "field" }, el("label", { for: id + key, "data-k": "product." + key }), input);
+  const row = el("fieldset", { class: "size-row" },
+    el("legend", {}),
+    el("div", { class: "row2" },
+      field("price", el("input", { type: "number", id: id + "price", class: "sz-price", required: true, min: "0", step: "500", value: s.price ?? "" })),
+      field("unit", el("input", { type: "text", id: id + "unit", class: "sz-unit", required: true, maxlength: "30", value: s.unit || "" }))),
+    field("pieces", el("input", { type: "number", id: id + "pieces", class: "sz-pieces", min: "1", max: "100000", step: "1", inputmode: "numeric", value: s.pieces ?? "" })),
+    el("div", { class: "size-acts" },
+      el("label", { class: "check" }, el("input", { type: "checkbox", class: "sz-out", checked: !!s.out }), el("span", { "data-k": "size.out" })),
+      el("button", { type: "button", class: "btn small ghost", "data-k": "size.remove", onclick: () => { row.remove(); labelSizes(); } })));
+  $("#p-sizes").append(row);
+}
+// Numbers the sizes and fills in their labels; with several sizes the first one gets a title and a sold-out box too.
+function labelSizes() {
+  const rows = sizeRows(), several = rows.length > 0;
+  $("#p-size1-title").hidden = !several; $("#p-size1-title").textContent = t("size.n", { n: 1 });
+  $("#p-out-wrap").hidden = !several; $("#p-out-text").textContent = t("size.out");
+  $("#p-unit").required = several;
+  rows.forEach((r, i) => {
+    r.querySelector("legend").textContent = t("size.n", { n: i + 2 });
+    r.querySelectorAll("[data-k]").forEach((n) => { n.textContent = t(n.dataset.k); });
+  });
+  $("#addSizeBtn").hidden = rows.length >= 4;
+}
+$("#addSizeBtn").addEventListener("click", () => {
+  addSizeRow(); labelSizes();
+  sizeRows().at(-1)?.querySelector("input")?.focus();
+});
+function sizesInForm() {
+  const several = sizeRows().length > 0;
+  return [
+    { price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, out: several && $("#p-out").checked },
+    ...sizeRows().map((r) => ({ price: r.querySelector(".sz-price").value, unit: r.querySelector(".sz-unit").value, pieces: r.querySelector(".sz-pieces").value, out: r.querySelector(".sz-out").checked })),
+  ];
+}
 
 $("#p-photo").addEventListener("change", async (e) => {
   const f = e.target.files[0]; pendingPhoto = null;
@@ -259,7 +307,7 @@ $("#productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = $("#saveProductBtn");
   btn.disabled = true; btn.textContent = t("product.saving");
-  const body = { name: $("#p-name").value, price: $("#p-price").value, unit: $("#p-unit").value, pieces: $("#p-pieces").value, description: $("#p-desc").value, category: $("#p-category").value };
+  const body = { name: $("#p-name").value, sizes: sizesInForm(), description: $("#p-desc").value, category: $("#p-category").value };
   if (pendingPhoto) body.photo = pendingPhoto;
   try {
     if (editingId) await api("/api/seller/products/" + editingId, { method: "PATCH", body });
@@ -366,9 +414,9 @@ $("#posterForm").addEventListener("submit", async (e) => {
 });
 
 window.addEventListener("langchange", () => {
-  labelProductForm();
+  labelProductForm(); labelSizes();
   if (me) { renderHead(); renderProducts(); }
 });
 
-labelProductForm();
+labelProductForm(); labelSizes();
 start();

@@ -376,5 +376,7 @@
 "ahead.hours": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ {n} ម៉ោង",
 "ahead.day1": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ 1 ថ្ងៃ",
 "ahead.days": "កុម្ម៉ង់មុនយ៉ាងហោចណាស់ {n} ថ្ងៃ",
-"msg.onDate": "{date} ម៉ោង {time}"
+"msg.onDate": "{date} ម៉ោង {time}",
+"size.from": "ចាប់ពី {price}",
+"size.count": "{n} ទំហំ"
 }

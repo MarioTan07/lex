@@ -376,5 +376,7 @@
 "ahead.hours": "Pide con al menos {n} horas de antelación",
 "ahead.day1": "Pide con al menos 1 día de antelación",
 "ahead.days": "Pide con al menos {n} días de antelación",
-"msg.onDate": "{date} a las {time}"
+"msg.onDate": "{date} a las {time}",
+"size.from": "desde {price}",
+"size.count": "{n} tamaños"
 }

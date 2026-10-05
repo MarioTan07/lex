@@ -376,5 +376,7 @@
 "ahead.hours": "اطلب قبل {n} ساعات على الأقل",
 "ahead.day1": "اطلب قبل يوم على الأقل",
 "ahead.days": "اطلب قبل {n} أيام على الأقل",
-"msg.onDate": "{date} الساعة {time}"
+"msg.onDate": "{date} الساعة {time}",
+"size.from": "ابتداءً من {price}",
+"size.count": "{n} أحجام"
 }

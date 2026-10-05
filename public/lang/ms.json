@@ -376,5 +376,7 @@
 "ahead.hours": "Pesan sekurang-kurangnya {n} jam lebih awal",
 "ahead.day1": "Pesan sekurang-kurangnya sehari lebih awal",
 "ahead.days": "Pesan sekurang-kurangnya {n} hari lebih awal",
-"msg.onDate": "{date} pukul {time}"
+"msg.onDate": "{date} pukul {time}",
+"size.from": "dari {price}",
+"size.count": "{n} saiz"
 }

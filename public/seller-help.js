@@ -50,6 +50,9 @@ const TOURS = [
     { target: field("#p-pieces"), title: { id: "Isi (opsional)", en: "Pieces (optional)" },
       text: { id: "Berapa buah untuk harga itu, mis. 65 untuk Rp 160.000 per 65 buah. Pembeli bisa membandingkan harga per buah.",
         en: "How many pieces for that price, e.g. 65 for Rp 160,000 per 65 pieces. Buyers can compare the price per piece." } },
+    { target: field("#addSizeBtn"), title: { id: "Beberapa ukuran (opsional)", en: "Several sizes (optional)" },
+      text: { id: "Jual dalam kemasan lain dengan harga berbeda? Tekan tombol ini untuk menambah ukuran, mis. <i>kotak isi 10</i> atau <i>tampah</i>, sampai 5 ukuran. Pembeli melihat <i>mulai Rp …</i> dan memilih ukuran saat memesan.<br><br>Kalau satu ukuran habis, centang <b>Ukuran ini sedang habis</b>; ukuran lain tetap bisa dipesan.",
+        en: "Sell it in other packagings at different prices? Press this to add a size, e.g. <i>box of 10</i> or <i>tray</i>, up to 5 sizes. Buyers see <i>from Rp …</i> and pick a size when they order.<br><br>If one size runs out, tick <b>This size is sold out for now</b>; the other sizes can still be ordered." } },
     { target: field("#p-category"), title: { id: "Kategori", en: "Category" },
       text: { id: "Pecel, Camilan, Minuman, Oleh-oleh, atau Lainnya. Pembeli bisa menyaring katalog berdasarkan kategori.", en: "Pecel, Snacks, Drinks, Gifts to take home or Other. Buyers can filter the catalog by category." } },
     { target: field("#p-desc"), title: { id: "Deskripsi", en: "Description" },
@@ -231,6 +234,7 @@ const GUIDE = [
       <li>Isi <b>Nama produk</b> dan <b>Harga (Rp)</b>, angka saja (mis. 15000).</li>
       <li>Isi <b>Dijual per</b>, mis. pincuk, bungkus, porsi, kg.</li>
       <li>Kalau satu harga berisi banyak buah, isi <b>Isi</b> (mis. 65). Pembeli bisa membandingkan harga per buah.</li>
+      <li>Ada kemasan lain dengan harga berbeda? Tekan <b>+ Tambah ukuran atau kemasan lain</b> (lihat di bawah).</li>
       <li>Pilih <b>Kategori</b> dan tulis <b>Deskripsi</b> singkat.</li>
       <li>Tekan <b>Tambahkan ke toko</b>. Produk langsung tampil.</li>
     </ol>
@@ -242,7 +246,16 @@ const GUIDE = [
       <li>Satu produk per foto.</li>
     </ul>
     <h4>Mengubah produk</h4>
-    <p>Di <b>Produk Anda</b>, tekan <b>Ubah</b>. Produk terbuka di formulir atas. Ubah yang perlu, lalu tekan <b>Simpan perubahan</b>, atau <b>Batal ubah</b>.</p>`,
+    <p>Di <b>Produk Anda</b>, tekan <b>Ubah</b>. Produk terbuka di formulir atas. Ubah yang perlu, lalu tekan <b>Simpan perubahan</b>, atau <b>Batal ubah</b>.</p>
+    <h4>Satu produk, beberapa ukuran</h4>
+    <p>Kalau Anda menjual produk yang sama dalam beberapa kemasan, mis. per pincuk Rp 15.000, kotak isi 10 Rp 140.000, dan tampah Rp 300.000, cukup buat <b>satu</b> produk:</p>
+    <ol>
+      <li>Isi harga dan <b>Dijual per</b> untuk ukuran pertama.</li>
+      <li>Tekan <b>+ Tambah ukuran atau kemasan lain</b>, lalu isi harga dan kemasannya. Ulangi sampai 5 ukuran.</li>
+      <li>Ukuran yang sedang habis: centang <b>Ukuran ini sedang habis</b>. Ukuran lain tetap bisa dipesan.</li>
+      <li>Tidak dijual lagi: tekan <b>Hapus ukuran ini</b>.</li>
+    </ol>
+    <p>Pembeli melihat <i>mulai Rp 15.000 · 3 ukuran</i>, semua ukuran di jendela produk, dan memilih ukuran saat memesan. Pesan WhatsApp menyebut ukurannya.</p>`,
     en: `
     <h4>Adding a product</h4>
     <ol>
@@ -250,6 +263,7 @@ const GUIDE = [
       <li>Fill in the <b>Product name</b> and <b>Price (Rp)</b>, numbers only (e.g. 15000).</li>
       <li>Fill in <b>Sold per</b>, e.g. pincuk, pack, portion, kg.</li>
       <li>If one price buys many pieces, fill in <b>Pieces</b> (e.g. 65). Buyers can compare the price per piece.</li>
+      <li>Other packagings at different prices? Press <b>+ Add another size or packaging</b> (see below).</li>
       <li>Choose a <b>Category</b> and write a short <b>Description</b>.</li>
       <li>Press <b>Add to my shop</b>. The product shows straight away.</li>
     </ol>
@@ -261,7 +275,16 @@ const GUIDE = [
       <li>One product per photo.</li>
     </ul>
     <h4>Editing a product</h4>
-    <p>Under <b>Your products</b>, press <b>Edit</b>. The product opens in the form above. Change what you need, then press <b>Save changes</b>, or <b>Cancel edit</b>.</p>` } },
+    <p>Under <b>Your products</b>, press <b>Edit</b>. The product opens in the form above. Change what you need, then press <b>Save changes</b>, or <b>Cancel edit</b>.</p>
+    <h4>One product, several sizes</h4>
+    <p>If you sell the same product in several packagings, e.g. Rp 15,000 per pincuk, Rp 140,000 for a box of 10 and Rp 300,000 for a tray, make <b>one</b> product:</p>
+    <ol>
+      <li>Fill in the price and <b>Sold per</b> for the first size.</li>
+      <li>Press <b>+ Add another size or packaging</b>, then fill in its price and packaging. Repeat for up to 5 sizes.</li>
+      <li>A size that has run out: tick <b>This size is sold out for now</b>. The other sizes can still be ordered.</li>
+      <li>No longer sold: press <b>Remove this size</b>.</li>
+    </ol>
+    <p>Buyers see <i>from Rp 15,000 · 3 sizes</i>, every size in the product window, and pick a size when they order. The WhatsApp message names the size.</p>` } },
 
   { id: "habis", title: { id: "Habis, hapus, dan disembunyikan admin", en: "Sold out, removing, and hidden by admin" }, body: {
     id: `

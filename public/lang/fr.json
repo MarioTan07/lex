@@ -376,5 +376,7 @@
 "ahead.hours": "Commandez au moins {n} heures à l'avance",
 "ahead.day1": "Commandez au moins 1 jour à l'avance",
 "ahead.days": "Commandez au moins {n} jours à l'avance",
-"msg.onDate": "{date} à {time}"
+"msg.onDate": "{date} à {time}",
+"size.from": "à partir de {price}",
+"size.count": "{n} formats"
 }

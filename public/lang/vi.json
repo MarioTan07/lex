@@ -376,5 +376,7 @@
 "ahead.hours": "Đặt trước ít nhất {n} giờ",
 "ahead.day1": "Đặt trước ít nhất 1 ngày",
 "ahead.days": "Đặt trước ít nhất {n} ngày",
-"msg.onDate": "{date} lúc {time}"
+"msg.onDate": "{date} lúc {time}",
+"size.from": "từ {price}",
+"size.count": "{n} cỡ"
 }

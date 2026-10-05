@@ -81,6 +81,21 @@ for (const drop of document.querySelectorAll(".navdrop")) {
 }
 
 export const rp =(n) => "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(n || 0));
+// ---------- sizes: a product can come in several packagings, each with its own price ----------
+// Every packaging ({ unit, price, pieces, out }); a product with one packaging gives a list of one.
+export const sizesOf = (p) => (p.sizes && p.sizes.length ? p.sizes : [{ unit: p.unit, price: p.price, pieces: p.pieces ?? null, out: false }]);
+// The packagings still on sale.
+export const sizesOnSale = (p) => sizesOf(p).filter((s) => !s.out);
+// The lowest price among the packagings on sale.
+export const fromPrice = (p) => Math.min(...(sizesOnSale(p).length ? sizesOnSale(p) : sizesOf(p)).map((s) => s.price));
+// "Rp 15.000" or, with several packagings, "from Rp 15.000".
+export const priceText = (p) => (sizesOf(p).length > 1 ? t("size.from", { price: rp(fromPrice(p)) }) : rp(p.price));
+// The price on a card: "Rp 15.000 / pincuk", or "from Rp 15.000 · 3 sizes".
+export function priceTag(p) {
+  const n = sizesOf(p).length;
+  if (n > 1) return el("span", { class: "price" }, priceText(p), el("small", { text: " · " + t("size.count", { n }) }));
+  return el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null);
+}
 export const when = (time) =>
   new Intl.DateTimeFormat(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(time));
 

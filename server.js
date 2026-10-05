@@ -126,6 +126,7 @@ const MESSAGES = {
     "label.shopName": "Nama toko",
     "label.contactNumber": "Nomor kontak",
     "label.product": "Nama produk",
+    "label.unit": "Dijual per",
     "label.pauseNote": "Catatan untuk pembeli",
     "label.instagram": "Instagram",
     "label.sponsorName": "Nama kontak sponsor",
@@ -172,6 +173,8 @@ const MESSAGES = {
     pinInvalid: "Titik peta {place} bukan lokasi yang valid.",
     price: "Masukkan harga dalam Rupiah, misalnya 15000.",
     pieces: "Isi harus berupa angka bulat dari 1 sampai 100000, atau dikosongkan.",
+    sizes: "Satu produk bisa punya 1 sampai 5 ukuran. Setiap ukuran perlu nama kemasan dan harga.",
+    sizeOut: "Minimal satu ukuran harus masih dijual. Kalau semua habis, tandai produknya habis.",
     photoType: "Foto harus berupa gambar JPG, PNG, atau WebP.",
     photoSize: "Foto terlalu besar. Gunakan foto di bawah 1,5 MB.",
     signIn: "Silakan masuk terlebih dahulu.",
@@ -225,6 +228,7 @@ const MESSAGES = {
     "label.shopName": "Shop name",
     "label.contactNumber": "Contact number",
     "label.product": "Product name",
+    "label.unit": "Sold per",
     "label.pauseNote": "Note for buyers",
     "label.instagram": "Instagram",
     "label.sponsorName": "Sponsor contact name",
@@ -271,6 +275,8 @@ const MESSAGES = {
     pinInvalid: "The {place} map pin isn't a valid location.",
     price: "Enter a price in Rupiah, for example 15000.",
     pieces: "Pieces must be a whole number from 1 to 100000, or left empty.",
+    sizes: "A product can have 1 to 5 sizes. Each size needs a packaging name and a price.",
+    sizeOut: "At least one size must still be on sale. If they're all gone, mark the product sold out.",
     photoType: "The photo must be a JPG, PNG or WebP image.",
     photoSize: "The photo is too large. Use one under 1.5 MB.",
     signIn: "Please sign in.",
@@ -526,8 +532,14 @@ const userById = (id) => db.one("SELECT * FROM users WHERE id = ?", id);
 // Products have one photo. Extra photos from before that change are no longer shown, but are still
 // deleted from storage together with their product.
 const extraPhotos = (p) => { try { return p.extra_photos ? JSON.parse(p.extra_photos) : []; } catch { return []; } };
+// Every packaging a product comes in; a product with one packaging gives a list of one.
+function sizesOf(p) {
+  try { const list = p.sizes ? JSON.parse(p.sizes) : null; if (Array.isArray(list) && list.length) return list; } catch {}
+  return [{ unit: p.unit, price: p.price, pieces: p.pieces ?? null, out: false }];
+}
 function productOut(p) {
   return {
+    sizes: sizesOf(p),
     photos: [p.photo].filter(Boolean),
     id: p.id, sellerId: p.seller_id, stallName: p.stall_name, name: p.name, price: p.price, unit: p.unit, pieces: p.pieces ?? null, category: p.category || "",
     description: p.description, photo: p.photo, available: !!p.available, hidden: !!p.hidden, createdAt: p.created_at,
@@ -1133,9 +1145,13 @@ seller.get("/stats", async (req, res) => {
 function productFields(body, partial) {
   const f = {};
   if (!partial || body.name !== undefined) f.name = text(body.name, 60, { required: true, label: "label.product" });
-  if (!partial || body.price !== undefined) f.price = money(body.price);
-  if (!partial || body.unit !== undefined) f.unit = text(body.unit, 30);
-  if (!partial || body.pieces !== undefined) f.pieces = pieces(body.pieces);
+  if (Array.isArray(body.sizes)) Object.assign(f, sizeFields(body.sizes));
+  else {
+    if (!partial || body.price !== undefined) f.price = money(body.price);
+    if (!partial || body.unit !== undefined) f.unit = text(body.unit, 30);
+    if (!partial || body.pieces !== undefined) f.pieces = pieces(body.pieces);
+    if (!partial) f.sizes = "";
+  }
   if (!partial || body.description !== undefined) f.description = text(body.description, 240);
   if (!partial || body.category !== undefined) {
     f.category = typeof body.category === "string" ? body.category : "";
@@ -1143,6 +1159,19 @@ function productFields(body, partial) {
   }
   if (body.available !== undefined) f.available = body.available ? 1 : 0;
   return f;
+}
+// 1 to 5 packagings, each with a name and a price. The first also fills price, unit and pieces,
+// which is what a product with one packaging uses on its own.
+function sizeFields(list) {
+  if (list.length < 1 || list.length > 5) throw bad("sizes");
+  const sizes = list.map((s) => {
+    const unit = text(s?.unit, 30, { label: "label.unit" });
+    if (list.length > 1 && !unit) throw bad("sizes");
+    return { unit, price: money(s?.price), pieces: pieces(s?.pieces), out: list.length > 1 && !!s?.out };
+  });
+  if (sizes.every((s) => s.out)) throw bad("sizeOut");
+  const [first] = sizes;
+  return { price: first.price, unit: first.unit, pieces: first.pieces, sizes: sizes.length > 1 ? JSON.stringify(sizes) : "" };
 }
 async function ownProduct(req) {
   const p = await db.one("SELECT * FROM products WHERE id = ? AND seller_id = ?", Number(req.params.id), req.user.id);
@@ -1154,8 +1183,8 @@ seller.post("/products", async (req, res) => {
   const f = productFields(req.body, false);
   if ((await db.one("SELECT COUNT(*) AS n FROM products WHERE seller_id = ?", req.user.id)).n >= 200) throw bad("maxProducts");
   const photo = req.body.photo ? await savePhoto(req.body.photo, req) : "";
-  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, pieces, description, category, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
-    req.user.id, f.name, f.price, f.unit, f.pieces, f.description, f.category, photo, Date.now());
+  const r = await db.run("INSERT INTO products (seller_id, name, price, unit, pieces, sizes, description, category, photo, available, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+    req.user.id, f.name, f.price, f.unit, f.pieces, f.sizes, f.description, f.category, photo, Date.now());
   res.status(201).json({ id: r.id });
 });
 

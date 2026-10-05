@@ -189,7 +189,10 @@ const ADDED_USER_COLUMNS = {
 };
 // Product columns added later. pieces: how many pieces one listed price covers (e.g. Rp 160.000 for 65),
 // for comparing prices per piece; empty means not given. category: one of the catalog filter categories.
-const ADDED_PRODUCT_COLUMNS = { category: "TEXT NOT NULL DEFAULT ''", pieces: "INTEGER", extra_photos: "TEXT NOT NULL DEFAULT ''" };
+// sizes: when a product comes in several packagings, all of them as JSON, e.g.
+// [{"unit":"pincuk","price":15000,"pieces":null,"out":false},{"unit":"kotak isi 10","price":140000,"pieces":10,"out":false}];
+// price, unit and pieces then repeat the first one. Empty = one packaging, given by price, unit and pieces.
+const ADDED_PRODUCT_COLUMNS = { category: "TEXT NOT NULL DEFAULT ''", pieces: "INTEGER", extra_photos: "TEXT NOT NULL DEFAULT ''", sizes: "TEXT NOT NULL DEFAULT ''" };
 
 const isNetworkError = (e) => /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up|network/i.test(`${e?.message} ${e?.cause?.message ?? ""} ${e?.cause?.code ?? ""}`);
 const arg = (v) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);

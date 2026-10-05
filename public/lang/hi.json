@@ -376,5 +376,7 @@
 "ahead.hours": "कम से कम {n} घंटे पहले ऑर्डर करें",
 "ahead.day1": "कम से कम 1 दिन पहले ऑर्डर करें",
 "ahead.days": "कम से कम {n} दिन पहले ऑर्डर करें",
-"msg.onDate": "{date}, {time} बजे"
+"msg.onDate": "{date}, {time} बजे",
+"size.from": "{price} से शुरू",
+"size.count": "{n} साइज़"
 }

@@ -376,5 +376,7 @@
 "ahead.hours": "최소 {n}시간 전에 주문하세요",
 "ahead.day1": "최소 1일 전에 주문하세요",
 "ahead.days": "최소 {n}일 전에 주문하세요",
-"msg.onDate": "{date} {time}"
+"msg.onDate": "{date} {time}",
+"size.from": "{price}부터",
+"size.count": "{n}가지 크기"
 }

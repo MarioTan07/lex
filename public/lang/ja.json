@@ -376,5 +376,7 @@
 "ahead.hours": "{n}時間前までにご注文ください",
 "ahead.day1": "1日前までにご注文ください",
 "ahead.days": "{n}日前までにご注文ください",
-"msg.onDate": "{date} {time}"
+"msg.onDate": "{date} {time}",
+"size.from": "{price}から",
+"size.count": "{n}サイズ"
 }

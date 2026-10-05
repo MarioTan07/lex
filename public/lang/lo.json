@@ -376,5 +376,7 @@
 "ahead.hours": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ {n} ຊົ່ວໂມງ",
 "ahead.day1": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ 1 ມື້",
 "ahead.days": "ສັ່ງລ່ວງໜ້າຢ່າງໜ້ອຍ {n} ມື້",
-"msg.onDate": "{date} ເວລາ {time}"
+"msg.onDate": "{date} ເວລາ {time}",
+"size.from": "ເລີ່ມ {price}",
+"size.count": "{n} ຂະໜາດ"
 }

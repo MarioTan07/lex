@@ -376,5 +376,7 @@
 "ahead.hours": "အနည်းဆုံး {n} နာရီ ကြိုမှာပါ",
 "ahead.day1": "အနည်းဆုံး ၁ ရက် ကြိုမှာပါ",
 "ahead.days": "အနည်းဆုံး {n} ရက် ကြိုမှာပါ",
-"msg.onDate": "{date} {time}"
+"msg.onDate": "{date} {time}",
+"size.from": "{price} မှစ၍",
+"size.count": "အရွယ်အစား {n} မျိုး"
 }

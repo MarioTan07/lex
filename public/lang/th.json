@@ -376,5 +376,7 @@
 "ahead.hours": "สั่งล่วงหน้าอย่างน้อย {n} ชั่วโมง",
 "ahead.day1": "สั่งล่วงหน้าอย่างน้อย 1 วัน",
 "ahead.days": "สั่งล่วงหน้าอย่างน้อย {n} วัน",
-"msg.onDate": "{date} เวลา {time}"
+"msg.onDate": "{date} เวลา {time}",
+"size.from": "เริ่มต้น {price}",
+"size.count": "{n} ขนาด"
 }

@@ -376,5 +376,7 @@
 "ahead.hours": "Umorder nang hindi bababa sa {n} oras bago",
 "ahead.day1": "Umorder nang hindi bababa sa 1 araw bago",
 "ahead.days": "Umorder nang hindi bababa sa {n} araw bago",
-"msg.onDate": "{date} nang {time}"
+"msg.onDate": "{date} nang {time}",
+"size.from": "mula {price}",
+"size.count": "{n} laki"
 }
