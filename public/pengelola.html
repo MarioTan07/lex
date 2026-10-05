@@ -54,7 +54,10 @@
         <p class="eyebrow" data-i18n="admin.eyebrow">Admin Kampoeng Semanggi</p>
         <h1 style="font-size:var(--step-2)" data-i18n="admin.heading">Toko dan produk</h1>
       </div>
-      <button class="btn ghost small" id="refreshBtn" data-i18n="admin.refresh">Muat ulang</button>
+      <div class="desk-acts">
+        <button class="btn ghost small" type="button" id="helpBtn"><span class="help-q" aria-hidden="true">?</span> <span data-i18n="help.button">Bantuan</span></button>
+        <button class="btn ghost small" id="refreshBtn" data-i18n="admin.refresh">Muat ulang</button>
+      </div>
     </div>
 
     <dl class="stats" id="stats">
@@ -315,5 +318,6 @@
 <script type="module" src="/admin.js"></script>
 <script type="module" src="/admin-wisata.js"></script>
 <script type="module" src="/admin-about.js"></script>
+<script type="module" src="/admin-help.js"></script>
 </body>
 </html>

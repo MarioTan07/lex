@@ -663,6 +663,7 @@ const TEXT = {
     "admin.eyebrow": "Kampoeng Semanggi admin",
     "admin.heading": "Shops and products",
     "admin.refresh": "Refresh",
+    "help.button": "Help",
     "stats.approved": "Live shops",
     "stats.products": "Products listed",
     "admin.sections": "Admin sections",
