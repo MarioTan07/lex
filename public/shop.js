@@ -161,6 +161,19 @@ function renderHero() {
   }
   $("#joined").hidden = !stalls.length;
   $("#joinedCount").textContent = t("hero.sellers", { n: stalls.length });
+  // Three shops as initials in circles, and "+4" for the rest. Hovering shows every shop's name.
+  const shown = stalls.slice(0, 3);
+  const faces = $("#joinedFaces");
+  faces.replaceChildren(...shown.map((s) => el("span", { text: initials(s.stallName) })),
+    ...(stalls.length > shown.length ? [el("span", { class: "more", text: "+" + (stalls.length - shown.length) })] : []));
+  $("#joined").title = stalls.map((s) => s.stallName).join(", ");
+}
+// "Semanggi Bu Ning" → "BN", "Pecel Semanggi Mak Sum" → "MS": words every shop shares are skipped.
+const COMMON_WORDS = new Set(["semanggi", "pecel", "dapur", "camilan", "toko", "warung", "kedai", "lapak", "kampoeng", "kampung", "olahan", "jajanan", "kue"]);
+function initials(name) {
+  const words = String(name || "").split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const own = words.filter((w) => !COMMON_WORDS.has(w.toLowerCase()));
+  return (own.length ? own : words).slice(0, 2).map((w) => [...w][0]).join("").toUpperCase() || "?";
 }
 
 

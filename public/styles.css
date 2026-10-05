@@ -145,9 +145,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .joined { display: flex; align-items: center; gap: 14px; margin-top: 40px; font-size: 12px; color: var(--muted); line-height: 1.5; }
 .joined strong { color: var(--ink); }
 .faces { display: flex; }
-.faces span { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--paper); }
+.faces span { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--paper); display: grid; place-items: center; font-size: 11px; font-weight: 700; letter-spacing: .02em; color: #2d3026; }
 .faces span + span { margin-left: -8px; }
-.faces span:nth-child(1) { background: #c89d74; } .faces span:nth-child(2) { background: #71805a; } .faces span:nth-child(3) { background: #d4b38f; }
+.faces span:nth-child(1) { background: #c89d74; } .faces span:nth-child(2) { background: #71805a; color: #fff; } .faces span:nth-child(3) { background: #d4b38f; }
+.faces span.more { background: var(--leaf-soft); color: var(--leaf); }
 .hero-photo { position: relative; overflow: hidden; border-radius: var(--radius-xl); background: var(--leaf-soft); box-shadow: var(--shadow); }
 .hero-photo img { display: block; width: 100%; height: clamp(340px, 46vw, 560px); object-fit: cover; }
 .pick { position: absolute; left: 20px; right: 20px; bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; border-radius: 18px; padding: 16px 18px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(6px); border: 0; text-align: left; cursor: pointer; color: inherit; width: auto; }
