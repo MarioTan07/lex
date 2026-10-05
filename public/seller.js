@@ -81,6 +81,7 @@ async function start() {
   // Tells password managers which account the change-password form is for (kept when the form resets).
   $("#pw-user").setAttribute("value", me?.loginPhone || me?.email || "");
   const setup = !!me && !me.profileDone;
+  $("#bootNote")?.remove();
   $("#authView").hidden = !!me;
   $("#setupView").hidden = !setup;
   $("#deskView").hidden = !me || setup;

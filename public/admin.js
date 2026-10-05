@@ -7,6 +7,7 @@ async function start() {
   me = user && user.role === "admin" ? user : null;
   // Tells password managers which account the change-password form is for (kept when the form resets).
   $("#pw-user").setAttribute("value", me?.email || "");
+  $("#bootNote")?.remove();
   $("#authView").hidden = !!me;
   $("#deskView").hidden = !me;
   $("#logoutBtn").hidden = !me;

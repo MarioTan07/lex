@@ -737,3 +737,6 @@ html.touring { scroll-behavior: auto; }
   .tour-bubble:not(.tour-center) { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); top: auto; width: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .mission-bar span { transition: none; } .tour-do-spot::after, .tour-cheer { animation: none; } }
+
+/* Seller and admin pages: the note shown before the sign-in form loads */
+.boot-note { max-width: 560px; margin: 24px auto; display: grid; gap: 8px; }

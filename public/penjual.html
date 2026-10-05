@@ -36,6 +36,11 @@
 </header>
 
 <main class="wrap">
+  <!-- Shown until the page's script runs. If it never goes away, the browser couldn't run the script. -->
+  <div class="panel boot-note" id="bootNote">
+    <p data-i18n="boot.loading">Memuat halaman masuk…</p>
+    <p class="muted small" data-i18n="boot.help">Kalau tulisan ini tidak berubah dalam beberapa detik, periksa koneksi internet lalu muat ulang halaman. Kalau masih sama, browser di HP ini mungkin terlalu lama: perbarui Chrome atau Safari (iPhone perlu iOS 15 atau lebih baru), atau buka halaman ini di browser Chrome.</p>
+  </div>
   <!-- signed out -->
   <section class="auth" id="authView" hidden>
     <form class="panel" id="loginForm">

@@ -798,6 +798,8 @@ const TEXT = {
     "admin.deleteShopTitle": "Delete {stall}?",
     "admin.deleteShopText": "The seller's account and all of this shop's products, photos and posters will be deleted for good, and the seller won't be able to sign in. This can't be undone. To hide the shop for a while instead, use Suspend.",
     "confirm.cancel": "Cancel",
+    "boot.loading": "Loading the sign-in page…",
+    "boot.help": "If this doesn't change within a few seconds, check the internet connection and reload the page. If it still doesn't, this phone's browser may be too old: update Chrome or Safari (iPhones need iOS 15 or newer), or open this page in the Chrome browser.",
     "admin.shopDeleted": "{stall} deleted, with all its products and photos",
     "admin.sellerNow": "{stall} is now {status}",
     "admin.noProducts": "No products yet.",
