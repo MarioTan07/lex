@@ -1005,6 +1005,7 @@ const TEXT = {
     "big.d5": "5 days ahead",
     "big.d7": "1 week ahead",
     "big.d14": "2 weeks ahead",
+    "big.d30": "1 month ahead",
     "big.note": "Note (optional)",
     "big.notePlaceholder": "e.g. at least 50 portions",
     "wisata.priceAsk": "Ask for the price",
