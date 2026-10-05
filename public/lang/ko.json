@@ -374,5 +374,7 @@
 "msg.deliver": "배달 부탁드려요: {area} ({when})",
 "msg.deliverCost": "배달비가 얼마인지 알려 주시겠어요?",
 "msg.dayToday": "오늘",
-"msg.dayTomorrow": "내일"
+"msg.dayTomorrow": "내일",
+"size.from": "{price}부터",
+"size.count": "{n}가지 크기"
 }

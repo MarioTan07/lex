@@ -374,5 +374,7 @@
 "msg.deliver": "Vui lòng giao đến: {area} ({when})",
 "msg.deliverCost": "Cho tôi biết phí giao hàng nhé?",
 "msg.dayToday": "hôm nay",
-"msg.dayTomorrow": "ngày mai"
+"msg.dayTomorrow": "ngày mai",
+"size.from": "từ {price}",
+"size.count": "{n} cỡ"
 }

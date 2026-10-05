@@ -374,5 +374,7 @@
 "msg.deliver": "รบกวนส่งไปที่: {area} ({when})",
 "msg.deliverCost": "ขอทราบค่าส่งด้วยค่ะ/ครับ",
 "msg.dayToday": "วันนี้",
-"msg.dayTomorrow": "พรุ่งนี้"
+"msg.dayTomorrow": "พรุ่งนี้",
+"size.from": "เริ่มต้น {price}",
+"size.count": "{n} ขนาด"
 }

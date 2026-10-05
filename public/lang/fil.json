@@ -374,5 +374,7 @@
 "msg.deliver": "Pakihatid sa: {area} ({when})",
 "msg.deliverCost": "Magkano po ang delivery fee?",
 "msg.dayToday": "ngayon",
-"msg.dayTomorrow": "bukas"
+"msg.dayTomorrow": "bukas",
+"size.from": "mula {price}",
+"size.count": "{n} laki"
 }

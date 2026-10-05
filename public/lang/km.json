@@ -374,5 +374,7 @@
 "msg.deliver": "សូមដឹកទៅ៖ {area} ({when})",
 "msg.deliverCost": "សូមប្រាប់តម្លៃដឹកជញ្ជូន។",
 "msg.dayToday": "ថ្ងៃនេះ",
-"msg.dayTomorrow": "ថ្ងៃស្អែក"
+"msg.dayTomorrow": "ថ្ងៃស្អែក",
+"size.from": "ចាប់ពី {price}",
+"size.count": "{n} ទំហំ"
 }

@@ -374,5 +374,7 @@
 "msg.deliver": "请送到：{area}（{when}）",
 "msg.deliverCost": "请问运费是多少？",
 "msg.dayToday": "今天",
-"msg.dayTomorrow": "明天"
+"msg.dayTomorrow": "明天",
+"size.from": "{price} 起",
+"size.count": "{n} 种规格"
 }

@@ -374,5 +374,7 @@
 "msg.deliver": "Merci de livrer à : {area} ({when})",
 "msg.deliverCost": "Pouvez-vous m'indiquer les frais de livraison ?",
 "msg.dayToday": "aujourd'hui",
-"msg.dayTomorrow": "demain"
+"msg.dayTomorrow": "demain",
+"size.from": "à partir de {price}",
+"size.count": "{n} formats"
 }

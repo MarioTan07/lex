@@ -374,5 +374,7 @@
 "msg.deliver": "Por favor, entregar en: {area} ({when})",
 "msg.deliverCost": "¿Me podría decir el costo de envío?",
 "msg.dayToday": "hoy",
-"msg.dayTomorrow": "mañana"
+"msg.dayTomorrow": "mañana",
+"size.from": "desde {price}",
+"size.count": "{n} tamaños"
 }

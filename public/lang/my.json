@@ -374,5 +374,7 @@
 "msg.deliver": "ကျေးဇူးပြု၍ ပို့ပေးပါ- {area} ({when})",
 "msg.deliverCost": "ပို့ခ ဘယ်လောက်လဲ ပြောပေးပါ။",
 "msg.dayToday": "ယနေ့",
-"msg.dayTomorrow": "မနက်ဖြန်"
+"msg.dayTomorrow": "မနက်ဖြန်",
+"size.from": "{price} မှစ၍",
+"size.count": "အရွယ်အစား {n} မျိုး"
 }

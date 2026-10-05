@@ -374,5 +374,7 @@
 "msg.deliver": "Sila hantar ke: {area} ({when})",
 "msg.deliverCost": "Boleh beritahu kos penghantaran?",
 "msg.dayToday": "hari ini",
-"msg.dayTomorrow": "esok"
+"msg.dayTomorrow": "esok",
+"size.from": "dari {price}",
+"size.count": "{n} saiz"
 }

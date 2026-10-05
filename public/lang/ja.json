@@ -374,5 +374,7 @@
 "msg.deliver": "配達先：{area}（{when}）",
 "msg.deliverCost": "配達料を教えていただけますか？",
 "msg.dayToday": "今日",
-"msg.dayTomorrow": "明日"
+"msg.dayTomorrow": "明日",
+"size.from": "{price}から",
+"size.count": "{n}サイズ"
 }

@@ -374,5 +374,7 @@
 "msg.deliver": "ກະລຸນາສົ່ງໄປ: {area} ({when})",
 "msg.deliverCost": "ກະລຸນາບອກຄ່າສົ່ງແດ່.",
 "msg.dayToday": "ມື້ນີ້",
-"msg.dayTomorrow": "ມື້ອື່ນ"
+"msg.dayTomorrow": "ມື້ອື່ນ",
+"size.from": "ເລີ່ມ {price}",
+"size.count": "{n} ຂະໜາດ"
 }

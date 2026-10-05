@@ -1,4 +1,4 @@
-import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, bigOrderLine, deliveryLine } from "/common.js";
+import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, bigOrderLine, deliveryLine, sizesOf, sizesOnSale, fromPrice, priceText, priceTag } from "/common.js";
 import { lang, locale } from "/i18n.js";
 import { openOrder } from "/order.js";
 
@@ -108,7 +108,7 @@ function renderShop() {
             stall && !stall.paused ? hoursLine(stall.hours) : null,
             bigOrderLine(stall),
             deliveryLine(stall)),
-          el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null)),
+          priceTag(p)),
         perPieceLine(p),
         sellers > 1 ? el("button", { type: "button", class: "comparelink", onclick: compare, text: t("compare.count", { n: sellers }) }) : null,
         el("p", { class: "desc", text: p.description || "" }),
@@ -157,7 +157,7 @@ function renderHero() {
     const day = Math.floor(Date.now() / 864e5);
     const p = open[day % open.length];
     $("#pickName").textContent = p.name;
-    $("#pickPrice").textContent = rp(p.price);
+    $("#pickPrice").textContent = priceText(p);
     pick.onclick = () => openProduct(p);
     pick.setAttribute("aria-label", t("detail.view", { name: p.name }));
   }
@@ -175,12 +175,18 @@ const sameProduct = (a, b) => { const x = norm(a.name), y = norm(b.name); return
 let comparing = null;          // the product whose panel is open
 let sortBy = "cheapest";       // "cheapest" | "perPiece" | "closest"
 
-// Pieces in one listed price: the seller's number, or a "Dijual per" that is just a count
+// Pieces in one packaging's price: the seller's number, or a "Dijual per" that is just a count
 // ("65", "isi 12", "10 buah"); otherwise one. "250 g" isn't a count, so it stays one.
-const piecesOf = (p) => p.pieces || Number((/^\s*(?:isi\s*)?(\d+)\s*(?:buah|biji|pcs?|potong|butir)?\s*$/i.exec(p.unit || "") || [])[1]) || 1;
-const perPiece = (p) => p.price / piecesOf(p);
+const piecesOf = (s) => s.pieces || Number((/^\s*(?:isi\s*)?(\d+)\s*(?:buah|biji|pcs?|potong|butir)?\s*$/i.exec(s.unit || "") || [])[1]) || 1;
+// Price per piece; with several packagings, the lowest among those on sale.
+const perPiece = (p) => Math.min(...(sizesOnSale(p).length ? sizesOnSale(p) : sizesOf(p)).map((s) => s.price / piecesOf(s)));
 // "≈ Rp 2.462 / buah" under a price that covers several pieces.
-const perPieceLine = (p) => piecesOf(p) > 1 ? el("p", { class: "perpiece small", text: t("compare.perPieceValue", { price: rp(perPiece(p)) }) }) : null;
+const perPieceLine = (p) => sizesOf(p).some((s) => piecesOf(s) > 1) ? el("p", { class: "perpiece small", text: t("compare.perPieceValue", { price: rp(perPiece(p)) }) }) : null;
+// Every packaging and its price, in the product window of a product that has several.
+const sizeList = (p) => sizesOf(p).length < 2 ? null : el("ul", { class: "size-list" }, ...sizesOf(p).map((s) => el("li", { class: s.out ? "out" : "" },
+  el("span", { text: s.unit }),
+  piecesOf(s) > 1 ? el("span", { class: "perpiece small", text: t("compare.perPieceValue", { price: rp(s.price / piecesOf(s)) }) }) : null,
+  el("strong", { text: rp(s.price) }), s.out ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null)));
 let hideUnavailable = false;
 let here = null;               // buyer's position, once they allow it: { lat, lng }
 
@@ -238,7 +244,7 @@ function renderCompare() {
   rows.sort((a, b) => (b.usable - a.usable)
     || (sortBy === "closest" ? (a.dist ?? Infinity) - (b.dist ?? Infinity) : 0)
     || (sortBy === "perPiece" ? perPiece(a.q) - perPiece(b.q) : 0)
-    || a.q.price - b.q.price
+    || fromPrice(a.q) - fromPrice(b.q)
     || a.q.stallName.localeCompare(b.q.stallName));
 
   const kmFmt = new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 });
@@ -252,7 +258,7 @@ function renderCompare() {
       el("div", { class: "body" },
         el("div", { class: "offer-head" },
           el("h3", {}, shopLink(q.sellerId, q.stallName)),
-          el("span", { class: "price" }, rp(q.price), q.unit ? el("small", { text: " / " + q.unit }) : null)),
+          priceTag(q)),
         perPieceLine(q),
         norm(q.name) !== norm(comparing.name) ? el("p", { class: "small", text: q.name }) : null,
         stall && stall.shop.address ? el("p", { class: "muted small", text: stall.shop.address }) : null,
@@ -348,7 +354,7 @@ function renderPosters() {
 }
 
 // Links shared from a product (/?p=12) open it; links to a shop (/lokasi#lapak-3) scroll to it.
-const shareText = (p) => t("share.productText", { name: p.name, stall: p.stallName, price: rp(p.price) });
+const shareText = (p) => t("share.productText", { name: p.name, stall: p.stallName, price: priceText(p) });
 let linkedProduct = new URLSearchParams(location.search).get("p");
 function openLinkedProduct() {
   if (!linkedProduct || !stalls.length) return;
@@ -392,11 +398,11 @@ function renderProduct() {
     el("div", { class: "detail-photo" }, photoBox(p, null)),
     el("div", { class: "detail-main" },
       el("div", { class: "detail-price" },
-        el("span", { class: "price" }, rp(p.price), p.unit ? el("small", { text: " / " + p.unit }) : null),
+        priceTag(p),
         el("div", { class: "detail-tools" },
           favButton("p", p.id, p.name, () => { renderShop(); renderProduct(); }),
           shareButton({ title: p.name, text: shareText(p), url: location.origin + "/?p=" + p.id, onShare: () => tap(p.id, "share") }))),
-      perPieceLine(p),
+      sizesOf(p).length > 1 ? sizeList(p) : perPieceLine(p),
       p.category ? el("p", {}, el("span", { class: "cat-tag", text: t("cat." + p.category) })) : null,
       p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
       el("p", { class: "detail-desc", text: p.description || t("detail.noDescription") }),

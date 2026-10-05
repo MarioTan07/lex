@@ -2,7 +2,7 @@
 // then opens WhatsApp with the order written out. The seller always gets it in Indonesian.
 // For shops that deliver, the buyer can instead ask for delivery to an area; the cost and time are
 // then agreed with the seller on WhatsApp, so the message asks for the delivery cost.
-import { $, el, rp, t, api, waNumber, deliveryLine } from "/common.js";
+import { $, el, rp, t, api, waNumber, deliveryLine, sizesOf } from "/common.js";
 import { lang, tIn, langInfo } from "/i18n.js";
 
 // Ready-made requests (text keys). Not spicy and extra spicy can't both be picked.
@@ -27,19 +27,28 @@ $("#orderClose").addEventListener("click", () => dialog.close());
 dialog.addEventListener("close", () => { if (!dialog.open) o = null; }); // it may already be reopened for another order
 window.addEventListener("langchange", () => { if (o) render(); });
 
+// One line per packaging on sale, so a product in several packagings gives several lines to choose from.
+const linesOf = (menu) => menu.flatMap((p) => {
+  const all = sizesOf(p);
+  return all.map((s, i) => ({ ...s, key: p.id + ":" + i, id: p.id, name: p.name, sized: all.length > 1 })).filter((l) => !l.out);
+});
+// "Pecel semanggi", or "Pecel semanggi (kotak isi 10)" for one of several packagings.
+const label = (p) => (p.sized && p.unit ? `${p.name} (${p.unit})` : p.name);
+
 // `menu` is the shop's products that can be ordered; `firstId` starts with one of that product.
 export function openOrder(stall, menu, firstId) {
-  o = { stall, menu, qty: new Map(firstId != null ? [[firstId, 1]] : []), how: "pickup", area: "", day: null, time: null, reqs: new Set(), note: "", name: "", step: 0, noteId: null, noteFailed: false };
+  const lines = linesOf(menu), first = lines.find((l) => l.id === firstId);
+  o = { stall, menu: lines, qty: new Map(first ? [[first.key, 1]] : []), how: "pickup", area: "", day: null, time: null, reqs: new Set(), note: "", name: "", step: 0, noteId: null, noteFailed: false };
   if (delivers()) o.how = null;
   render();
   if (!dialog.open) dialog.showModal();
 }
 
-const chosen = () => o.menu.filter((p) => o.qty.get(p.id) > 0);
+const chosen = () => o.menu.filter((p) => o.qty.get(p.key) > 0);
 const delivers = () => o.stall.delivery?.mode === "delivery";
 // "secepatnya" / "hari ini" / "besok", for delivery (no pickup time).
 const dayWord = (l) => tIn(l, { asap: "msg.asap", today: "msg.dayToday", tomorrow: "msg.dayTomorrow" }[o.day]);
-const total = () => chosen().reduce((sum, p) => sum + p.price * o.qty.get(p.id), 0);
+const total = () => chosen().reduce((sum, p) => sum + p.price * o.qty.get(p.key), 0);
 
 // ---------- the WhatsApp message ----------
 // "2 bungkus Peyek semanggi" reads well, but a "Dijual per" that is just a count ("1", "65", "isi 12", "10 buah")
@@ -53,7 +62,7 @@ function unitText(p, l = lang) {
   return pack > 1 ? " / " + tIn(l, "msg.pack", { n: pack }) : "";
 }
 function itemLine(p, l) {
-  const n = o.qty.get(p.id);
+  const n = o.qty.get(p.key);
   const count = COUNT_UNIT.exec(p.unit || "");
   const pack = p.pieces || (count ? Number(count[1]) : 0);
   const what = p.unit && !count ? `${n} ${p.unit} ${p.name}`
@@ -82,7 +91,7 @@ function message(l, note) {
 // ---------- steps ----------
 // Each step has the helper's question, the buyer's answer once given, and the controls to answer it.
 const STEPS = [
-  { q: "order.qItems", answer: () => chosen().map((p) => `${o.qty.get(p.id)} × ${p.name}`).join(", "), controls: itemsStep },
+  { q: "order.qItems", answer: () => chosen().map((p) => `${o.qty.get(p.key)} × ${label(p)}`).join(", "), controls: itemsStep },
   { q: () => delivers() ? "order.qHow" : "order.qPickup", controls: pickupStep,
     answer: () => o.how === "deliver" ? t("order.answerDeliver", { area: o.area, when: dayWord(lang) })
       : (delivers() ? t("order.howPickup") + ", " : "") + (o.day === "asap" ? t("order.asap") : t(o.day === "today" ? "order.pickupToday" : "order.pickupTomorrow", { time: hhmm(o.time) })) },
@@ -125,17 +134,17 @@ function itemsStep(box) {
   };
   const list = el("div", { class: "order-items" });
   for (const p of o.menu) {
-    const count = el("output", { text: String(o.qty.get(p.id) || 0) });
+    const count = el("output", { text: String(o.qty.get(p.key) || 0) });
     const change = (d) => {
-      const n = Math.max(0, Math.min(99, (o.qty.get(p.id) || 0) + d));
-      o.qty.set(p.id, n); count.textContent = String(n); refresh();
+      const n = Math.max(0, Math.min(99, (o.qty.get(p.key) || 0) + d));
+      o.qty.set(p.key, n); count.textContent = String(n); refresh();
     };
     list.append(el("div", { class: "order-item" },
       el("div", {}, el("strong", { text: p.name }), el("span", { class: "muted small", text: " " + rp(p.price) + unitText(p) })),
       el("div", { class: "stepper" },
-        el("button", { type: "button", "aria-label": t("order.less", { name: p.name }), onclick: () => change(-1), text: "−" }),
+        el("button", { type: "button", "aria-label": t("order.less", { name: label(p) }), onclick: () => change(-1), text: "−" }),
         count,
-        el("button", { type: "button", "aria-label": t("order.more", { name: p.name }), onclick: () => change(1), text: "+" }))));
+        el("button", { type: "button", "aria-label": t("order.more", { name: label(p) }), onclick: () => change(1), text: "+" }))));
   }
   box.append(list, totalLine);
   nav(box, { next: () => go(1), canNext: chosen().length > 0 });
