@@ -135,7 +135,7 @@ $("#sellerForm").addEventListener("submit", async (e) => {
       const body = { phone: $("#n-login").value.trim(), password: $("#n-pass").value };
       if (!body.phone) throw new Error(t("sellerForm.needPhone"));
       await api("/api/admin/sellers", { method: "POST", body });
-      showPassword(t("admin.newSeller"), body.phone, body.password);
+      showPassword(() => t("admin.newSeller"), body.phone, body.password);
       toast(t("sellerForm.created"));
     }
     resetSellerForm(); loadSellers(); loadOverview();
@@ -147,15 +147,18 @@ $("#sellerForm").addEventListener("submit", async (e) => {
 });
 
 // Show a new password once so the admin can pass it on to the seller.
-function showPassword(stall, email, password) {
+// `stall` may be a function so the label follows a language switch.
+let lastPw = null;
+function showPassword(stall, email, password, redraw = false) {
+  lastPw = [stall, email, password];
   const n = $("#pwNotice");
   n.replaceChildren(
-    el("strong", { text: stall + ": " }), t("pw.email"), el("strong", { text: email }), t("pw.password"),
+    el("strong", { text: (typeof stall === "function" ? stall() : stall) + ": " }), t("pw.email"), el("strong", { text: email }), t("pw.password"),
     el("strong", { class: "num", style: "font-family:ui-monospace,Consolas,monospace", text: password }),
     t("pw.note"),
     el("button", { class: "linkish", type: "button", onclick: () => (n.hidden = true) }, t("pw.dismiss")));
   n.hidden = false;
-  n.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (!redraw) n.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 async function resetPassword(s) {
@@ -298,6 +301,7 @@ $("#passwordForm").addEventListener("submit", async (e) => {
 
 window.addEventListener("langchange", () => {
   labelSellerForm();
+  if (lastPw && !$("#pwNotice").hidden) showPassword(...lastPw, true);
   if (me) { renderSellers(); loadProducts(); }
 });
 
