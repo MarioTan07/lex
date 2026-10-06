@@ -240,13 +240,20 @@ export function connect({ local = false } = {}) {
   };
 }
 
+// Adds a column. Two server copies starting at the same moment (on Vercel after a deploy) may both try;
+// the second one's "duplicate column" error just means it's already there.
+async function addColumn(db, table, col, type) {
+  try { await db.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`); }
+  catch (e) { if (!/duplicate column/i.test(`${e?.message} ${e?.cause?.message ?? ""}`)) throw e; }
+}
+
 // Create tables and bring older databases up to date. Safe to run on every start.
 export async function setupSchema(db) {
   if (!db.remote) await db.client.execute("PRAGMA journal_mode = WAL");
   await db.client.executeMultiple(SCHEMA);
   const have = new Set((await db.all("PRAGMA table_info(users)")).map((c) => c.name));
   for (const [col, type] of Object.entries(ADDED_USER_COLUMNS)) {
-    if (!have.has(col)) await db.run(`ALTER TABLE users ADD COLUMN ${col} ${type}`);
+    if (!have.has(col)) await addColumn(db, "users", col, type);
   }
   // Databases from before experiences existed: rebuild the listings table with the new kinds and column, keeping every row.
   const lt = await db.one("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'listings'");
@@ -262,6 +269,6 @@ export async function setupSchema(db) {
   }
   const haveP = new Set((await db.all("PRAGMA table_info(products)")).map((c) => c.name));
   for (const [col, type] of Object.entries(ADDED_PRODUCT_COLUMNS)) {
-    if (!haveP.has(col)) await db.run(`ALTER TABLE products ADD COLUMN ${col} ${type}`);
+    if (!haveP.has(col)) await addColumn(db, "products", col, type);
   }
 }

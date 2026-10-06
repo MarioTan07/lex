@@ -601,10 +601,18 @@ app.use("/api", (req, res, next) => {
 });
 app.use(express.json({ limit: "3mb" }));
 
-// Wait for the database to be ready before handling anything.
-app.use(async (_req, _res, next) => { await whenReady(); next(); });
+// API requests wait for the database to be ready; if starting up fails (e.g. the network to the database
+// drops for a moment), it is tried once more. Web pages, scripts and photos don't need the database,
+// so they never wait for it or fail because of it.
+const needsDb = (req) => req.path.startsWith("/api/");
+app.use(async (req, _res, next) => {
+  if (!needsDb(req)) return next();
+  try { await whenReady(); } catch { await whenReady(); }
+  next();
+});
 
 app.use(async (req, _res, next) => {
+  if (!needsDb(req)) return next();
   const cookie = req.headers.cookie || "";
   const token = /(?:^|;\s*)ks_session=([a-f0-9]{64})/.exec(cookie)?.[1];
   if (token) {
