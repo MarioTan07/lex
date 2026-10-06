@@ -383,5 +383,13 @@
 "ahead.bigHours": "{items}個以上のご注文：{n}時間前までにご注文ください",
 "ahead.bigDay1": "{items}個以上のご注文：1日前までにご注文ください",
 "ahead.bigDays": "{items}個以上のご注文：{n}日前までにご注文ください",
-"order.bigNote": "ご注文は{n}個なので、大口注文になります。"
+"order.bigNote": "ご注文は{n}個なので、大口注文になります。",
+"ahead.week1": "1週間前までにご注文ください",
+"ahead.weeks": "{n}週間前までにご注文ください",
+"ahead.month1": "1か月前までにご注文ください",
+"ahead.months": "{n}か月前までにご注文ください",
+"ahead.bigWeek1": "{items}個以上のご注文：1週間前までにご注文ください",
+"ahead.bigWeeks": "{items}個以上のご注文：{n}週間前までにご注文ください",
+"ahead.bigMonth1": "{items}個以上のご注文：1か月前までにご注文ください",
+"ahead.bigMonths": "{items}個以上のご注文：{n}か月前までにご注文ください"
 }

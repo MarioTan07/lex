@@ -325,14 +325,23 @@ export function favButton(kind, id, name, onChange) {
 export function tap(productId, kind = "view") {
   fetch("/api/tap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId, kind }), keepalive: true }).catch(() => {});
 }
-// "Order at least 3 hours ahead" / "Order at least 2 days ahead", for sellers who need notice.
+// Order-ahead time is stored in minutes: 1 to 12 hours, days, weeks or months (a month counts as 30 days).
+export const AHEAD_UNITS = [60, 1440, 10080, 43200];
+const UNIT_NAME = { 60: "hour", 1440: "day", 10080: "week", 43200: "month" };
+// 4320 → { n: 3, unit: 1440 }; 10080 → 1 week rather than 7 days. null for 0 or a time that doesn't fit.
+export function aheadParts(mins) {
+  for (const unit of [...AHEAD_UNITS].reverse()) {
+    if (mins && mins % unit === 0 && mins / unit <= 12) return { n: mins / unit, unit };
+  }
+  return null;
+}
+// "Order at least 3 hours ahead" / "Order at least 2 weeks ahead", for sellers who need notice.
 // With `items`, the rule for big orders: "Orders of 50 or more: order at least 2 days ahead".
 export function aheadText(mins, items) {
-  if (!mins) return "";
-  const big = items ? "ahead.big" : "ahead.";
-  const key = mins < 1440 ? (mins === 60 ? "hour1" : "hours") : (mins === 1440 ? "day1" : "days");
-  const name = items ? big + key[0].toUpperCase() + key.slice(1) : big + key;
-  return t(name, { n: mins < 1440 ? mins / 60 : mins / 1440, items });
+  const p = aheadParts(mins);
+  if (!p) return "";
+  const key = UNIT_NAME[p.unit] + (p.n === 1 ? "1" : "s");
+  return t(items ? "ahead.big" + key[0].toUpperCase() + key.slice(1) : "ahead." + key, { n: p.n, items });
 }
 const aheadP = (text) => el("p", { class: "big-order" }, icon("calendar"), text);
 // The seller's notice for normal orders and, if they set one, for big orders.

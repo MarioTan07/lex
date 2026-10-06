@@ -113,8 +113,8 @@ const TOURS = [
     { target: "fieldset.hours-edit > div:last-child button", title: { id: "Pakai jam Senin untuk semua hari", en: "Use Monday's hours for all days" },
       text: { id: "Isi Senin dulu, lalu tekan tombol ini: semua hari ikut sama. Ubah hari yang berbeda sesudahnya.", en: "Fill in Monday first, then press this: every day gets the same hours. Change any days that differ afterwards." } },
     { target: "fieldset.ahead-edit legend", title: { id: "Pesan sebelumnya", en: "Order ahead" },
-      text: { id: "Pilih paling lambat berapa lama sebelumnya pembeli harus memesan, dari <b>1 jam</b> sampai <b>sebulan</b>. Pembeli melihatnya, mis. <i>Pesan minimal 3 jam sebelumnya</i>, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.<br><br>Pesanan besar butuh waktu lebih lama? Centang <b>Pesanan besar perlu waktu lebih lama</b>, isi mulai berapa buah (mis. 50), dan pilih waktunya (mis. H-2).",
-        en: "Choose how long ahead buyers must order, from <b>1 hour</b> to <b>a month</b>. Buyers see it, e.g. <i>Order at least 3 hours ahead</i>, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead.<br><br>Big orders need longer? Tick <b>Big orders need more notice</b>, enter from how many items (e.g. 50), and choose the time (e.g. 2 days ahead)." } },
+      text: { id: "Centang <b>Pembeli harus pesan dulu</b>, lalu pilih angka (1–12) dan satuannya: <b>jam</b>, <b>hari</b>, <b>minggu</b>, atau <b>bulan</b>. Pembeli melihatnya, mis. <i>Pesan minimal 3 jam sebelumnya</i>, dan jam ambil di formulir pesanan ikut menyesuaikan. Biarkan tidak dicentang kalau pembeli bisa langsung pesan.<br><br>Pesanan besar butuh waktu lebih lama? Centang <b>Pesanan besar perlu waktu lebih lama</b>, isi mulai berapa buah (mis. 50), dan pilih waktunya (mis. 2 hari).",
+        en: "Tick <b>Buyers must order ahead</b>, then choose a number (1–12) and a unit: <b>hours</b>, <b>days</b>, <b>weeks</b> or <b>months</b>. Buyers see it, e.g. <i>Order at least 3 hours ahead</i>, and the pickup times in the order form follow it. Leave it unticked if buyers can order any time.<br><br>Big orders need longer? Tick <b>Big orders need more notice</b>, enter from how many items (e.g. 50), and choose the time (e.g. 2 days ahead)." } },
     { target: "fieldset.deliv-edit legend", title: { id: "Ambil sendiri atau diantar", en: "Pickup or delivery" },
       text: { id: "<b>Ambil sendiri saja</b>: pembeli datang ke toko.<br><b>Bisa diantar / dikirim</b>: pilih negara dan provinsi tujuan. Pembeli lalu bisa meminta diantar, dan Anda membicarakan ongkos kirim lewat WhatsApp.",
         en: "<b>Pickup only</b>: buyers come to your shop.<br><b>Delivers / ships</b>: choose the countries and provinces you deliver to. Buyers can then ask for delivery, and you agree the delivery cost on WhatsApp." } },
@@ -343,11 +343,11 @@ const GUIDE = [
     </ol>
     <p>Pembeli melihat apakah toko sedang buka, mis. <i>Buka · tutup jam 15.00</i>.</p>
     <h4>Pesan sebelumnya</h4>
-    <p>Di <b>Pembeli harus pesan paling lambat</b>, pilih berapa lama sebelumnya pembeli harus memesan (mis. <i>3 jam sebelumnya</i> atau <i>H-1</i>). Pembeli melihatnya di toko Anda, dan jam ambil di formulir pesanan ikut menyesuaikan. Pilih <b>Bisa langsung</b> kalau tidak perlu pesan dulu.</p>
+    <p>Centang <b>Pembeli harus pesan dulu</b>, lalu pilih angka (1–12) dan satuannya (jam, hari, minggu, atau bulan), mis. <i>3 jam sebelumnya</i> atau <i>2 minggu sebelumnya</i>. Pembeli melihatnya di toko Anda, dan jam ambil di formulir pesanan ikut menyesuaikan. Biarkan tidak dicentang kalau pembeli bisa langsung pesan.</p>
     <p>Pesanan besar butuh waktu lebih lama? Centang <b>Pesanan besar perlu waktu lebih lama</b>, lalu isi:</p>
     <ul>
       <li><b>Pesanan besar mulai dari</b>: jumlah buah, mis. 50. Dihitung dari semua produk dalam satu pesanan; kemasan seperti <i>kotak isi 10</i> dihitung 10.</li>
-      <li><b>Pesanan besar harus dipesan paling lambat</b>: mis. H-2. Harus lebih lama dari pesanan biasa.</li>
+      <li><b>Pesanan besar harus dipesan paling lambat</b>: angka dan satuan, mis. 2 hari. Harus lebih lama dari pesanan biasa.</li>
     </ul>
     <p>Pembeli melihat mis. <i>Pesanan 50 buah atau lebih: pesan minimal 2 hari sebelumnya</i>. Kalau pesanan mereka mencapai jumlah itu, formulir pesanan hanya menawarkan hari dan jam setelahnya.</p>
     <h4>Ambil sendiri atau diantar</h4>
@@ -375,11 +375,11 @@ const GUIDE = [
     </ol>
     <p>Buyers see whether you're open now, e.g. <i>Open · closes at 15:00</i>.</p>
     <h4>Order ahead</h4>
-    <p>Under <b>Buyers must order at least</b>, choose how long ahead buyers must order (e.g. <i>3 hours ahead</i> or <i>1 day ahead</i>). Buyers see it on your shop, and the pickup times in the order form follow it. Choose <b>Any time</b> if there's no need to order ahead.</p>
+    <p>Tick <b>Buyers must order ahead</b>, then choose a number (1–12) and a unit (hours, days, weeks or months), e.g. <i>3 hours ahead</i> or <i>2 weeks ahead</i>. Buyers see it on your shop, and the pickup times in the order form follow it. Leave it unticked if buyers can order any time.</p>
     <p>Big orders need longer? Tick <b>Big orders need more notice</b>, then fill in:</p>
     <ul>
       <li><b>A big order starts from</b>: the number of items, e.g. 50. It's counted across every product in one order; a pack such as a <i>box of 10</i> counts as 10.</li>
-      <li><b>Big orders must be placed at least</b>: e.g. 2 days ahead. It must be longer than for normal orders.</li>
+      <li><b>Big orders must be placed at least</b>: a number and unit, e.g. 2 days ahead. It must be longer than for normal orders.</li>
     </ul>
     <p>Buyers see e.g. <i>Orders of 50 or more: order at least 2 days ahead</i>. When their order reaches that number, the order form only offers days and times after that.</p>
     <h4>Pickup or delivery</h4>
@@ -546,7 +546,7 @@ const GUIDE = [
       <dt>Ditangguhkan</dt><dd>Admin menyembunyikan toko; Anda tidak bisa masuk.</dd>
       <dt>Disembunyikan admin</dt><dd>Satu produk disembunyikan oleh admin.</dd>
       <dt>Titik peta</dt><dd>Letak toko di Google Maps, supaya pembeli bisa menemukan jalan.</dd>
-      <dt>Pesan sebelumnya</dt><dd>Berapa lama sebelumnya pembeli harus memesan, mis. 3 jam atau H-1.</dd>
+      <dt>Pesan sebelumnya</dt><dd>Berapa lama sebelumnya pembeli harus memesan, mis. 3 jam, 2 hari, atau 1 minggu.</dd>
     </dl>`,
     en: `
     <dl class="help-qa">
@@ -557,7 +557,7 @@ const GUIDE = [
       <dt>Suspended</dt><dd>The admin has hidden the shop; you can't sign in.</dd>
       <dt>Hidden by admin</dt><dd>One product hidden by the admin.</dd>
       <dt>Map pin</dt><dd>Your shop's spot on Google Maps, so buyers can find their way.</dd>
-      <dt>Order ahead</dt><dd>How long ahead buyers must order, e.g. 3 hours or 1 day.</dd>
+      <dt>Order ahead</dt><dd>How long ahead buyers must order, e.g. 3 hours, 2 days or 1 week.</dd>
     </dl>` } },
 ];
 

@@ -383,5 +383,13 @@
 "ahead.bigHours": "Order na {items} o higit pa: umorder nang hindi bababa sa {n} oras bago",
 "ahead.bigDay1": "Order na {items} o higit pa: umorder nang hindi bababa sa 1 araw bago",
 "ahead.bigDays": "Order na {items} o higit pa: umorder nang hindi bababa sa {n} araw bago",
-"order.bigNote": "May {n} piraso ang order mo, kaya malaking order ito."
+"order.bigNote": "May {n} piraso ang order mo, kaya malaking order ito.",
+"ahead.week1": "Mag-order nang hindi bababa sa 1 linggo bago",
+"ahead.weeks": "Mag-order nang hindi bababa sa {n} linggo bago",
+"ahead.month1": "Mag-order nang hindi bababa sa 1 buwan bago",
+"ahead.months": "Mag-order nang hindi bababa sa {n} buwan bago",
+"ahead.bigWeek1": "Order na {items} o higit pa: mag-order nang hindi bababa sa 1 linggo bago",
+"ahead.bigWeeks": "Order na {items} o higit pa: mag-order nang hindi bababa sa {n} linggo bago",
+"ahead.bigMonth1": "Order na {items} o higit pa: mag-order nang hindi bababa sa 1 buwan bago",
+"ahead.bigMonths": "Order na {items} o higit pa: mag-order nang hindi bababa sa {n} buwan bago"
 }

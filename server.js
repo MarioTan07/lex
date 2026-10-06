@@ -464,11 +464,13 @@ function hours(v) {
   }
   return DAYS.some((d) => out[d]) ? JSON.stringify(out) : "";
 }
-// How long before pickup buyers must order, in minutes: one of the choices on the seller page (0 = any time).
-const ORDER_AHEAD = [0, 60, 180, 360, 1440, 2880, 4320, 7200, 10080, 20160, 43200];
+// How long before pickup buyers must order, in minutes (0 = any time): 1 to 12 hours, days, weeks or
+// months (30 days), as chosen on the seller page.
+const AHEAD_UNITS = [60, 1440, 10080, 43200];
+const aheadOk = (n) => Number.isInteger(n) && AHEAD_UNITS.some((u) => n % u === 0 && n / u >= 1 && n / u <= 12);
 function orderAhead(v) {
   const n = Number(v || 0);
-  if (!ORDER_AHEAD.includes(n)) throw bad("orderAhead");
+  if (n !== 0 && !aheadOk(n)) throw bad("orderAhead");
   return n;
 }
 // Big orders, or null: from `items` pieces in one order, buyers must order `ahead` minutes ahead,
@@ -476,7 +478,7 @@ function orderAhead(v) {
 function bigOrder(v, normal) {
   if (!v) return { big_items: 0, big_ahead: 0 };
   const items = Number(v.items), ahead = Number(v.ahead);
-  if (!Number.isInteger(items) || items < 2 || items > 10000 || !ORDER_AHEAD.includes(ahead) || ahead <= normal) throw bad("bigOrder");
+  if (!Number.isInteger(items) || items < 2 || items > 10000 || !aheadOk(ahead) || ahead <= normal) throw bad("bigOrder");
   return { big_items: items, big_ahead: ahead };
 }
 // Pickup only, or delivery to chosen countries (and Indonesian provinces when Indonesia is one of them).

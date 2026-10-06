@@ -383,5 +383,13 @@
 "ahead.bigHours": "{items} 件或以上的订单：请至少提前 {n} 小时预订",
 "ahead.bigDay1": "{items} 件或以上的订单：请至少提前 1 天预订",
 "ahead.bigDays": "{items} 件或以上的订单：请至少提前 {n} 天预订",
-"order.bigNote": "您的订单共 {n} 件，属于大额订单。"
+"order.bigNote": "您的订单共 {n} 件，属于大额订单。",
+"ahead.week1": "请至少提前 1 周订购",
+"ahead.weeks": "请至少提前 {n} 周订购",
+"ahead.month1": "请至少提前 1 个月订购",
+"ahead.months": "请至少提前 {n} 个月订购",
+"ahead.bigWeek1": "{items} 件或以上的订单：请至少提前 1 周订购",
+"ahead.bigWeeks": "{items} 件或以上的订单：请至少提前 {n} 周订购",
+"ahead.bigMonth1": "{items} 件或以上的订单：请至少提前 1 个月订购",
+"ahead.bigMonths": "{items} 件或以上的订单：请至少提前 {n} 个月订购"
 }

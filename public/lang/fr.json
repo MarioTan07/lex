@@ -383,5 +383,13 @@
 "ahead.bigHours": "Commandes de {items} articles ou plus : commandez au moins {n} heures à l'avance",
 "ahead.bigDay1": "Commandes de {items} articles ou plus : commandez au moins 1 jour à l'avance",
 "ahead.bigDays": "Commandes de {items} articles ou plus : commandez au moins {n} jours à l'avance",
-"order.bigNote": "Votre commande compte {n} articles : c'est une grosse commande."
+"order.bigNote": "Votre commande compte {n} articles : c'est une grosse commande.",
+"ahead.week1": "Commandez au moins 1 semaine à l'avance",
+"ahead.weeks": "Commandez au moins {n} semaines à l'avance",
+"ahead.month1": "Commandez au moins 1 mois à l'avance",
+"ahead.months": "Commandez au moins {n} mois à l'avance",
+"ahead.bigWeek1": "Commandes de {items} articles ou plus : commandez au moins 1 semaine à l'avance",
+"ahead.bigWeeks": "Commandes de {items} articles ou plus : commandez au moins {n} semaines à l'avance",
+"ahead.bigMonth1": "Commandes de {items} articles ou plus : commandez au moins 1 mois à l'avance",
+"ahead.bigMonths": "Commandes de {items} articles ou plus : commandez au moins {n} mois à l'avance"
 }

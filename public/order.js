@@ -25,7 +25,7 @@ function slots(offset) {
 function dayChoices() {
   const out = notice() ? [] : ["asap"];
   const want = notice() ? 3 : 2;
-  for (let d = 0, found = 0; d < 60 && found < want; d++) if (slots(d).length) { out.push(d); found++; }
+  for (let d = 0, found = 0, last = Math.ceil(notice() / 1440) + 60; d < last && found < want; d++) if (slots(d).length) { out.push(d); found++; }
   return out;
 }
 // A day's name: today / tomorrow, or a date such as "Thu 8 Oct" (long: "Thursday, 8 October").

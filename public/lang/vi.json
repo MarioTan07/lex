@@ -383,5 +383,13 @@
 "ahead.bigHours": "Đơn từ {items} món trở lên: đặt trước ít nhất {n} giờ",
 "ahead.bigDay1": "Đơn từ {items} món trở lên: đặt trước ít nhất 1 ngày",
 "ahead.bigDays": "Đơn từ {items} món trở lên: đặt trước ít nhất {n} ngày",
-"order.bigNote": "Đơn của bạn có {n} món nên là đơn lớn."
+"order.bigNote": "Đơn của bạn có {n} món nên là đơn lớn.",
+"ahead.week1": "Đặt trước ít nhất 1 tuần",
+"ahead.weeks": "Đặt trước ít nhất {n} tuần",
+"ahead.month1": "Đặt trước ít nhất 1 tháng",
+"ahead.months": "Đặt trước ít nhất {n} tháng",
+"ahead.bigWeek1": "Đơn từ {items} trở lên: đặt trước ít nhất 1 tuần",
+"ahead.bigWeeks": "Đơn từ {items} trở lên: đặt trước ít nhất {n} tuần",
+"ahead.bigMonth1": "Đơn từ {items} trở lên: đặt trước ít nhất 1 tháng",
+"ahead.bigMonths": "Đơn từ {items} trở lên: đặt trước ít nhất {n} tháng"
 }

@@ -1,4 +1,4 @@
-import { $, el, rp, t, api, toast, shrinkPhoto, confirmBox, locationEditor, hoursEditor, sizesOf, priceTag } from "/common.js";
+import { $, el, rp, t, api, toast, shrinkPhoto, confirmBox, locationEditor, hoursEditor, aheadParts, AHEAD_UNITS, sizesOf, priceTag } from "/common.js";
 import { locale } from "/i18n.js";
 import { PROVINCES, sortedCountries } from "/places.js";
 
@@ -184,13 +184,39 @@ function fillProfile() {
   $("#s-name").value = me.name; $("#s-stall").value = me.stallName; $("#s-phone").value = me.phone;
   $("#s-ig").value = me.instagram ? "@" + me.instagram : ""; $("#s-fromhome").checked = me.fromHome;
   shopLoc.set(me.shop); homeLoc.set(me.home); hoursEd.set(me.hours);
-  $("#s-ahead").value = String(me.orderAhead || 0);
+  $("#s-ahead-on").checked = !!me.orderAhead;
+  aheadEd.set(me.orderAhead || 180);
   $("#s-big").checked = !!me.bigOrder;
   $("#s-big-items").value = me.bigOrder ? String(me.bigOrder.items) : "";
-  $("#s-big-ahead").value = String(me.bigOrder?.ahead || 2880);
-  syncBig();
+  bigAheadEd.set(me.bigOrder?.ahead || 2880);
+  syncAhead(); syncBig();
   setDeliv(me.delivery);
 }
+
+// Order ahead: a number from 1 to 12 and a unit (hours, days, weeks, months), stored as minutes.
+function aheadEditor(box) {
+  const n = el("select", { "aria-label": "" }, ...Array.from({ length: 12 }, (_, i) => el("option", { value: String(i + 1), text: String(i + 1) })));
+  const unit = el("select", { "aria-label": "" }, ...AHEAD_UNITS.map((u) => el("option", { value: String(u) })));
+  const after = el("span", { class: "muted" });
+  // "1 hour" / "3 hours" in English; Indonesian has one word for both.
+  const label = () => {
+    n.setAttribute("aria-label", t("ahead.amount")); unit.setAttribute("aria-label", t("ahead.unit"));
+    for (const o of unit.options) o.textContent = t("ahead.u" + o.value + (n.value === "1" ? "one" : ""));
+    after.textContent = t("ahead.before");
+  };
+  n.addEventListener("change", label);
+  window.addEventListener("langchange", label);
+  box.replaceChildren(n, unit, after);
+  label();
+  return {
+    get: () => Number(n.value) * Number(unit.value),
+    set(mins) { const p = aheadParts(mins) || { n: 3, unit: 60 }; n.value = String(p.n); unit.value = String(p.unit); label(); },
+  };
+}
+const aheadEd = aheadEditor($("#s-ahead"));
+const bigAheadEd = aheadEditor($("#s-big-ahead"));
+const syncAhead = () => { $("#s-ahead-fields").hidden = !$("#s-ahead-on").checked; };
+$("#s-ahead-on").addEventListener("change", syncAhead);
 
 // Big orders: the number of pieces and the longer notice show once the box is ticked.
 function syncBig() {
@@ -357,8 +383,8 @@ $("#profileForm").addEventListener("submit", async (e) => {
   const errBox = $("#profileErr"); errBox.hidden = true;
   try {
     const body = { name: $("#s-name").value, stallName: $("#s-stall").value, phone: $("#s-phone").value, instagram: $("#s-ig").value, fromHome: $("#s-fromhome").checked, hours: hoursEd.get(),
-      orderAhead: Number($("#s-ahead").value), delivery: getDeliv(),
-      bigOrder: $("#s-big").checked ? { items: Number($("#s-big-items").value), ahead: Number($("#s-big-ahead").value) } : null, shop: shopLoc.get(), home: homeLoc.get() };
+      orderAhead: $("#s-ahead-on").checked ? aheadEd.get() : 0, delivery: getDeliv(),
+      bigOrder: $("#s-big").checked ? { items: Number($("#s-big-items").value), ahead: bigAheadEd.get() } : null, shop: shopLoc.get(), home: homeLoc.get() };
     const firstTime = !me.profileDone;
     ({ user: me } = await api("/api/seller/profile", { method: "PATCH", body }));
     if (firstTime) { toast(t("setup.done")); start(); window.scrollTo(0, 0); return; }

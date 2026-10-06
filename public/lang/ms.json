@@ -383,5 +383,13 @@
 "ahead.bigHours": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya {n} jam lebih awal",
 "ahead.bigDay1": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya 1 hari lebih awal",
 "ahead.bigDays": "Pesanan {items} item atau lebih: pesan sekurang-kurangnya {n} hari lebih awal",
-"order.bigNote": "Pesanan anda ada {n} item, jadi ia pesanan besar."
+"order.bigNote": "Pesanan anda ada {n} item, jadi ia pesanan besar.",
+"ahead.week1": "Pesan sekurang-kurangnya 1 minggu lebih awal",
+"ahead.weeks": "Pesan sekurang-kurangnya {n} minggu lebih awal",
+"ahead.month1": "Pesan sekurang-kurangnya 1 bulan lebih awal",
+"ahead.months": "Pesan sekurang-kurangnya {n} bulan lebih awal",
+"ahead.bigWeek1": "Pesanan {items} atau lebih: pesan sekurang-kurangnya 1 minggu lebih awal",
+"ahead.bigWeeks": "Pesanan {items} atau lebih: pesan sekurang-kurangnya {n} minggu lebih awal",
+"ahead.bigMonth1": "Pesanan {items} atau lebih: pesan sekurang-kurangnya 1 bulan lebih awal",
+"ahead.bigMonths": "Pesanan {items} atau lebih: pesan sekurang-kurangnya {n} bulan lebih awal"
 }

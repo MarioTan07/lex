@@ -383,5 +383,13 @@
 "ahead.bigHours": "{items}개 이상 주문: 최소 {n}시간 전에 주문하세요",
 "ahead.bigDay1": "{items}개 이상 주문: 최소 1일 전에 주문하세요",
 "ahead.bigDays": "{items}개 이상 주문: 최소 {n}일 전에 주문하세요",
-"order.bigNote": "주문이 {n}개라서 대량 주문에 해당합니다."
+"order.bigNote": "주문이 {n}개라서 대량 주문에 해당합니다.",
+"ahead.week1": "최소 1주 전에 주문하세요",
+"ahead.weeks": "최소 {n}주 전에 주문하세요",
+"ahead.month1": "최소 1개월 전에 주문하세요",
+"ahead.months": "최소 {n}개월 전에 주문하세요",
+"ahead.bigWeek1": "{items}개 이상 주문: 최소 1주 전에 주문하세요",
+"ahead.bigWeeks": "{items}개 이상 주문: 최소 {n}주 전에 주문하세요",
+"ahead.bigMonth1": "{items}개 이상 주문: 최소 1개월 전에 주문하세요",
+"ahead.bigMonths": "{items}개 이상 주문: 최소 {n}개월 전에 주문하세요"
 }

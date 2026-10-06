@@ -383,5 +383,13 @@
 "ahead.bigHours": "Pedidos de {items} o más: pide con al menos {n} horas de antelación",
 "ahead.bigDay1": "Pedidos de {items} o más: pide con al menos 1 día de antelación",
 "ahead.bigDays": "Pedidos de {items} o más: pide con al menos {n} días de antelación",
-"order.bigNote": "Tu pedido tiene {n} unidades, así que es un pedido grande."
+"order.bigNote": "Tu pedido tiene {n} unidades, así que es un pedido grande.",
+"ahead.week1": "Pide con al menos 1 semana de antelación",
+"ahead.weeks": "Pide con al menos {n} semanas de antelación",
+"ahead.month1": "Pide con al menos 1 mes de antelación",
+"ahead.months": "Pide con al menos {n} meses de antelación",
+"ahead.bigWeek1": "Pedidos de {items} o más: pide con al menos 1 semana de antelación",
+"ahead.bigWeeks": "Pedidos de {items} o más: pide con al menos {n} semanas de antelación",
+"ahead.bigMonth1": "Pedidos de {items} o más: pide con al menos 1 mes de antelación",
+"ahead.bigMonths": "Pedidos de {items} o más: pide con al menos {n} meses de antelación"
 }

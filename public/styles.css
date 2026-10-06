@@ -404,6 +404,9 @@ dialog.order { width: min(560px, calc(100% - 24px)); }
 .pick-list .check { font-weight: 400; }
 .pick-list .check[hidden] { display: none; }
 .pick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Order ahead: [3] [days] ahead */
+.ahead-pick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ahead-pick select { width: auto; min-width: 5.5em; }
 /* Shop details: two columns side by side on wide screens, one on phones */
 .profile-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px; align-items: start; }
 #statsPanel { display: grid; gap: 12px; }
