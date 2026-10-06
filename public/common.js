@@ -148,7 +148,10 @@ export function shrinkPhoto(file, max = 1000) {
       const k = Math.min(1, max / Math.max(img.width, img.height));
       const c = document.createElement("canvas");
       c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      const g = c.getContext("2d");
+      // JPEG has no see-through parts: give transparent PNGs (logos, posters) a white background instead of black.
+      g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(img, 0, 0, c.width, c.height);
       let q = 0.82, out = c.toDataURL("image/jpeg", q);
       while (out.length > 900_000 && q > 0.35) { q -= 0.1; out = c.toDataURL("image/jpeg", q); }
       resolve(out);

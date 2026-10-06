@@ -144,17 +144,23 @@ $("#aboutForm").addEventListener("submit", async (e) => {
   const body = { name: $("#ab-name").value, nameEn: keepEn("#ab-name", "#ab-name-en", was?.name, was?.nameEn), body: $("#ab-body").value, bodyEn: keepEn("#ab-body", "#ab-body-en", was?.body, was?.bodyEn),
     years: $("#ab-years").value, icon: $("#ab-icon").value, showSellers: $("#ab-sellers").checked, photos: photoBody(photos) };
   const base = "/api/admin/" + kind;
+  const adding = !editing;
   try {
     let { item } = await api(editing ? base + "/" + editing.id : base, { method: editing ? "PUT" : "POST", body });
+    // From here the form edits the saved item, so if a photo fails, saving again doesn't add it a second time.
+    if (adding) editing = { ...item, was: { name: item.name, nameEn: $("#ab-name-en").value, body: item.body, bodyEn: $("#ab-body-en").value } };
     const fresh = photos.filter((p) => p.data);
     for (const p of fresh) {
       ({ item } = await api(`${base}/${item.id}/photos`, { method: "POST", body: { photo: p.data, w: p.w, h: p.h, caption: p.caption || "", captionEn: p.captionEn || "" } }));
       Object.assign(p, item.photos[item.photos.length - 1]); delete p.data;
     }
     if (fresh.length && photos.some((p, i) => p.src !== item.photos[i]?.src)) ({ item } = await api(`${base}/${item.id}`, { method: "PUT", body: { ...body, photos: photoBody(photos) } }));
-    toast(t(editing ? "lst.saved" : "lst.added", { name: item.name }));
+    toast(t(adding ? "lst.added" : "lst.saved", { name: item.name }));
     closeForm(); load();
-  } catch (x) { err.textContent = x.message; err.hidden = false; }
+  } catch (x) {
+    err.textContent = x.message; err.hidden = false;
+    if (editing) { $("#ab-title").textContent = t("common.editTitle", { name: editing.name }); renderPhotos(); load(); }
+  }
   btn.disabled = false; btn.textContent = t(editing ? "common.saveChanges" : "lst.save");
 });
 

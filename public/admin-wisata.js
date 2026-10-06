@@ -182,12 +182,18 @@ $("#listingForm").addEventListener("submit", async (e) => {
     schedule: mode() === "dates" ? { mode: "dates", dates } : { mode: "request", noticeDays: $("#l-notice").value },
     experienceIds: kind() === "tour" ? expIds : [],
   };
+  const adding = !editing;
   try {
     const { listing } = await api(editing ? "/api/admin/listings/" + editing.id : "/api/admin/listings", { method: editing ? "PUT" : "POST", body });
-    for (const photo of pendingPhotos) await api(`/api/admin/listings/${listing.id}/photos`, { method: "POST", body: { photo } });
-    toast(t(editing ? "lst.saved" : "lst.added", { name: listing.name }) + (listing.enAuto && !listing.nameEn ? " " + t("lst.translateFailed") : ""));
+    // From here the form edits the saved listing, so if a photo fails, saving again doesn't add it a second time.
+    editing = listing; savedPhotos = [...listing.photos];
+    while (pendingPhotos.length) {
+      ({ photos: savedPhotos } = await api(`/api/admin/listings/${listing.id}/photos`, { method: "POST", body: { photo: pendingPhotos[0] } }));
+      pendingPhotos.shift();
+    }
+    toast(t(adding ? "lst.added" : "lst.saved", { name: listing.name }) + (listing.enAuto && !listing.nameEn ? " " + t("lst.translateFailed") : ""));
     resetForm(); load();
-  } catch (x) { err.textContent = x.message; err.hidden = false; }
+  } catch (x) { err.textContent = x.message; err.hidden = false; renderThumbs(); if (editing) load(); }
   btn.disabled = false; labelForm();
 });
 

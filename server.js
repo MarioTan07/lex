@@ -72,7 +72,7 @@ async function setup() {
       continue;
     }
     const password = slot.password || crypto.randomBytes(9).toString("base64url");
-    await db.run("INSERT INTO users (email, password_hash, role, status, name, created_at) VALUES (?, ?, 'admin', 'approved', ?, ?)",
+    await db.run("INSERT INTO users (email, password_hash, role, status, name, welcomed, created_at) VALUES (?, ?, 'admin', 'approved', ?, 0, ?)",
       slot.email, hashPassword(password), slot.name, Date.now());
     if (slot.password) console.log(`Created the admin account ${slot.email}.`);
     else notes.push(`${slot.name}\n  Email: ${slot.email}\n  Password: ${password}\n`);
@@ -435,6 +435,8 @@ function publicUser(u) {
     // loginPhone: the phone number a seller signs in with, written the local way (0812…); null for email sign-ins.
     loginPhone: isPhoneKey(u.email) ? "0" + u.email.slice(2) : null,
     profileDone: u.role !== "seller" || !!u.profile_done,
+    // false until the account has been offered the tutorial (once, on its first sign-in, on whatever device).
+    welcomed: !!u.welcomed,
     id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
@@ -739,6 +741,11 @@ app.post("/api/auth/logout", async (req, res) => {
 });
 
 app.get("/api/me", (req, res) => res.json({ user: publicUser(req.user) || null }));
+// The tutorial welcome has been offered to this account, so it isn't offered again.
+app.post("/api/auth/welcomed", requireRole("seller", "admin"), async (req, res) => {
+  await db.run("UPDATE users SET welcomed = 1 WHERE id = ?", req.user.id);
+  res.json({ ok: true });
+});
 
 app.post("/api/auth/password", requireRole("seller", "admin"), async (req, res) => {
   const { current, next } = req.body;
@@ -1307,7 +1314,7 @@ admin.post("/sellers", async (req, res) => {
   if (!key) throw bad("phoneInvalid");
   const password = newPassword(req.body.password);
   if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", key)) throw bad("phoneTaken");
-  const r = await db.run("INSERT INTO users (email, password_hash, role, status, phone, profile_done, created_at) VALUES (?, ?, 'seller', 'approved', ?, 0, ?)",
+  const r = await db.run("INSERT INTO users (email, password_hash, role, status, phone, profile_done, welcomed, created_at) VALUES (?, ?, 'seller', 'approved', ?, 0, 0, ?)",
     key, hashPassword(password), typed, Date.now());
   res.status(201).json({ id: r.id });
 });

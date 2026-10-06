@@ -1,5 +1,5 @@
 import { $, el, rp, t, icon, leafSvg, api, toast, mapFrame, contactButtons, hoursLine, favs, favButton, shareButton, tap, aheadLine, deliveryLine, sizesOf, sizesOnSale, fromPrice, priceText, priceTag } from "/common.js";
-import { lang, locale } from "/i18n.js";
+import { lang, locale, tIn } from "/i18n.js";
 import { openOrder } from "/order.js";
 
 let products = [];
@@ -17,6 +17,8 @@ const stallById = (id) => stalls.find((s) => s.id === id);
 // What a shop has in stock, for the order helper; `firstId` starts the order with one of that product.
 const menuOf = (stall) => products.filter((p) => p.sellerId === stall.id && p.available);
 const orderFrom = (stall, firstId) => () => openOrder(stall, menuOf(stall), firstId);
+// The message a WhatsApp button fills in. Sellers read Indonesian, so it's always in Indonesian.
+const waText = (key, vars) => tIn("id", key, vars);
 
 // "Temporarily closed" label with the seller's note, shown instead of the contact buttons while a shop is paused.
 // Sellers who also sell from home keep the address private and send it to the buyer on WhatsApp.
@@ -48,6 +50,9 @@ async function loadCatalog() {
     if (onCatalog) { $("#notice").textContent = t("shop.loadFailed") + e.message; $("#notice").hidden = false; }
   }
   renderShop();
+  // Shop cards offer the order helper only once their products are known; the shop list may have come first.
+  renderShops();
+  renderShopPage();
 }
 
 let query = "";
@@ -113,7 +118,7 @@ function renderShop() {
         p.available ? null : el("span", { class: "soldout", text: t("shop.soldOut") }),
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) }) : null)));
+          : p.available ? contactButtons(stall, waText("contact.waProduct", { stall: stall.stallName, product: p.name }), { directions: false, order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) }) : null)));
   }
   renderHero();
   openLinkedProduct();
@@ -306,7 +311,7 @@ function renderCompare() {
         !q.available ? el("span", { class: "soldout", text: t("shop.soldOut") }) : null,
         !stall ? null
           : stall.paused ? closedNotice(stall)
-          : q.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id), onTap: (kind) => tap(q.id, kind) }) : null)));
+          : q.available ? contactButtons(stall, waText("contact.waProduct", { stall: stall.stallName, product: q.name }), { order: orderFrom(stall, q.id), onTap: (kind) => tap(q.id, kind) }) : null)));
   }
 }
 
@@ -341,7 +346,7 @@ function renderShops() {
         homeNote(s),
         el("p", {}, el("span", { class: "muted small", text: t("shops.contact") + "  " }), el("span", { class: "contact", text: s.phone })),
         el("a", { class: "btn ghost small shop-open", href: "/lapak?id=" + s.id }, icon("store"), t("shopPage.view")),
-        s.paused ? closedNotice(s) : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null }))));
+        s.paused ? closedNotice(s) : contactButtons(s, waText("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null }))));
   }
 }
 
@@ -368,7 +373,7 @@ function renderShopPage() {
       el("div", { class: "detail-tools" },
         favButton("s", s.id, s.stallName, renderShopPage),
         shareButton({ title: s.stallName, text: t("share.shopText", { stall: s.stallName }), url: location.origin + "/lapak?id=" + s.id })),
-      s.paused ? null : contactButtons(s, t("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null })),
+      s.paused ? null : contactButtons(s, waText("contact.waShop", { stall: s.stallName }), { order: menuOf(s).length ? orderFrom(s) : null })),
     mapFrame(s.shop, t("shops.mapOf", { name: s.stallName })));
   renderPosters();
 }
@@ -455,7 +460,7 @@ function renderProduct() {
         aheadLine(stall),
         deliveryLine(stall, { full: true }),
         stall.paused ? closedNotice(stall)
-          : p.available ? contactButtons(stall, t("contact.waProduct", { stall: stall.stallName, product: p.name }), { order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) })
+          : p.available ? contactButtons(stall, waText("contact.waProduct", { stall: stall.stallName, product: p.name }), { order: orderFrom(stall, p.id), onTap: (kind) => tap(p.id, kind) })
           : null)) : null);
 }
 
