@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "{items} 件或以上的订单：请至少提前 1 个月订购",
 "ahead.bigMonths": "{items} 件或以上的订单：请至少提前 {n} 个月订购",
 "book.dateFrom": "请选择 {date} 或之后的日期。",
-"book.peopleFor": "此项适合 {group}。"
+"book.peopleFor": "此项适合 {group}。",
+"wa.title": "给{name}发送 WhatsApp 消息？",
+"wa.lede": "WhatsApp 将打开并附带这条消息。卖家阅读印尼语，所以消息用印尼语写成：",
+"wa.meaning": "意思是：",
+"wa.open": "打开 WhatsApp"
 }

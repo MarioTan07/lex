@@ -1,5 +1,5 @@
 // Shared helpers for the shop, seller desk and admin desk.
-import { t, lang, locale } from "/i18n.js";
+import { t, tIn, lang, locale } from "/i18n.js";
 import { PROVINCES, countryName } from "/places.js";
 export { t };
 export const $ = (s, root = document) => root.querySelector(s);
@@ -204,8 +204,16 @@ export const instagramLink = (handle) => "https://instagram.com/" + encodeURICom
 // with `order`, English-speaking buyers get the step-by-step order helper instead; Indonesian buyers just message the seller.
 // `onTap(kind)` runs when the buyer calls ("call"), messages ("whatsapp") or orders ("order"), to count interest in a product.
 export { telNumber };
+// `message` is a text key and its values ({ key, vars }): sellers read Indonesian, so WhatsApp always gets the
+// Indonesian. Visitors reading another language first see a window with that message and what it says.
 export function contactButtons(stall, message, { directions = true, order = null, onTap = null } = {}) {
   const tel = telNumber(stall.phone), wa = waNumber(stall.phone), dir = directions && stall.shop ? directionsLink(stall.shop) : null;
+  const idText = tIn("id", message.key, message.vars), waHref = "https://wa.me/" + wa + "?text=" + encodeURIComponent(idText);
+  const preview = (e) => {
+    if (lang === "id") return; // the link opens WhatsApp straight away, and the box below counts it
+    e.preventDefault(); e.stopPropagation();
+    waPreview({ name: stall.stallName, idText, ownText: t(message.key, message.vars), href: waHref, onSend: () => onTap && onTap("whatsapp") });
+  };
   const name = stall.stallName;
   return el("div", { class: "reach", onclick: onTap ? (e) => {
     const b = e.target.closest("a, button");
@@ -217,7 +225,7 @@ export function contactButtons(stall, message, { directions = true, order = null
   } : null },
     tel ? el("a", { class: "btn ghost", href: "tel:" + tel, "aria-label": t("contact.callLabel", { name }) }, icon("phone"), t("contact.call")) : null,
     wa && order && lang !== "id" ? el("button", { type: "button", class: "btn", onclick: order, "aria-label": t("order.buttonLabel", { name }) }, icon("message"), t("order.button"))
-    : wa ? el("a", { class: "btn", href: "https://wa.me/" + wa + "?text=" + encodeURIComponent(message), target: "_blank", rel: "noopener", "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
+    : wa ? el("a", { class: "btn", href: waHref, target: "_blank", rel: "noopener", onclick: preview, "aria-label": t("contact.waLabel", { name }) }, icon("message"), t("contact.whatsapp")) : null,
     dir ? el("a", { class: "btn ghost", href: dir, target: "_blank", rel: "noopener", "aria-label": t("contact.directionsLabel", { name }) }, icon("navigation"), t("contact.directions")) : null,
     stall.instagram ? el("a", { class: "btn ghost", href: instagramLink(stall.instagram), target: "_blank", rel: "noopener", "aria-label": t("contact.instagramLabel", { name }) }, icon("instagram"), "Instagram") : null);
 }
@@ -495,6 +503,24 @@ export function confirmBox({ title, text, confirm, cancel = t("confirm.cancel"),
   });
 }
 
+// "Send a WhatsApp message to Bu Ning?": the Indonesian message WhatsApp will open with, what it says in the
+// visitor's language, then Open WhatsApp or Cancel.
+export function waPreview({ name, idText, ownText, href, onSend }) {
+  const close = () => { if (d.open) d.close(); d.remove(); };
+  const open = el("a", { class: "btn", href, target: "_blank", rel: "noopener", onclick: () => { onSend && onSend(); setTimeout(close, 0); } }, icon("message"), t("wa.open"));
+  const d = el("dialog", { class: "confirm wa-preview", "aria-labelledby": "waPreviewTitle" },
+    el("h2", { id: "waPreviewTitle", text: t("wa.title", { name }) }),
+    el("p", { text: t("wa.lede") }),
+    el("pre", { class: "order-message", lang: "id", text: idText }),
+    el("p", { class: "wa-meaning" }, el("strong", { text: t("wa.meaning") }), " " + ownText),
+    el("div", { class: "confirm-actions" }, el("button", { type: "button", class: "btn ghost", onclick: close, text: t("confirm.cancel") }), open));
+  d.addEventListener("click", (e) => { if (e.target === d) close(); });
+  d.addEventListener("close", () => d.remove());
+  document.body.append(d);
+  d.showModal();
+  open.focus();
+}
+
 // ---------- site contacts ----------
 // Kampoeng Semanggi's Instagram (in every footer), and the sponsor contact on /cerita.
 // An admin sets them under Admin → Situs; a contact without a number shows "coming soon" instead of buttons.
@@ -513,7 +539,7 @@ function siteContact(box, label, phone, message, email = "") {
 }
 function renderSite() {
   if (!site) return;
-  siteContact(siteSpots.sponsor, site.sponsorName, site.sponsorPhone, t("contact.waSponsor"), site.sponsorEmail);
+  siteContact(siteSpots.sponsor, site.sponsorName, site.sponsorPhone, { key: "contact.waSponsor" }, site.sponsorEmail);
   if (siteSpots.ig) {
     siteSpots.ig.hidden = !site.instagram;
     if (site.instagram) siteSpots.ig.replaceChildren(el("a", { href: instagramLink(site.instagram), target: "_blank", rel: "noopener" }, icon("instagram"), " @" + site.instagram));

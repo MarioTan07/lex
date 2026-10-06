@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "{items}개 이상 주문: 최소 1개월 전에 주문하세요",
 "ahead.bigMonths": "{items}개 이상 주문: 최소 {n}개월 전에 주문하세요",
 "book.dateFrom": "{date} 이후 날짜를 선택하세요.",
-"book.peopleFor": "{group} 대상입니다."
+"book.peopleFor": "{group} 대상입니다.",
+"wa.title": "{name}에게 WhatsApp 메시지를 보낼까요?",
+"wa.lede": "이 메시지가 입력된 채로 WhatsApp이 열립니다. 판매자는 인도네시아어를 읽기 때문에 메시지는 인도네시아어로 되어 있습니다:",
+"wa.meaning": "뜻:",
+"wa.open": "WhatsApp 열기"
 }

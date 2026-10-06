@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "Đơn từ {items} trở lên: đặt trước ít nhất 1 tháng",
 "ahead.bigMonths": "Đơn từ {items} trở lên: đặt trước ít nhất {n} tháng",
 "book.dateFrom": "Hãy chọn {date} hoặc sau đó.",
-"book.peopleFor": "Gói này dành cho {group}."
+"book.peopleFor": "Gói này dành cho {group}.",
+"wa.title": "Gửi tin WhatsApp cho {name}?",
+"wa.lede": "WhatsApp sẽ mở với tin nhắn này. Người bán đọc tiếng Indonesia nên tin nhắn được viết bằng tiếng Indonesia:",
+"wa.meaning": "Nghĩa là:",
+"wa.open": "Mở WhatsApp"
 }

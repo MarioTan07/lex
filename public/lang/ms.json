@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "Pesanan {items} atau lebih: pesan sekurang-kurangnya 1 bulan lebih awal",
 "ahead.bigMonths": "Pesanan {items} atau lebih: pesan sekurang-kurangnya {n} bulan lebih awal",
 "book.dateFrom": "Pilih {date} atau selepasnya.",
-"book.peopleFor": "Ini untuk {group}."
+"book.peopleFor": "Ini untuk {group}.",
+"wa.title": "Hantar WhatsApp kepada {name}?",
+"wa.lede": "WhatsApp akan dibuka dengan mesej ini. Penjual membaca bahasa Indonesia, jadi mesej ditulis dalam bahasa Indonesia:",
+"wa.meaning": "Maksudnya:",
+"wa.open": "Buka WhatsApp"
 }

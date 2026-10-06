@@ -688,6 +688,10 @@ dialog.confirm::backdrop { background: rgb(28 32 24 / .5); }
 dialog.confirm h2 { font-size: 1.5rem; }
 dialog.confirm p { color: var(--muted); line-height: 1.6; margin-block: 10px 22px; }
 .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+dialog.wa-preview { overflow-x: hidden; }
+dialog.wa-preview p { margin-block: 8px 12px; }
+dialog.wa-preview .wa-meaning { font-size: .875rem; margin-block: 12px 22px; }
+dialog.wa-preview .wa-meaning strong { color: var(--ink); }
 .btn.danger { background: var(--bad); border-color: var(--bad); color: var(--paper); }
 
 /* Arabic reads right to left */

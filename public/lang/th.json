@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "สั่ง {items} ชิ้นขึ้นไป: สั่งล่วงหน้าอย่างน้อย 1 เดือน",
 "ahead.bigMonths": "สั่ง {items} ชิ้นขึ้นไป: สั่งล่วงหน้าอย่างน้อย {n} เดือน",
 "book.dateFrom": "เลือกวันที่ {date} หรือหลังจากนั้น",
-"book.peopleFor": "รายการนี้สำหรับ {group}"
+"book.peopleFor": "รายการนี้สำหรับ {group}",
+"wa.title": "ส่ง WhatsApp ถึง {name} ไหม?",
+"wa.lede": "WhatsApp จะเปิดพร้อมข้อความนี้ ผู้ขายอ่านภาษาอินโดนีเซีย ข้อความจึงเป็นภาษาอินโดนีเซีย:",
+"wa.meaning": "ความหมาย:",
+"wa.open": "เปิด WhatsApp"
 }

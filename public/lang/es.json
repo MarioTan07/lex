@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "Pedidos de {items} o más: pide con al menos 1 mes de antelación",
 "ahead.bigMonths": "Pedidos de {items} o más: pide con al menos {n} meses de antelación",
 "book.dateFrom": "Elige el {date} o después.",
-"book.peopleFor": "Esto es para {group}."
+"book.peopleFor": "Esto es para {group}.",
+"wa.title": "¿Enviar un WhatsApp a {name}?",
+"wa.lede": "WhatsApp se abrirá con este mensaje. Los vendedores leen indonesio, así que está escrito en indonesio:",
+"wa.meaning": "Lo que dice:",
+"wa.open": "Abrir WhatsApp"
 }

@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "{items} या अधिक के ऑर्डर: कम से कम 1 महीना पहले ऑर्डर करें",
 "ahead.bigMonths": "{items} या अधिक के ऑर्डर: कम से कम {n} महीने पहले ऑर्डर करें",
 "book.dateFrom": "{date} या उसके बाद की तारीख चुनें।",
-"book.peopleFor": "यह {group} के लिए है।"
+"book.peopleFor": "यह {group} के लिए है।",
+"wa.title": "{name} को WhatsApp संदेश भेजें?",
+"wa.lede": "WhatsApp इस संदेश के साथ खुलेगा। विक्रेता इंडोनेशियाई पढ़ते हैं, इसलिए संदेश इंडोनेशियाई में है:",
+"wa.meaning": "इसका मतलब:",
+"wa.open": "WhatsApp खोलें"
 }

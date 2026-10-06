@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "ការកុម្ម៉ង់ {items} ឬច្រើនជាងនេះ៖ កុម្ម៉ង់មុនយ៉ាងហោចណាស់ 1 ខែ",
 "ahead.bigMonths": "ការកុម្ម៉ង់ {items} ឬច្រើនជាងនេះ៖ កុម្ម៉ង់មុនយ៉ាងហោចណាស់ {n} ខែ",
 "book.dateFrom": "សូមជ្រើស {date} ឬក្រោយនោះ។",
-"book.peopleFor": "នេះសម្រាប់ {group}។"
+"book.peopleFor": "នេះសម្រាប់ {group}។",
+"wa.title": "ផ្ញើសារ WhatsApp ទៅ {name}?",
+"wa.lede": "WhatsApp នឹងបើកជាមួយសារនេះ។ អ្នកលក់អានភាសាឥណ្ឌូនេស៊ី ដូច្នេះសារសរសេរជាភាសាឥណ្ឌូនេស៊ី៖",
+"wa.meaning": "អត្ថន័យ៖",
+"wa.open": "បើក WhatsApp"
 }

@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "{items}個以上のご注文：1か月前までにご注文ください",
 "ahead.bigMonths": "{items}個以上のご注文：{n}か月前までにご注文ください",
 "book.dateFrom": "{date}以降を選んでください。",
-"book.peopleFor": "こちらは{group}向けです。"
+"book.peopleFor": "こちらは{group}向けです。",
+"wa.title": "{name}にWhatsAppでメッセージを送りますか？",
+"wa.lede": "このメッセージが入った状態でWhatsAppが開きます。販売者はインドネシア語を読むため、メッセージはインドネシア語です：",
+"wa.meaning": "意味：",
+"wa.open": "WhatsAppを開く"
 }

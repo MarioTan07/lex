@@ -393,5 +393,9 @@
 "ahead.bigMonth1": "Order na {items} o higit pa: mag-order nang hindi bababa sa 1 buwan bago",
 "ahead.bigMonths": "Order na {items} o higit pa: mag-order nang hindi bababa sa {n} buwan bago",
 "book.dateFrom": "Pumili ng {date} o pagkatapos.",
-"book.peopleFor": "Para ito sa {group}."
+"book.peopleFor": "Para ito sa {group}.",
+"wa.title": "Magpadala ng WhatsApp kay {name}?",
+"wa.lede": "Magbubukas ang WhatsApp na may ganitong mensahe. Indonesian ang binabasa ng mga nagbebenta, kaya nakasulat ito sa Indonesian:",
+"wa.meaning": "Ang ibig sabihin:",
+"wa.open": "Buksan ang WhatsApp"
 }

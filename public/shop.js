@@ -18,7 +18,8 @@ const stallById = (id) => stalls.find((s) => s.id === id);
 const menuOf = (stall) => products.filter((p) => p.sellerId === stall.id && p.available);
 const orderFrom = (stall, firstId) => () => openOrder(stall, menuOf(stall), firstId);
 // The message a WhatsApp button fills in. Sellers read Indonesian, so it's always in Indonesian.
-const waText = (key, vars) => tIn("id", key, vars);
+// A WhatsApp message for contactButtons: it sends the Indonesian and shows other visitors what it says.
+const waText = (key, vars) => ({ key, vars });
 
 // "Temporarily closed" label with the seller's note, shown instead of the contact buttons while a shop is paused.
 // Sellers who also sell from home keep the address private and send it to the buyer on WhatsApp.
