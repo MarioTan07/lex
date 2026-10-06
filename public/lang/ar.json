@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "طلبات {items} قطعة أو أكثر: اطلب قبل أسبوع على الأقل",
 "ahead.bigWeeks": "طلبات {items} قطعة أو أكثر: اطلب قبل {n} أسابيع على الأقل",
 "ahead.bigMonth1": "طلبات {items} قطعة أو أكثر: اطلب قبل شهر على الأقل",
-"ahead.bigMonths": "طلبات {items} قطعة أو أكثر: اطلب قبل {n} أشهر على الأقل"
+"ahead.bigMonths": "طلبات {items} قطعة أو أكثر: اطلب قبل {n} أشهر على الأقل",
+"book.dateFrom": "اختر {date} أو بعده.",
+"book.peopleFor": "هذا مخصص لـ {group}."
 }

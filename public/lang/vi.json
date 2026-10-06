@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "Đơn từ {items} trở lên: đặt trước ít nhất 1 tuần",
 "ahead.bigWeeks": "Đơn từ {items} trở lên: đặt trước ít nhất {n} tuần",
 "ahead.bigMonth1": "Đơn từ {items} trở lên: đặt trước ít nhất 1 tháng",
-"ahead.bigMonths": "Đơn từ {items} trở lên: đặt trước ít nhất {n} tháng"
+"ahead.bigMonths": "Đơn từ {items} trở lên: đặt trước ít nhất {n} tháng",
+"book.dateFrom": "Hãy chọn {date} hoặc sau đó.",
+"book.peopleFor": "Gói này dành cho {group}."
 }

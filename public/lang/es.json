@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "Pedidos de {items} o más: pide con al menos 1 semana de antelación",
 "ahead.bigWeeks": "Pedidos de {items} o más: pide con al menos {n} semanas de antelación",
 "ahead.bigMonth1": "Pedidos de {items} o más: pide con al menos 1 mes de antelación",
-"ahead.bigMonths": "Pedidos de {items} o más: pide con al menos {n} meses de antelación"
+"ahead.bigMonths": "Pedidos de {items} o más: pide con al menos {n} meses de antelación",
+"book.dateFrom": "Elige el {date} o después.",
+"book.peopleFor": "Esto es para {group}."
 }

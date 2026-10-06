@@ -9,15 +9,32 @@ import { lang, tIn, langInfo, locale } from "/i18n.js";
 const REQUESTS = ["req.sauceSeparate", "req.notSpicy", "req.extraSpicy", "req.extraKrupuk"];
 const CLASHES = { "req.notSpicy": "req.extraSpicy", "req.extraSpicy": "req.notSpicy" };
 
-// Pickup times every half hour from 07.00 to 21.00, `offset` days from today. The earliest is 30 minutes
+// Days and times are Surabaya time (WIB, UTC+7), like the shop's opening hours, wherever the buyer is.
+// wibClock() is a Date whose local fields read the time in Surabaya right now.
+const wibClock = () => new Date(Date.now() + (7 * 60 + new Date().getTimezoneOffset()) * 60000);
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]; // in Date.getDay() order
+const toMin = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
+// When pickup is possible on a date, in minutes after midnight: the shop's opening hours that day
+// (null when it's closed), or 07.00 to 21.00 when the shop hasn't set opening hours.
+function pickupHours(date) {
+  const h = o.stall.hours;
+  if (!h || !Object.values(h).some(Boolean)) return [7 * 60, 21 * 60 + 1];
+  const day = h[DAY_KEYS[date.getDay()]];
+  if (!day) return null;
+  const open = toMin(day[0]), close = toMin(day[1]);
+  return [open, close > open ? close : 24 * 60]; // open past midnight: until the end of the day
+}
+// Pickup times every half hour while the shop is open, `offset` days from today. The earliest is 30 minutes
 // from now, or later when the seller needs notice (orderAhead, in minutes; bigOrder.ahead for big orders).
 const notice = () => (isBig() ? o.stall.bigOrder.ahead : o.stall.orderAhead) || 0;
 const ahead = () => Math.max(30, notice());
 function slots(offset) {
-  const now = new Date(), earliest = now.getTime() + ahead() * 60000;
-  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset).getTime();
+  const now = wibClock(), earliest = now.getTime() + ahead() * 60000;
+  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+  const hours = pickupHours(date);
   const out = [];
-  for (let m = 7 * 60; m <= 21 * 60; m += 30) if (day + m * 60000 >= earliest) out.push(m);
+  if (!hours) return out;
+  for (let m = Math.ceil(hours[0] / 30) * 30; m < hours[1]; m += 30) if (date.getTime() + m * 60000 >= earliest) out.push(m);
   return out;
 }
 // The days a buyer can choose: "as soon as possible" when no notice is needed, then the first days that
@@ -32,7 +49,7 @@ function dayChoices() {
 function dayName(offset, l, long = false) {
   if (offset === 0) return long ? null : tIn(l, "order.today");
   if (offset === 1) return long ? null : tIn(l, "order.tomorrow");
-  const now = new Date(), d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+  const now = wibClock(), d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
   return new Intl.DateTimeFormat(locale(l), long ? { weekday: "long", day: "numeric", month: "long" } : { weekday: "short", day: "numeric", month: "short" }).format(d);
 }
 const hhmm = (m, sep = ":") => String(Math.floor(m / 60)).padStart(2, "0") + sep + String(m % 60).padStart(2, "0");

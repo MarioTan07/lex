@@ -344,6 +344,8 @@ class HttpError extends Error {
   constructor(status, key, vars = {}) { super(key); this.status = status; this.key = key; this.vars = vars; }
 }
 const bad = (key, vars) => new HttpError(400, key, vars);
+// Ids in addresses are whole numbers; anything else ("abc") is simply not found, rather than a database error.
+const wholeId = (_req, _res, next, v) => next(/^\d{1,15}$/.test(v) ? undefined : new HttpError(404, "notFound"));
 
 function text(v, max, { required = false, label = "label.field" } = {}) {
   const s = typeof v === "string" ? v.trim() : "";
@@ -352,7 +354,8 @@ function text(v, max, { required = false, label = "label.field" } = {}) {
   return s;
 }
 function money(v) {
-  const n = Number(v);
+  // An empty price is missing, not Rp 0.
+  const n = v === null || v === undefined || String(v).trim() === "" ? NaN : Number(v);
   if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("price");
   return Math.round(n);
 }
@@ -805,6 +808,7 @@ const MAX_POSTERS = 10;
 const POSTER_SELECT = `SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM posters p JOIN users u ON u.id = p.seller_id`;
 const posterOut = (r) => ({ id: r.id, sellerId: r.seller_id, stallName: r.stall_name, image: r.image, caption: r.caption, createdAt: r.created_at });
 
+app.param("id", wholeId);
 app.get("/api/stalls/:id/posters", async (req, res) => {
   const rows = await db.all(POSTER_SELECT + " WHERE p.seller_id = ? AND u.role = 'seller' AND u.status = 'approved' AND u.profile_done = 1 ORDER BY p.created_at DESC",
     Number(req.params.id));
@@ -874,14 +878,15 @@ async function translateLong(textIn, from, to) {
   return out.join("\n");
 }
 app.post("/api/translate", async (req, res) => {
-  const note = text(req.body.text, 200, { required: true, label: "label.field" });
   const from = req.body.from, to = req.body.to;
+  // A buyer's note is at most 200 characters; its Indonesian translation, sent back to check it, can be longer.
+  const note = text(req.body.text, from === "id" ? 600 : 200, { required: true, label: "label.field" });
   // Buyers' notes go from the buyer's language into Indonesian, and back again so they can check them.
   const TRANSLATE_LANGS = ["ar", "my", "zh-CN", "en", "tl", "fr", "hi", "ja", "km", "ko", "lo", "ms", "es", "th", "vi"];
   if (!(TRANSLATE_LANGS.includes(from) && to === "id") && !(from === "id" && TRANSLATE_LANGS.includes(to))) return res.json({ text: note });
   if (translations.has(from + to + "|" + note)) return res.json({ text: translations.get(from + to + "|" + note) });
   await limit("translate:" + clientIp(req), 30, HOUR, "translateBusy");
-  const out = await machineTranslate(note, from, to);
+  const out = await translateLong(note, from, to);
   if (!out) throw new HttpError(502, "translateFailed");
   res.json({ text: out });
 });
@@ -1122,6 +1127,7 @@ app.get("/api/about", async (_req, res) => {
 
 // ----- seller -----
 const seller = express.Router();
+seller.param("id", wholeId);
 seller.use(requireRole("seller"));
 // Until a new seller has filled in their details, the profile is the only thing they can change.
 seller.use((req, _res, next) => next(req.user.profile_done || req.path === "/profile" ? undefined : new HttpError(403, "profileIncomplete")));
@@ -1267,6 +1273,7 @@ app.use("/api/seller", seller);
 
 // ----- admin -----
 const admin = express.Router();
+admin.param("id", wholeId);
 admin.use(requireRole("admin"));
 
 admin.get("/overview", async (_req, res) => {

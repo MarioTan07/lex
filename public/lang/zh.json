@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "{items} 件或以上的订单：请至少提前 1 周订购",
 "ahead.bigWeeks": "{items} 件或以上的订单：请至少提前 {n} 周订购",
 "ahead.bigMonth1": "{items} 件或以上的订单：请至少提前 1 个月订购",
-"ahead.bigMonths": "{items} 件或以上的订单：请至少提前 {n} 个月订购"
+"ahead.bigMonths": "{items} 件或以上的订单：请至少提前 {n} 个月订购",
+"book.dateFrom": "请选择 {date} 或之后的日期。",
+"book.peopleFor": "此项适合 {group}。"
 }
