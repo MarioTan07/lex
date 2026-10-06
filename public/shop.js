@@ -152,12 +152,19 @@ function renderHero() {
   const pick = $("#pick");
   pick.hidden = !open.length;
   if (open.length) {
+    // One dish a day, not one product: a dish sold by four shops would otherwise fill four days.
+    // When the dish comes round again, it shows another shop's product.
     const day = Math.floor(Date.now() / 864e5);
-    const p = open[day % open.length];
-    $("#pickName").textContent = p.name;
-    $("#pickPrice").textContent = priceText(p);
-    pick.onclick = () => openProduct(p);
-    pick.setAttribute("aria-label", t("detail.view", { name: p.name }));
+    const dishes = dishGroups(open);
+    const dish = dishes[day % dishes.length];
+    const p = dish[Math.floor(day / dishes.length) % dish.length];
+    const shops = new Set(dish.map((q) => q.sellerId)).size;
+    const name = shops > 1 ? dishName(dish) : p.name;
+    $("#pickName").textContent = name;
+    // Sold by several shops: the lowest price, and a tap opens the comparison of every shop.
+    $("#pickPrice").textContent = shops > 1 ? t("size.from", { price: rp(Math.min(...dish.map(fromPrice))) }) : priceText(p);
+    pick.onclick = () => (shops > 1 ? openCompare(p) : openProduct(p));
+    pick.setAttribute("aria-label", t("detail.view", { name }));
   }
   $("#joined").hidden = !stalls.length;
   $("#joinedCount").textContent = t("hero.sellers", { n: stalls.length });
@@ -178,10 +185,28 @@ function initials(name) {
 
 
 // ---------- compare: every shop selling a product ----------
-// Sellers type product names themselves, so "Pecel Semanggi" and "pecel semanggi Suroboyo" count as the same dish:
-// case and extra spaces are ignored, and a name matches when one contains the other.
-const norm = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
-const sameProduct = (a, b) => { const x = norm(a.name), y = norm(b.name); return x.includes(y) || y.includes(x); };
+// Sellers type product names themselves, so "Pecel Semanggi", "pecel semanggi" and "pecel semanggi Suroboyo"
+// count as the same dish: case, accents, punctuation and extra spaces are ignored, and a name matches when
+// it contains the other one as whole words ("pecel semanggi!" and "Pecel-Semanggi" too).
+const norm = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+const sameProduct = (a, b) => { const x = " " + norm(a.name) + " ", y = " " + norm(b.name) + " "; return x.includes(y) || y.includes(x); };
+// Products grouped into dishes, shortest name first in each group ("Pecel semanggi" before "Pecel semanggi
+// porsi besar"), groups in alphabetical order, so the order is the same every day.
+function dishGroups(list) {
+  const groups = [];
+  for (const p of [...list].sort((a, b) => norm(a.name).length - norm(b.name).length || a.id - b.id)) {
+    const g = groups.find((g) => sameProduct(g[0], p));
+    if (g) g.push(p); else groups.push([p]);
+  }
+  return groups.sort((a, b) => norm(a[0].name).localeCompare(norm(b[0].name)));
+}
+// A dish's name as most of its sellers write it ("Pecel semanggi" over "pecel SEMANGGI"), from its shortest names.
+function dishName(dish) {
+  const base = norm(dish[0].name), count = new Map();
+  for (const p of dish) if (norm(p.name) === base) { const n = p.name.trim().replace(/\s+/g, " "); count.set(n, (count.get(n) || 0) + 1); }
+  const looks = (n) => (n[0] === n[0].toUpperCase() ? 1 : 0) - (n === n.toUpperCase() ? 1 : 0); // capitalised, not ALL CAPS
+  return [...count].sort((a, b) => b[1] - a[1] || looks(b[0]) - looks(a[0]))[0][0];
+}
 
 let comparing = null;          // the product whose panel is open
 let sortBy = "cheapest";       // "cheapest" | "perPiece" | "closest"
