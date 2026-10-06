@@ -1054,6 +1054,7 @@ async function aboutTexts() {
 async function seedAbout() {
   if (!(await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.about'"))) await seedAboutFirst();
   await renameStallCaptions();
+  await addGroupPhotos();
   // Partners added to the starting content later go in once each, at the end of the list, unless one with
   // that name is already there (an admin may have added it, or another server instance just did).
   for (const p of ABOUT_SEED.partners.filter((x) => x.addedLater)) {
@@ -1080,6 +1081,29 @@ async function renameStallCaptions() {
   }
   writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES ('seeded.fix.toko', '1')"]);
   await db.batch(writes);
+}
+// Photos added to starting groups after the first release. Each set goes in once (flag), skipping photos the
+// group already has; the batik photos only go in if that group still has no photos (an admin may have added their own).
+const ADDED_GROUP_PHOTOS = [
+  { flag: "seeded.fix.batik", group: "Pembatik", onlyIfEmpty: true },
+  // The wide field photo goes first, so it is the big one at the top of the group.
+  { flag: "seeded.fix.fields", group: "Petani", srcs: ["/warga-foto/petani-3.jpg", "/warga-foto/petani-4.jpg"], first: ["/warga-foto/petani-3.jpg"] },
+];
+async function addGroupPhotos() {
+  for (const fix of ADDED_GROUP_PHOTOS) {
+    if (await db.one("SELECT 1 AS x FROM settings WHERE key = ?", fix.flag)) continue;
+    const writes = [];
+    const row = await db.one("SELECT id, photos FROM people_groups WHERE name = ?", fix.group);
+    const have = row ? jsonList(row.photos) : [];
+    if (row && !(fix.onlyIfEmpty && have.length)) {
+      const add = ABOUT_SEED.groups.find((g) => g.name === fix.group).photos
+        .filter((p) => (!fix.srcs || fix.srcs.includes(p.src)) && !have.some((h) => h.src === p.src)).map((p) => ({ ...p, auto: false }));
+      const front = add.filter((p) => fix.first?.includes(p.src));
+      if (add.length) writes.push(["UPDATE people_groups SET photos = ? WHERE id = ?", JSON.stringify([...front, ...have, ...add.filter((p) => !front.includes(p))]), row.id]);
+    }
+    writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES (?, '1')", fix.flag]);
+    await db.batch(writes);
+  }
 }
 async function seedAboutFirst() {
   const now = Date.now(), writes = [];

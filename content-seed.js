@@ -37,6 +37,13 @@ export default {
       "showSellers": false,
       "photos": [
         {
+          "src": "/warga-foto/petani-3.jpg",
+          "w": 1100,
+          "h": 825,
+          "caption": "Sawah semanggi yang hijau di Kendung.",
+          "captionEn": "A lush semanggi field in Kendung."
+        },
+        {
           "src": "/warga-foto/petani-1.jpg",
           "w": 842,
           "h": 1100,
@@ -49,6 +56,13 @@ export default {
           "h": 825,
           "caption": "Sawah semanggi di tengah kampung.",
           "captionEn": "A semanggi field in the middle of the village."
+        },
+        {
+          "src": "/warga-foto/petani-4.jpg",
+          "w": 619,
+          "h": 1100,
+          "caption": "Semanggi tumbuh rapat di sawah yang tergenang.",
+          "captionEn": "Semanggi growing thick in a flooded field."
         }
       ]
     },
@@ -187,7 +201,22 @@ export default {
       "body": "Perajin batik dari kampung, bagian dari kerajinan dan budaya Kampoeng Semanggi.",
       "bodyEn": "Batik makers from the village, part of Kampoeng Semanggi's crafts and culture.",
       "showSellers": false,
-      "photos": []
+      "photos": [
+        {
+          "src": "/warga-foto/batik-1.jpg",
+          "w": 825,
+          "h": 1100,
+          "caption": "Kain batik bermotif semanggi sebelum diwarnai.",
+          "captionEn": "Batik cloth with a semanggi pattern, before colouring."
+        },
+        {
+          "src": "/warga-foto/batik-2.jpg",
+          "w": 825,
+          "h": 1100,
+          "caption": "Batik motif semanggi setelah diwarnai.",
+          "captionEn": "The semanggi-pattern batik after colouring."
+        }
+      ]
     }
   ],
   "partners": [
