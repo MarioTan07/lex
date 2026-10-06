@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "Pesanan {items} atau lebih: pesan sekurang-kurangnya 1 minggu lebih awal",
 "ahead.bigWeeks": "Pesanan {items} atau lebih: pesan sekurang-kurangnya {n} minggu lebih awal",
 "ahead.bigMonth1": "Pesanan {items} atau lebih: pesan sekurang-kurangnya 1 bulan lebih awal",
-"ahead.bigMonths": "Pesanan {items} atau lebih: pesan sekurang-kurangnya {n} bulan lebih awal"
+"ahead.bigMonths": "Pesanan {items} atau lebih: pesan sekurang-kurangnya {n} bulan lebih awal",
+"book.dateFrom": "Pilih {date} atau selepasnya.",
+"book.peopleFor": "Ini untuk {group}."
 }

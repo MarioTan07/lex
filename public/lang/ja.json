@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "{items}個以上のご注文：1週間前までにご注文ください",
 "ahead.bigWeeks": "{items}個以上のご注文：{n}週間前までにご注文ください",
 "ahead.bigMonth1": "{items}個以上のご注文：1か月前までにご注文ください",
-"ahead.bigMonths": "{items}個以上のご注文：{n}か月前までにご注文ください"
+"ahead.bigMonths": "{items}個以上のご注文：{n}か月前までにご注文ください",
+"book.dateFrom": "{date}以降を選んでください。",
+"book.peopleFor": "こちらは{group}向けです。"
 }

@@ -148,7 +148,11 @@ function drawBooking() {
     const text = message("id");
     preview.textContent = text;
     if (meaning) meaning.querySelector("pre").textContent = message(lang);
-    const missing = !booking.date ? t("book.needDate") : !booking.name ? t("book.needName") : "";
+    // Typed values can be outside what the form allows (a date before the notice, too many people), so check them.
+    const tooSoon = dateInput.tagName === "INPUT" && booking.date && booking.date < minDate;
+    const people = booking.people < (l.groupMin || 1) || (l.groupMax && booking.people > l.groupMax);
+    const missing = !booking.date ? t("book.needDate") : tooSoon ? t("book.dateFrom", { date: dateText(minDate) })
+      : people ? t("book.peopleFor", { group: groupText(l) }) : !booking.name ? t("book.needName") : "";
     warn.textContent = missing; warn.hidden = !missing;
     send.setAttribute("aria-disabled", String(!!missing));
     send.href = missing ? "#" : "https://wa.me/" + waNumber(phone) + "?text=" + encodeURIComponent(text);

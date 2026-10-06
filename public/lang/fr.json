@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "Commandes de {items} articles ou plus : commandez au moins 1 semaine à l'avance",
 "ahead.bigWeeks": "Commandes de {items} articles ou plus : commandez au moins {n} semaines à l'avance",
 "ahead.bigMonth1": "Commandes de {items} articles ou plus : commandez au moins 1 mois à l'avance",
-"ahead.bigMonths": "Commandes de {items} articles ou plus : commandez au moins {n} mois à l'avance"
+"ahead.bigMonths": "Commandes de {items} articles ou plus : commandez au moins {n} mois à l'avance",
+"book.dateFrom": "Choisissez le {date} ou après.",
+"book.peopleFor": "Ceci est prévu pour {group}."
 }

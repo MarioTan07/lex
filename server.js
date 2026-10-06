@@ -72,7 +72,7 @@ async function setup() {
       continue;
     }
     const password = slot.password || crypto.randomBytes(9).toString("base64url");
-    await db.run("INSERT INTO users (email, password_hash, role, status, name, created_at) VALUES (?, ?, 'admin', 'approved', ?, ?)",
+    await db.run("INSERT INTO users (email, password_hash, role, status, name, welcomed, created_at) VALUES (?, ?, 'admin', 'approved', ?, 0, ?)",
       slot.email, hashPassword(password), slot.name, Date.now());
     if (slot.password) console.log(`Created the admin account ${slot.email}.`);
     else notes.push(`${slot.name}\n  Email: ${slot.email}\n  Password: ${password}\n`);
@@ -344,6 +344,8 @@ class HttpError extends Error {
   constructor(status, key, vars = {}) { super(key); this.status = status; this.key = key; this.vars = vars; }
 }
 const bad = (key, vars) => new HttpError(400, key, vars);
+// Ids in addresses are whole numbers; anything else ("abc") is simply not found, rather than a database error.
+const wholeId = (_req, _res, next, v) => next(/^\d{1,15}$/.test(v) ? undefined : new HttpError(404, "notFound"));
 
 function text(v, max, { required = false, label = "label.field" } = {}) {
   const s = typeof v === "string" ? v.trim() : "";
@@ -352,7 +354,8 @@ function text(v, max, { required = false, label = "label.field" } = {}) {
   return s;
 }
 function money(v) {
-  const n = Number(v);
+  // An empty price is missing, not Rp 0.
+  const n = v === null || v === undefined || String(v).trim() === "" ? NaN : Number(v);
   if (!Number.isFinite(n) || n < 0 || n > 100_000_000) throw bad("price");
   return Math.round(n);
 }
@@ -432,6 +435,8 @@ function publicUser(u) {
     // loginPhone: the phone number a seller signs in with, written the local way (0812…); null for email sign-ins.
     loginPhone: isPhoneKey(u.email) ? "0" + u.email.slice(2) : null,
     profileDone: u.role !== "seller" || !!u.profile_done,
+    // false until the account has been offered the tutorial (once, on its first sign-in, on whatever device).
+    welcomed: !!u.welcomed,
     id: u.id, email: u.email, role: u.role, status: u.status, name: u.name, stallName: u.stall_name, phone: u.phone,
     shop: { address: u.shop_address || "", lat: u.shop_lat ?? null, lng: u.shop_lng ?? null },
     home: { address: u.home_address || "", lat: u.home_lat ?? null, lng: u.home_lng ?? null },
@@ -736,6 +741,11 @@ app.post("/api/auth/logout", async (req, res) => {
 });
 
 app.get("/api/me", (req, res) => res.json({ user: publicUser(req.user) || null }));
+// The tutorial welcome has been offered to this account, so it isn't offered again.
+app.post("/api/auth/welcomed", requireRole("seller", "admin"), async (req, res) => {
+  await db.run("UPDATE users SET welcomed = 1 WHERE id = ?", req.user.id);
+  res.json({ ok: true });
+});
 
 app.post("/api/auth/password", requireRole("seller", "admin"), async (req, res) => {
   const { current, next } = req.body;
@@ -805,6 +815,7 @@ const MAX_POSTERS = 10;
 const POSTER_SELECT = `SELECT p.*, COALESCE(NULLIF(u.stall_name, ''), u.name) AS stall_name FROM posters p JOIN users u ON u.id = p.seller_id`;
 const posterOut = (r) => ({ id: r.id, sellerId: r.seller_id, stallName: r.stall_name, image: r.image, caption: r.caption, createdAt: r.created_at });
 
+app.param("id", wholeId);
 app.get("/api/stalls/:id/posters", async (req, res) => {
   const rows = await db.all(POSTER_SELECT + " WHERE p.seller_id = ? AND u.role = 'seller' AND u.status = 'approved' AND u.profile_done = 1 ORDER BY p.created_at DESC",
     Number(req.params.id));
@@ -874,14 +885,15 @@ async function translateLong(textIn, from, to) {
   return out.join("\n");
 }
 app.post("/api/translate", async (req, res) => {
-  const note = text(req.body.text, 200, { required: true, label: "label.field" });
   const from = req.body.from, to = req.body.to;
+  // A buyer's note is at most 200 characters; its Indonesian translation, sent back to check it, can be longer.
+  const note = text(req.body.text, from === "id" ? 600 : 200, { required: true, label: "label.field" });
   // Buyers' notes go from the buyer's language into Indonesian, and back again so they can check them.
   const TRANSLATE_LANGS = ["ar", "my", "zh-CN", "en", "tl", "fr", "hi", "ja", "km", "ko", "lo", "ms", "es", "th", "vi"];
   if (!(TRANSLATE_LANGS.includes(from) && to === "id") && !(from === "id" && TRANSLATE_LANGS.includes(to))) return res.json({ text: note });
   if (translations.has(from + to + "|" + note)) return res.json({ text: translations.get(from + to + "|" + note) });
   await limit("translate:" + clientIp(req), 30, HOUR, "translateBusy");
-  const out = await machineTranslate(note, from, to);
+  const out = await translateLong(note, from, to);
   if (!out) throw new HttpError(502, "translateFailed");
   res.json({ text: out });
 });
@@ -1054,6 +1066,7 @@ async function aboutTexts() {
 async function seedAbout() {
   if (!(await db.one("SELECT 1 AS x FROM settings WHERE key = 'seeded.about'"))) await seedAboutFirst();
   await renameStallCaptions();
+  await addGroupPhotos();
   // Partners added to the starting content later go in once each, at the end of the list, unless one with
   // that name is already there (an admin may have added it, or another server instance just did).
   for (const p of ABOUT_SEED.partners.filter((x) => x.addedLater)) {
@@ -1081,6 +1094,29 @@ async function renameStallCaptions() {
   writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES ('seeded.fix.toko', '1')"]);
   await db.batch(writes);
 }
+// Photos added to starting groups after the first release. Each set goes in once (flag), skipping photos the
+// group already has; the batik photos only go in if that group still has no photos (an admin may have added their own).
+const ADDED_GROUP_PHOTOS = [
+  { flag: "seeded.fix.batik", group: "Pembatik", onlyIfEmpty: true },
+  // The wide field photo goes first, so it is the big one at the top of the group.
+  { flag: "seeded.fix.fields", group: "Petani", srcs: ["/warga-foto/petani-3.jpg", "/warga-foto/petani-4.jpg"], first: ["/warga-foto/petani-3.jpg"] },
+];
+async function addGroupPhotos() {
+  for (const fix of ADDED_GROUP_PHOTOS) {
+    if (await db.one("SELECT 1 AS x FROM settings WHERE key = ?", fix.flag)) continue;
+    const writes = [];
+    const row = await db.one("SELECT id, photos FROM people_groups WHERE name = ?", fix.group);
+    const have = row ? jsonList(row.photos) : [];
+    if (row && !(fix.onlyIfEmpty && have.length)) {
+      const add = ABOUT_SEED.groups.find((g) => g.name === fix.group).photos
+        .filter((p) => (!fix.srcs || fix.srcs.includes(p.src)) && !have.some((h) => h.src === p.src)).map((p) => ({ ...p, auto: false }));
+      const front = add.filter((p) => fix.first?.includes(p.src));
+      if (add.length) writes.push(["UPDATE people_groups SET photos = ? WHERE id = ?", JSON.stringify([...front, ...have, ...add.filter((p) => !front.includes(p))]), row.id]);
+    }
+    writes.push(["INSERT OR IGNORE INTO settings (key, value) VALUES (?, '1')", fix.flag]);
+    await db.batch(writes);
+  }
+}
 async function seedAboutFirst() {
   const now = Date.now(), writes = [];
   ABOUT_SEED.groups.forEach((g, i) => writes.push(["INSERT OR IGNORE INTO people_groups (id, position, name, name_en, body, body_en, icon, show_sellers, photos, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1098,6 +1134,7 @@ app.get("/api/about", async (_req, res) => {
 
 // ----- seller -----
 const seller = express.Router();
+seller.param("id", wholeId);
 seller.use(requireRole("seller"));
 // Until a new seller has filled in their details, the profile is the only thing they can change.
 seller.use((req, _res, next) => next(req.user.profile_done || req.path === "/profile" ? undefined : new HttpError(403, "profileIncomplete")));
@@ -1243,6 +1280,7 @@ app.use("/api/seller", seller);
 
 // ----- admin -----
 const admin = express.Router();
+admin.param("id", wholeId);
 admin.use(requireRole("admin"));
 
 admin.get("/overview", async (_req, res) => {
@@ -1276,7 +1314,7 @@ admin.post("/sellers", async (req, res) => {
   if (!key) throw bad("phoneInvalid");
   const password = newPassword(req.body.password);
   if (await db.one("SELECT 1 AS x FROM users WHERE email = ?", key)) throw bad("phoneTaken");
-  const r = await db.run("INSERT INTO users (email, password_hash, role, status, phone, profile_done, created_at) VALUES (?, ?, 'seller', 'approved', ?, 0, ?)",
+  const r = await db.run("INSERT INTO users (email, password_hash, role, status, phone, profile_done, welcomed, created_at) VALUES (?, ?, 'seller', 'approved', ?, 0, 0, ?)",
     key, hashPassword(password), typed, Date.now());
   res.status(201).json({ id: r.id });
 });

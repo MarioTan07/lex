@@ -36,7 +36,7 @@ function groupText(g, sellers) {
 export function renderGroups(box, groups, sellers) {
   const rows = groups.filter((g) => g.photos.length).map((g) => el("article", { class: "group", id: "warga-" + g.id }, groupPhotos(g.photos), groupText(g, sellers)));
   const cards = groups.filter((g) => !g.photos.length).map((g) => el("article", { class: "group card", id: "warga-" + g.id }, groupText(g, sellers)));
-  box.replaceChildren(...rows, cards.length ? el("div", { class: "group-cards" }, ...cards) : null);
+  box.replaceChildren(...rows, ...(cards.length ? [el("div", { class: "group-cards" }, ...cards)] : []));
 }
 export function renderPartners(box, partners) {
   box.replaceChildren(...partners.map((p) => el("li", { id: "mitra-" + p.id },

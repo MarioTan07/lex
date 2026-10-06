@@ -391,5 +391,7 @@
 "ahead.bigWeek1": "Order na {items} o higit pa: mag-order nang hindi bababa sa 1 linggo bago",
 "ahead.bigWeeks": "Order na {items} o higit pa: mag-order nang hindi bababa sa {n} linggo bago",
 "ahead.bigMonth1": "Order na {items} o higit pa: mag-order nang hindi bababa sa 1 buwan bago",
-"ahead.bigMonths": "Order na {items} o higit pa: mag-order nang hindi bababa sa {n} buwan bago"
+"ahead.bigMonths": "Order na {items} o higit pa: mag-order nang hindi bababa sa {n} buwan bago",
+"book.dateFrom": "Pumili ng {date} o pagkatapos.",
+"book.peopleFor": "Para ito sa {group}."
 }

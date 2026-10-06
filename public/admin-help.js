@@ -365,7 +365,7 @@ const HEAD_LINKS = [
 
 setupHelp({
   tours: TOURS, guide: GUIDE, headLinks: HEAD_LINKS,
-  doneKey: "ks-admin-tours", welcomeKey: "ks-admin-welcomed",
+  doneKey: "ks-admin-tours",
   openTab: (tab) => { const b = tabBtn(tab); if (b && b.getAttribute("aria-selected") !== "true") pageClick(b); },
   welcome: {
     title: "Selamat datang di halaman admin! 👋",

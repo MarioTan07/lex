@@ -571,7 +571,7 @@ const HEAD_LINKS = [
 setupHelp({
   tours: TOURS, guide: GUIDE, headLinks: HEAD_LINKS, bilingual: true,
   button: "#helpBtn, .help-open",
-  doneKey: "ks-seller-tours", welcomeKey: "ks-seller-welcomed",
+  doneKey: "ks-seller-tours",
   welcome: {
     title: { id: "Selamat datang di halaman toko Anda! 👋", en: "Welcome to your shop page! 👋" },
     text: { id: "Mau tur singkat? Dalam satu menit Anda dikenalkan dengan halaman ini. Tur tidak mengubah apa pun, dan bisa dibuka lagi kapan saja lewat tombol Bantuan.",

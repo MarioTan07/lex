@@ -45,7 +45,7 @@ export function pageClick(node) {
 }
 
 export function setupHelp(cfg) {
-  const { tours, guide, headLinks = [], bilingual = false, doneKey, welcomeKey, openTab, welcome, allDone } = cfg;
+  const { tours, guide, headLinks = [], bilingual = false, doneKey, openTab, welcome, allDone } = cfg;
   const cur = () => (bilingual && lang === "en" ? "en" : "id");
   const L = (x) => (x && typeof x === "object" ? x[cur()] ?? x.id : x);
   const ui = (k, vars) => fill(UI[cur()][k], vars || {});
@@ -270,11 +270,19 @@ export function setupHelp(cfg) {
   // The language switch is outside the bubble, so it can only change between tours; redraw labels anyway.
   window.addEventListener("langchange", () => { labelQ(); if (run) show(run.i, 1, false); });
 
-  // ---------- first time on this device ----------
-  // Offered once, the first time the signed-in page appears.
-  function offerWelcome() {
-    if (store.get(welcomeKey)) return;
-    store.set(welcomeKey, "1");
+  // ---------- first sign-in of an account ----------
+  // Offered once per account, the first time its signed-in page appears, on whatever phone or computer.
+  // The website remembers it for the account, so a new seller on a shared phone still gets it.
+  let offering = false;
+  async function offerWelcome() {
+    if (offering || !signedIn()) return;
+    offering = true;
+    try {
+      const me = await fetch("/api/me").then((r) => r.json()).then((x) => x.user).catch(() => null);
+      if (!me || me.welcomed || !signedIn()) return;
+      const ok = await fetch("/api/auth/welcomed", { method: "POST" }).then((r) => r.ok).catch(() => false);
+      if (!ok) return;
+    } finally { offering = false; }
     const d = el("dialog", { class: "confirm", "aria-labelledby": "welcomeTitle" },
       el("h2", { id: "welcomeTitle", text: L(welcome.title) }),
       el("p", { text: L(welcome.text) }),

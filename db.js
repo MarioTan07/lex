@@ -188,6 +188,9 @@ const ADDED_USER_COLUMNS = {
   // Pickup only or delivery, as JSON: {"mode":"pickup"} or {"mode":"delivery","countries":["ID","SG"],"regions":["Jawa Timur"]}.
   // regions are Indonesian provinces, only when Indonesia is a country. Empty = the seller hasn't said.
   delivery: "TEXT NOT NULL DEFAULT ''",
+  // 0 until the account has been offered the tutorial on its first sign-in. Accounts that existed before
+  // this was added have used the site already, so they start at 1; new accounts are created with 0.
+  welcomed: "INTEGER NOT NULL DEFAULT 1",
 };
 // Product columns added later. pieces: how many pieces one listed price covers (e.g. Rp 160.000 for 65),
 // for comparing prices per piece; empty means not given. category: one of the catalog filter categories.
